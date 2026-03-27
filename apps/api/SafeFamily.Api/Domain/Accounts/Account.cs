@@ -28,6 +28,9 @@ public class Account : AuditableEntity
     public bool SuspiciousActivityFlag { get; set; }
     public string? Notes { get; set; }
 
+    /// <summary>When non-null the account has been soft-archived and is hidden from normal queries.</summary>
+    public DateTimeOffset? ArchivedAt { get; set; }
+
     // ── Navigation ─────────────────────────────────────────────────────────────
     public Family Family { get; set; } = null!;
     public FamilyPerson? Member { get; set; }

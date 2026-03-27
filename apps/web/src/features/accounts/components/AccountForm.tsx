@@ -3,10 +3,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
   ACCOUNT_TYPES,
+  ACCOUNT_TYPE_LABELS,
   TWO_FACTOR_STATUSES,
+  TWO_FACTOR_LABELS,
   RECOVERY_STATUSES,
+  RECOVERY_LABELS,
   type AccountFormValues,
 } from '../accounts.types'
+import type { FamilyMember } from '@/features/families/families.types'
 
 const schema = z.object({
   memberId: z.string().optional().default(''),
@@ -26,6 +30,7 @@ const schema = z.object({
 })
 
 interface Props {
+  members: FamilyMember[]
   defaultValues?: Partial<AccountFormValues>
   onSubmit: (values: AccountFormValues) => void
   onCancel: () => void
@@ -42,6 +47,7 @@ const labelClass = 'mb-1 block text-sm font-medium text-gray-700'
 const errorClass = 'mt-1 text-xs text-red-500'
 
 export function AccountForm({
+  members,
   defaultValues,
   onSubmit,
   onCancel,
@@ -76,6 +82,23 @@ export function AccountForm({
         </p>
       )}
 
+      {/* Member */}
+      {members.length > 0 && (
+        <div>
+          <label htmlFor="memberId" className={labelClass}>
+            Family member
+          </label>
+          <select id="memberId" {...register('memberId')} className={selectClass}>
+            <option value="">— None (shared / unassigned) —</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Account type */}
       <div>
         <label htmlFor="accountType" className={labelClass}>
@@ -84,7 +107,7 @@ export function AccountForm({
         <select id="accountType" {...register('accountType')} className={selectClass}>
           {ACCOUNT_TYPES.map((t) => (
             <option key={t} value={t}>
-              {t}
+              {ACCOUNT_TYPE_LABELS[t]}
             </option>
           ))}
         </select>
@@ -119,7 +142,7 @@ export function AccountForm({
         <select id="twoFactorStatus" {...register('twoFactorStatus')} className={selectClass}>
           {TWO_FACTOR_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {TWO_FACTOR_LABELS[s]}
             </option>
           ))}
         </select>
@@ -133,7 +156,7 @@ export function AccountForm({
         <select id="recoveryEmailStatus" {...register('recoveryEmailStatus')} className={selectClass}>
           {RECOVERY_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {RECOVERY_LABELS[s]}
             </option>
           ))}
         </select>
@@ -147,7 +170,7 @@ export function AccountForm({
         <select id="recoveryPhoneStatus" {...register('recoveryPhoneStatus')} className={selectClass}>
           {RECOVERY_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {RECOVERY_LABELS[s]}
             </option>
           ))}
         </select>

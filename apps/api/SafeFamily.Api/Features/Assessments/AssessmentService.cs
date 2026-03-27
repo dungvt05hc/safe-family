@@ -76,7 +76,6 @@ public class AssessmentService : IAssessmentService
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
         var assessment = await _db.Assessments
-            .Include(a => a.Answers)
             .Where(a => a.FamilyId == familyId)
             .OrderByDescending(a => a.CreatedAt)
             .FirstOrDefaultAsync(ct);
@@ -84,12 +83,25 @@ public class AssessmentService : IAssessmentService
         if (assessment is null)
             return null;
 
-        // Recompute immediate actions from persisted answers so we don't have to store them
-        var answerMap = assessment.Answers.ToDictionary(a => a.QuestionId, _ => (string?)null);
-        // We only need the answer values to regenerate actions; re-run score from stored category scores
         var immediateActions = RebuildImmediateActions(assessment);
-
         return ToResponse(assessment, immediateActions);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<AssessmentResponse>> GetHistoryAsync(
+        Guid userId,
+        CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var assessments = await _db.Assessments
+            .Where(a => a.FamilyId == familyId)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(ct);
+
+        return assessments
+            .Select(a => ToResponse(a, []))
+            .ToList();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

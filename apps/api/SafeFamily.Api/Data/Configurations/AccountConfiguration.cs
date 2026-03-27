@@ -48,6 +48,8 @@ public class AccountConfiguration : AuditableEntityConfiguration<Account>
             .HasForeignKey(a => a.FamilyId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(a => a.ArchivedAt);
+
         builder.HasOne(a => a.Member)
             .WithMany()
             .HasForeignKey(a => a.MemberId)

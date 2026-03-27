@@ -32,6 +32,9 @@ namespace SafeFamily.Api.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
+                    b.Property<DateTimeOffset?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamptz");
 
@@ -249,6 +252,11 @@ namespace SafeFamily.Api.Migrations
                     b.Property<DateTimeOffset>("PreferredStartAt")
                         .HasColumnType("timestamptz");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamptz");
 
@@ -408,6 +416,9 @@ namespace SafeFamily.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("BackupEnabled")
                         .HasColumnType("boolean");

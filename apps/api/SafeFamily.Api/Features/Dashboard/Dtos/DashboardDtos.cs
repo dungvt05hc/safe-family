@@ -5,7 +5,9 @@ public record DashboardResponse(
     RiskSummaryDto RiskSummary,
     CountsSummaryDto Counts,
     IReadOnlyList<string> ImmediateActions,
-    IReadOnlyList<TopChecklistItemDto> TopPendingItems);
+    IReadOnlyList<TopChecklistItemDto> TopPendingItems,
+    IReadOnlyList<RecentIncidentDto> RecentIncidents,
+    IReadOnlyList<RecentBookingDto> RecentBookings);
 
 public record FamilySummaryDto(
     Guid Id,
@@ -29,3 +31,19 @@ public record TopChecklistItemDto(
     string Title,
     string Category,
     int Priority);
+
+public record RecentIncidentDto(
+    Guid Id,
+    string Type,
+    string Severity,
+    string Status,
+    string Summary,
+    DateTimeOffset CreatedAt);
+
+public record RecentBookingDto(
+    Guid Id,
+    string PackageName,
+    string Channel,
+    string Status,
+    DateTimeOffset PreferredStartAt,
+    DateTimeOffset CreatedAt);

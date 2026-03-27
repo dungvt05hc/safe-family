@@ -61,7 +61,7 @@ public class AdminService : IAdminService
             .Select(b => new AdminBookingResponse(
                 b.Id, b.FamilyId, b.Family.DisplayName,
                 b.PackageId, b.Package.Name,
-                b.PreferredStartAt, b.Channel, b.Notes, b.PaymentStatus, b.CreatedAt))
+                b.PreferredStartAt, b.Channel, b.Notes, b.Status, b.PaymentStatus, b.CreatedAt))
             .ToListAsync(ct);
     }
 
@@ -81,7 +81,26 @@ public class AdminService : IAdminService
         return new AdminBookingResponse(
             booking.Id, booking.FamilyId, booking.Family.DisplayName,
             booking.PackageId, booking.Package.Name,
-            booking.PreferredStartAt, booking.Channel, booking.Notes, booking.PaymentStatus, booking.CreatedAt);
+            booking.PreferredStartAt, booking.Channel, booking.Notes, booking.Status, booking.PaymentStatus, booking.CreatedAt);
+    }
+
+    public async Task<AdminBookingResponse> UpdateAdminBookingStatusAsync(Guid bookingId, BookingStatus newStatus, CancellationToken ct = default)
+    {
+        var booking = await _db.Bookings
+            .Include(b => b.Family)
+            .Include(b => b.Package)
+            .FirstOrDefaultAsync(b => b.Id == bookingId, ct);
+
+        if (booking is null)
+            throw new NotFoundException("Booking", bookingId);
+
+        booking.Status = newStatus;
+        await _db.SaveChangesAsync(ct);
+
+        return new AdminBookingResponse(
+            booking.Id, booking.FamilyId, booking.Family.DisplayName,
+            booking.PackageId, booking.Package.Name,
+            booking.PreferredStartAt, booking.Channel, booking.Notes, booking.Status, booking.PaymentStatus, booking.CreatedAt);
     }
 
     public async Task<IReadOnlyList<AdminIncidentResponse>> GetIncidentsAsync(CancellationToken ct = default)

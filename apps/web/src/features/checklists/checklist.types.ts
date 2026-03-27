@@ -1,7 +1,7 @@
 // ── API shapes (match ChecklistItemDto / UpdateChecklistStatusRequest) ────────
 
 /** Backend enum values returned as strings by the API */
-export type ChecklistStatus   = 'Pending' | 'Completed' | 'Dismissed'
+export type ChecklistStatus   = 'Pending' | 'Completed' | 'Dismissed' | 'InProgress'
 export type ChecklistPriority = 1 | 2 | 3  // 1 = High, 2 = Medium, 3 = Low
 
 /** Matches ChecklistItemDto from ChecklistDtos.cs */
@@ -16,6 +16,16 @@ export interface ChecklistItem {
   priority:    ChecklistPriority
   sourceType:  string
   sourceId:    string | null
+  dueAt:       string | null
+  helpUrl:     string | null
+}
+
+/** Matches ChecklistSummaryDto from ChecklistDtos.cs */
+export interface ChecklistSummary {
+  totalTasks:        number
+  highPriorityTasks: number
+  inProgressTasks:   number
+  completedTasks:    number
 }
 
 /** Matches UpdateChecklistStatusRequest record */
@@ -27,6 +37,14 @@ export interface UpdateChecklistStatusRequest {
 
 export type PriorityFilter = 'All' | '1' | '2' | '3'
 export type StatusFilter   = 'All' | ChecklistStatus
+
+/** Query params sent to GET /api/checklists (mirrors ChecklistQueryParams on backend) */
+export interface ChecklistApiFilters {
+  severity?: string
+  status?:   string
+  category?: string
+  search?:   string
+}
 export type CategoryFilter = 'All' | string
 
 export interface ChecklistFilters {
@@ -53,15 +71,17 @@ export const PRIORITY_BADGE: Record<ChecklistPriority, BadgeVariant> = {
 }
 
 export const STATUS_LABEL: Record<ChecklistStatus, string> = {
-  Pending:   'To Do',
-  Completed: 'Done',
-  Dismissed: 'Skipped',
+  Pending:    'To Do',
+  InProgress: 'In Progress',
+  Completed:  'Done',
+  Dismissed:  'Skipped',
 }
 
 export const STATUS_BADGE: Record<ChecklistStatus, BadgeVariant> = {
-  Pending:   'neutral',
-  Completed: 'success',
-  Dismissed: 'purple',
+  Pending:    'neutral',
+  InProgress: 'info',
+  Completed:  'success',
+  Dismissed:  'purple',
 }
 
 /** Maps raw API category strings to human-readable display labels */

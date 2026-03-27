@@ -4,6 +4,8 @@ import { bookingsService } from '../bookings.service'
 export const bookingKeys = {
   packages: ['service-packages'] as const,
   myBookings: ['bookings', 'my'] as const,
+  detail: (id: string) => ['bookings', id] as const,
+  summary: ['bookings', 'summary'] as const,
 }
 
 export function useServicePackages() {
@@ -19,3 +21,19 @@ export function useMyBookings() {
     queryFn: () => bookingsService.getMyBookings(),
   })
 }
+
+export function useBooking(id: string | undefined) {
+  return useQuery({
+    queryKey: bookingKeys.detail(id ?? ''),
+    queryFn: () => bookingsService.getById(id!),
+    enabled: !!id,
+  })
+}
+
+export function useBookingSummary() {
+  return useQuery({
+    queryKey: bookingKeys.summary,
+    queryFn: () => bookingsService.getSummary(),
+  })
+}
+

@@ -3,6 +3,7 @@ import { useCreateAccount } from '../hooks/useAccountMutations'
 import { AccountForm } from './AccountForm'
 import type { AccountFormValues } from '../accounts.types'
 import { ApiError } from '@/types/api'
+import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 
 interface Props {
   onClose: () => void
@@ -10,6 +11,7 @@ interface Props {
 
 export function AddAccountModal({ onClose }: Props) {
   const { mutate, isPending } = useCreateAccount()
+  const { data: members = [] } = useFamilyMembers()
   const [serverError, setServerError] = useState<string | null>(null)
 
   function handleSubmit(values: AccountFormValues) {
@@ -34,6 +36,7 @@ export function AddAccountModal({ onClose }: Props) {
           Add account
         </h2>
         <AccountForm
+          members={members}
           onSubmit={handleSubmit}
           onCancel={onClose}
           isSubmitting={isPending}

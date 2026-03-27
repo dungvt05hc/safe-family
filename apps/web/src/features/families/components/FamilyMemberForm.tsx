@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { AGE_GROUPS, RELATIONSHIP_OPTIONS, type FamilyMemberFormValues } from '../families.types'
+import { AGE_GROUPS, ECOSYSTEM_OPTIONS, RELATIONSHIP_OPTIONS, type FamilyMemberFormValues } from '../families.types'
 
 const schema = z.object({
   displayName: z
@@ -15,7 +15,10 @@ const schema = z.object({
   ageGroup: z.enum(['Infant', 'Child', 'Teen', 'Adult', 'Senior'] as const, {
     errorMap: () => ({ message: 'Select an age group' }),
   }),
-  primaryEcosystem: z.string().max(100).optional().default(''),
+  primaryEcosystem: z.enum(
+    ['google', 'apple', 'microsoft', 'android', 'mixed', 'other', ''] as const,
+    { errorMap: () => ({ message: 'Select an ecosystem' }) },
+  ).default(''),
   isPrimaryContact: z.boolean().default(false),
 })
 
@@ -123,13 +126,18 @@ export function FamilyMemberForm({
         <label htmlFor="primaryEcosystem" className="mb-1 block text-sm font-medium text-gray-700">
           Primary ecosystem
         </label>
-        <input
+        <select
           id="primaryEcosystem"
-          type="text"
-          placeholder="e.g. Apple, Google, Windows"
           {...register('primaryEcosystem')}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        />
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          <option value="">— Select ecosystem —</option>
+          {ECOSYSTEM_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
         {errors.primaryEcosystem && (
           <p className="mt-1 text-xs text-red-500">{errors.primaryEcosystem.message}</p>
         )}

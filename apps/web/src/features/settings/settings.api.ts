@@ -1,68 +1,96 @@
+import { apiClient } from '@/lib/api-client'
 import type {
   ChangePasswordRequest,
   NotificationSettings,
+  PrivacyActionResponse,
   ProfileSettings,
   UserSettings,
 } from './settings.types'
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-// TODO: Replace with real API calls once backend endpoints are ready.
-// e.g. getSettings: () => apiClient.get<UserSettings>('/api/settings')
+// ── Backend response shapes ───────────────────────────────────────────────────
 
-const MOCK_SETTINGS: UserSettings = {
-  profile: {
-    fullName: 'Alex Johnson',
-    email:    'alex@example.com',
-    phone:    '+61 400 000 000',
-  },
-  notifications: {
-    emailNotifications: true,
-    bookingUpdates:     true,
-    incidentAlerts:     true,
-    reminders:          false,
-  },
+interface BackendProfile {
+  id:       string
+  fullName: string
+  email:    string
+  phone:    string | null
 }
 
-// ── API functions ─────────────────────────────────────────────────────────────
+interface BackendNotifications {
+  emailNotificationsEnabled:    boolean
+  bookingUpdatesEnabled:        boolean
+  incidentAlertsEnabled:        boolean
+  reminderNotificationsEnabled: boolean
+}
 
-const delay = (ms = 600) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+interface BackendSettingsResponse {
+  profile:       BackendProfile
+  notifications: BackendNotifications
+}
+
+// ── Mapping helpers ───────────────────────────────────────────────────────────
+
+function toNotificationSettings(n: BackendNotifications): NotificationSettings {
+  return {
+    emailNotifications: n.emailNotificationsEnabled,
+    bookingUpdates:     n.bookingUpdatesEnabled,
+    incidentAlerts:     n.incidentAlertsEnabled,
+    reminders:          n.reminderNotificationsEnabled,
+  }
+}
+
+function toProfileSettings(p: BackendProfile): ProfileSettings {
+  return {
+    fullName: p.fullName,
+    email:    p.email,
+    phone:    p.phone ?? '',
+  }
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
 
 export const settingsApi = {
   /** GET /api/settings */
-  getSettings: async (): Promise<UserSettings> => {
-    await delay(400)
-    return { ...MOCK_SETTINGS, profile: { ...MOCK_SETTINGS.profile }, notifications: { ...MOCK_SETTINGS.notifications } }
-  },
+  getSettings: (): Promise<UserSettings> =>
+    apiClient.get<BackendSettingsResponse>('/api/settings').then((r) => ({
+      profile:       toProfileSettings(r.profile),
+      notifications: toNotificationSettings(r.notifications),
+    })),
 
   /** PUT /api/settings/profile */
-  updateProfile: async (data: ProfileSettings): Promise<ProfileSettings> => {
-    await delay()
-    Object.assign(MOCK_SETTINGS.profile, data)
-    return { ...MOCK_SETTINGS.profile }
-  },
+  updateProfile: (data: ProfileSettings): Promise<ProfileSettings> =>
+    apiClient
+      .put<BackendProfile>('/api/settings/profile', {
+        fullName: data.fullName,
+        phone:    data.phone || null,
+      })
+      .then(toProfileSettings),
 
   /** PUT /api/settings/notifications */
-  updateNotifications: async (data: NotificationSettings): Promise<NotificationSettings> => {
-    await delay()
-    Object.assign(MOCK_SETTINGS.notifications, data)
-    return { ...MOCK_SETTINGS.notifications }
-  },
+  updateNotifications: (data: NotificationSettings): Promise<NotificationSettings> =>
+    apiClient
+      .put<BackendNotifications>('/api/settings/notifications', {
+        emailNotificationsEnabled:    data.emailNotifications,
+        bookingUpdatesEnabled:        data.bookingUpdates,
+        incidentAlertsEnabled:        data.incidentAlerts,
+        reminderNotificationsEnabled: data.reminders,
+      })
+      .then(toNotificationSettings),
 
-  /** POST /api/settings/change-password */
-  changePassword: async (_data: ChangePasswordRequest): Promise<void> => {
-    await delay(800)
-    // TODO: return apiClient.post('/api/settings/change-password', data)
-  },
+  /** POST /api/settings/change-password — returns 204 No Content */
+  changePassword: (data: ChangePasswordRequest): Promise<void> =>
+    apiClient.post('/api/settings/change-password', {
+      currentPassword:    data.currentPassword,
+      newPassword:        data.newPassword,
+      confirmNewPassword: data.confirmPassword,
+    }),
 
   /** POST /api/settings/request-data-export */
-  requestDataExport: async (): Promise<void> => {
-    await delay(700)
-    // TODO: return apiClient.post('/api/settings/request-data-export')
-  },
+  requestDataExport: (): Promise<PrivacyActionResponse> =>
+    apiClient.post<PrivacyActionResponse>('/api/settings/request-data-export'),
 
   /** POST /api/settings/request-account-deletion */
-  requestAccountDeletion: async (): Promise<void> => {
-    await delay(800)
-    // TODO: return apiClient.post('/api/settings/request-account-deletion')
-  },
+  requestAccountDeletion: (): Promise<PrivacyActionResponse> =>
+    apiClient.post<PrivacyActionResponse>('/api/settings/request-account-deletion'),
 }
+

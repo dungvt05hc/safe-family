@@ -10,13 +10,14 @@ public class UpdateFamilyMemberRequest
     public string DisplayName { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(100)]
+    [AllowedValues("self", "spouse", "son", "daughter", "father", "mother",
+                   "grandfather", "grandmother", "sibling", "relative", "caregiver", "other")]
     public string Relationship { get; set; } = string.Empty;
 
     [Required]
     public AgeGroup AgeGroup { get; set; }
 
-    [MaxLength(100)]
+    [AllowedValues("google", "apple", "microsoft", "android", "mixed", "other", "")]
     public string PrimaryEcosystem { get; set; } = string.Empty;
 
     public bool IsPrimaryContact { get; set; }

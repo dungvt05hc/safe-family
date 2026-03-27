@@ -61,6 +61,27 @@ public class IncidentsController : ControllerBase
         return CreatedAtAction(nameof(GetIncident), new { id = incident.Id }, incident);
     }
 
+    // PATCH /api/incidents/{id}/status
+    [HttpPatch("{id:guid}/status")]
+    [EnableRateLimiting("mutations")]
+    [ProducesResponseType(typeof(IncidentResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateIncidentStatusRequest request, CancellationToken ct)
+    {
+        var userId = GetUserId();
+        var result = await _incidentService.UpdateIncidentStatusAsync(userId, id, request, ct);
+
+        if (result is null)
+            return NotFound();
+
+        await _audit.LogAsync("IncidentStatusUpdated", userId, entityType: "Incident", entityId: id,
+            details: $"Status={result.Status}", ct: ct);
+
+        return Ok(result);
+    }
+
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }

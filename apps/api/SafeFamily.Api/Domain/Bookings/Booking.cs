@@ -14,6 +14,7 @@ public class Booking : AuditableEntity
     public DateTimeOffset PreferredStartAt { get; set; }
     public BookingChannel Channel { get; set; }
     public string? Notes { get; set; }
+    public BookingStatus Status { get; set; } = BookingStatus.Pending;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
 
     // ── Navigation ────────────────────────────────────────────────────────────

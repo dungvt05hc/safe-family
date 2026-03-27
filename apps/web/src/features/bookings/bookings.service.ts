@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client'
-import type { BookingResult, CreateBookingRequest, ServicePackage } from './bookings.types'
+import type { BookingResult, BookingSummary, CreateBookingRequest, ServicePackage } from './bookings.types'
 
 export const bookingsService = {
   getServicePackages: (): Promise<ServicePackage[]> =>
@@ -10,4 +10,11 @@ export const bookingsService = {
 
   getMyBookings: (): Promise<BookingResult[]> =>
     apiClient.get('/api/bookings/my'),
+
+  getById: (id: string): Promise<BookingResult> =>
+    apiClient.get(`/api/bookings/${id}`),
+
+  getSummary: (): Promise<BookingSummary> =>
+    apiClient.get('/api/bookings/summary'),
 }
+

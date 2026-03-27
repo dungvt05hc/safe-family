@@ -14,4 +14,8 @@ public interface IAssessmentService
     Task<AssessmentResponse?> GetLatestAssessmentAsync(
         Guid userId,
         CancellationToken ct = default);
+
+    Task<IReadOnlyList<AssessmentResponse>> GetHistoryAsync(
+        Guid userId,
+        CancellationToken ct = default);
 }

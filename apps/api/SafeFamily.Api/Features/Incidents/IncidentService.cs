@@ -57,6 +57,24 @@ public class IncidentService : IIncidentService
         return ToResponse(incident);
     }
 
+    public async Task<IncidentResponse?> UpdateIncidentStatusAsync(Guid userId, Guid id, UpdateIncidentStatusRequest request, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var incident = await _db.Incidents
+            .FirstOrDefaultAsync(i => i.Id == id && i.FamilyId == familyId, ct);
+
+        if (incident is null)
+            return null;
+
+        incident.Status     = request.Status;
+        incident.UpdatedById = userId;
+
+        await _db.SaveChangesAsync(ct);
+
+        return ToResponse(incident);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private async Task<Guid> RequireFamilyIdAsync(Guid userId, CancellationToken ct)

@@ -8,8 +8,8 @@ import { useArchiveFamilyMember } from '../hooks/useFamilyMemberMutations'
 import { AddMemberModal } from '../components/AddMemberModal'
 import { EditMemberModal } from '../components/EditMemberModal'
 import { FamilyCreateForm } from '../components/FamilyCreateForm'
-import type { FamilyMember, Relationship } from '../families.types'
-import { RELATIONSHIP_LABEL } from '../families.types'
+import type { FamilyMember, Relationship, PrimaryEcosystem } from '../families.types'
+import { RELATIONSHIP_LABEL, ECOSYSTEM_LABEL } from '../families.types'
 import { queryClient } from '@/lib/queryClient'
 import { Users } from 'lucide-react'
 
@@ -110,7 +110,7 @@ export function FamilyMembersPage() {
                     <td className="px-4 py-3 font-medium text-gray-900">{m.displayName}</td>
                     <td className="px-4 py-3 text-gray-600">{RELATIONSHIP_LABEL[m.relationship as Relationship] ?? m.relationship}</td>
                     <td className="px-4 py-3 text-gray-600">{m.ageGroup}</td>
-                    <td className="px-4 py-3 text-gray-600">{m.primaryEcosystem || '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{m.primaryEcosystem ? (ECOSYSTEM_LABEL[m.primaryEcosystem as PrimaryEcosystem] ?? m.primaryEcosystem) : '—'}</td>
                     <td className="px-4 py-3">
                       {m.isPrimaryContact
                         ? <Badge variant="success">Yes</Badge>
@@ -140,7 +140,7 @@ export function FamilyMembersPage() {
                         {RELATIONSHIP_LABEL[m.relationship as Relationship] ?? m.relationship} · {m.ageGroup}
                       </p>
                       {m.primaryEcosystem && (
-                        <p className="mt-0.5 text-xs text-gray-400">{m.primaryEcosystem}</p>
+                        <p className="mt-0.5 text-xs text-gray-400">{ECOSYSTEM_LABEL[m.primaryEcosystem as PrimaryEcosystem] ?? m.primaryEcosystem}</p>
                       )}
                       {m.isPrimaryContact && (
                         <Badge variant="success" className="mt-1">Primary contact</Badge>

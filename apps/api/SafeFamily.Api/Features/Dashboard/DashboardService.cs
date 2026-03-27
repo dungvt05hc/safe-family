@@ -45,6 +45,32 @@ public class DashboardService : IDashboardService
             .Select(i => new TopChecklistItemDto(i.Id, i.Title, i.Category.ToString(), i.Priority))
             .ToListAsync(ct);
 
+        var recentIncidents = await _db.Incidents
+            .Where(i => i.FamilyId == familyId)
+            .OrderByDescending(i => i.CreatedAt)
+            .Take(5)
+            .Select(i => new RecentIncidentDto(
+                i.Id,
+                i.Type.ToString(),
+                i.Severity.ToString(),
+                i.Status.ToString(),
+                i.Summary,
+                i.CreatedAt))
+            .ToListAsync(ct);
+
+        var recentBookings = await _db.Bookings
+            .Where(b => b.FamilyId == familyId)
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(5)
+            .Select(b => new RecentBookingDto(
+                b.Id,
+                b.Package.Name,
+                b.Channel.ToString(),
+                b.Status.ToString(),
+                b.PreferredStartAt,
+                b.CreatedAt))
+            .ToListAsync(ct);
+
         var latestAssessment = await _db.Assessments
             .Where(a => a.FamilyId == familyId)
             .OrderByDescending(a => a.CreatedAt)
@@ -66,7 +92,9 @@ public class DashboardService : IDashboardService
             RiskSummary: riskSummary,
             Counts: new CountsSummaryDto(memberCount, accountCount, deviceCount, pendingChecklistCount),
             ImmediateActions: immediateActions,
-            TopPendingItems: topPendingItems);
+            TopPendingItems: topPendingItems,
+            RecentIncidents: recentIncidents,
+            RecentBookings: recentBookings);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

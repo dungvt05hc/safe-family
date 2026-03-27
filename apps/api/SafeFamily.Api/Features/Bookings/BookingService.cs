@@ -64,6 +64,44 @@ public class BookingService : IBookingService
             .ToListAsync(ct);
     }
 
+    public async Task<BookingResponse?> GetBookingByIdAsync(Guid userId, Guid id, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var booking = await _db.Bookings
+            .Include(b => b.Package)
+            .FirstOrDefaultAsync(b => b.Id == id && b.FamilyId == familyId, ct);
+
+        return booking is null ? null : ToResponse(booking);
+    }
+
+    public async Task<BookingSummaryResponse> GetBookingSummaryAsync(Guid userId, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var now = DateTimeOffset.UtcNow;
+
+        var total = await _db.Bookings.CountAsync(b => b.FamilyId == familyId, ct);
+
+        var upcoming = await _db.Bookings
+            .CountAsync(b => b.FamilyId == familyId
+                && b.PreferredStartAt > now
+                && b.Status != BookingStatus.Cancelled, ct);
+
+        var pendingConfirmations = await _db.Bookings
+            .CountAsync(b => b.FamilyId == familyId && b.Status == BookingStatus.Pending, ct);
+
+        var recent = await _db.Bookings
+            .Include(b => b.Package)
+            .Where(b => b.FamilyId == familyId)
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(5)
+            .Select(b => ToResponse(b))
+            .ToListAsync(ct);
+
+        return new BookingSummaryResponse(total, upcoming, pendingConfirmations, recent);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private async Task<Guid> RequireFamilyIdAsync(Guid userId, CancellationToken ct)
@@ -81,5 +119,5 @@ public class BookingService : IBookingService
 
     private static BookingResponse ToResponse(Booking b) =>
         new(b.Id, b.FamilyId, b.PackageId, b.Package.Name, b.PreferredStartAt,
-            b.Channel, b.Notes, b.PaymentStatus, b.CreatedAt);
+            b.Channel, b.Notes, b.Status, b.PaymentStatus, b.CreatedAt, b.UpdatedAt);
 }

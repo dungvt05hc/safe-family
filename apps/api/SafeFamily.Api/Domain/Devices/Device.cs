@@ -37,6 +37,8 @@ public class Device : AuditableEntity
 
     public string? Notes { get; set; }
 
+    public DateTimeOffset? ArchivedAt { get; set; }
+
     // ── Navigation ─────────────────────────────────────────────────────────────
     public Family Family { get; set; } = null!;
     public FamilyPerson? Member { get; set; }

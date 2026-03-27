@@ -13,4 +13,7 @@ export const assessmentsService = {
       if (err?.isNotFound) return null
       throw err
     }),
+
+  getHistory: (): Promise<AssessmentResult[]> =>
+    apiClient.get<AssessmentResult[]>('/api/assessments/history'),
 }

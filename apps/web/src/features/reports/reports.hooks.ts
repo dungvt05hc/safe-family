@@ -1,49 +1,61 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { reportsApi } from './reports.api'
-import type { Report } from './reports.types'
+import type { Report, ReportSummary } from './reports.types'
 
 // ── Query keys ────────────────────────────────────────────────────────────────
 
-export const REPORTS_KEY = ['reports'] as const
+export const reportKeys = {
+  all:     ['reports']                          as const,
+  lists:   ['reports', 'list']                 as const,
+  detail:  (id: string) => ['reports', id]     as const,
+  summary: ['reports', 'summary']              as const,
+}
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
 /**
  * Fetches all reports for the authenticated family.
- * Results are sorted by generatedAt descending (newest first).
+ * Sorted server-side by generatedAt descending.
  */
 export function useReports() {
   return useQuery<Report[], Error>({
-    queryKey: REPORTS_KEY,
+    queryKey: reportKeys.lists,
     queryFn:  reportsApi.getReports,
     staleTime: 60_000,
-    select: (data) =>
-      [...data].sort(
-        (a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime(),
-      ),
+  })
+}
+
+/**
+ * Fetches a single report by ID.
+ */
+export function useReport(id: string | undefined) {
+  return useQuery<Report, Error>({
+    queryKey: reportKeys.detail(id ?? ''),
+    queryFn:  () => reportsApi.getById(id!),
+    enabled:  !!id,
+    staleTime: 60_000,
+  })
+}
+
+/**
+ * Fetches aggregate report counts and latest generation date.
+ */
+export function useReportSummary() {
+  return useQuery<ReportSummary, Error>({
+    queryKey: reportKeys.summary,
+    queryFn:  reportsApi.getSummary,
+    staleTime: 60_000,
   })
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
 
 /**
- * Fetches a report as a Blob and triggers a browser file download.
- * Accepts the report object so we can derive a sensible filename.
+ * Downloads a report. If the report has a file URL, opens it in a new tab.
+ * Otherwise, generates a plain-text download from the report body.
  */
 export function useDownloadReport() {
   return useMutation<void, Error, Report>({
-    mutationFn: async (report) => {
-      const blob = await reportsApi.downloadReport(report.id)
-      const url  = URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
-      // Sanitise the title into a safe filename
-      const safeName = report.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()
-      a.download = `${safeName}.txt`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    },
+    mutationFn: (report) => reportsApi.downloadReport(report),
   })
 }

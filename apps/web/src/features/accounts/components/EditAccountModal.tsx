@@ -3,6 +3,7 @@ import { useUpdateAccount } from '../hooks/useAccountMutations'
 import { AccountForm } from './AccountForm'
 import type { Account, AccountFormValues } from '../accounts.types'
 import { ApiError } from '@/types/api'
+import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 
 interface Props {
   account: Account
@@ -11,6 +12,7 @@ interface Props {
 
 export function EditAccountModal({ account, onClose }: Props) {
   const { mutate, isPending } = useUpdateAccount(account.id)
+  const { data: members = [] } = useFamilyMembers()
   const [serverError, setServerError] = useState<string | null>(null)
 
   const defaultValues: AccountFormValues = {
@@ -46,6 +48,7 @@ export function EditAccountModal({ account, onClose }: Props) {
           Edit account
         </h2>
         <AccountForm
+          members={members}
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
           onCancel={onClose}

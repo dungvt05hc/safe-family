@@ -6,7 +6,7 @@ import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
 import { GuestRoute } from '@/features/auth/components/GuestRoute'
-import { DashboardPage } from '@/pages/DashboardPage'
+import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { FamilyOnboardingPage } from '@/features/families/pages/FamilyOnboardingPage'
 import { FamilyMembersPage } from '@/features/families/pages/FamilyMembersPage'
@@ -15,11 +15,14 @@ import { DevicesPage } from '@/features/devices/pages/DevicesPage'
 import { AssessmentStartPage } from '@/features/assessments/pages/AssessmentStartPage'
 import { AssessmentWizardPage } from '@/features/assessments/pages/AssessmentWizardPage'
 import { AssessmentResultPage } from '@/features/assessments/pages/AssessmentResultPage'
+import { AssessmentHistoryPage } from '@/features/assessments/pages/AssessmentHistoryPage'
 import { IncidentSelectPage } from '@/features/incidents/pages/IncidentSelectPage'
 import { IncidentWizardPage } from '@/features/incidents/pages/IncidentWizardPage'
 import { IncidentResultPage } from '@/features/incidents/pages/IncidentResultPage'
+import { IncidentDetailsPage } from '@/features/incidents/pages/IncidentDetailsPage'
 import { BookingFormPage } from '@/features/bookings/pages/BookingFormPage'
 import { MyBookingsPage } from '@/features/bookings/pages/MyBookingsPage'
+import { BookingDetailsPage } from '@/features/bookings/pages/BookingDetailsPage'
 import { ChecklistPage } from '@/features/checklists/ChecklistPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
@@ -71,16 +74,19 @@ export const router = createBrowserRouter([
       { path: 'family/members',    element: <FamilyMembersPage /> },
       { path: 'accounts',          element: <AccountsPage /> },
       { path: 'devices',           element: <DevicesPage /> },
-      { path: 'assessment',        element: <AssessmentStartPage /> },
-      { path: 'assessment/wizard', element: <AssessmentWizardPage /> },
-      { path: 'assessment/result', element: <AssessmentResultPage /> },
-      { path: 'incidents',         element: <IncidentSelectPage /> },
-      { path: 'incidents/report',  element: <IncidentWizardPage /> },
+      { path: 'assessment',         element: <AssessmentStartPage /> },
+      { path: 'assessment/wizard',   element: <AssessmentWizardPage /> },
+      { path: 'assessment/result',   element: <AssessmentResultPage /> },
+      { path: 'assessment/history',  element: <AssessmentHistoryPage /> },
+      { path: 'incidents',            element: <IncidentSelectPage /> },
+      { path: 'incidents/report',     element: <IncidentWizardPage /> },
       { path: 'incidents/result/:id', element: <IncidentResultPage /> },
+      { path: 'incidents/:id',        element: <IncidentDetailsPage /> },
       { path: 'checklists',         element: <ChecklistPage /> },
       { path: 'reports',            element: <ReportsPage /> },
       { path: 'bookings',          element: <BookingFormPage /> },
       { path: 'bookings/my',       element: <MyBookingsPage /> },
+      { path: 'bookings/:id',      element: <BookingDetailsPage /> },
       { path: 'settings',           element: <SettingsPage /> },
     ],
   },

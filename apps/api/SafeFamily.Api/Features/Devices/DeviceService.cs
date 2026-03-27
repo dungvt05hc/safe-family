@@ -15,12 +15,33 @@ public class DeviceService : IDeviceService
         _db = db;
     }
 
-    public async Task<IReadOnlyList<DeviceResponse>> GetDevicesAsync(Guid userId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<DeviceResponse>> GetDevicesAsync(Guid userId, DeviceQuery query, CancellationToken ct = default)
     {
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
-        return await _db.Devices
-            .Where(d => d.FamilyId == familyId)
+        var q = _db.Devices
+            .Where(d => d.FamilyId == familyId && d.ArchivedAt == null);
+
+        if (query.MemberId.HasValue)
+            q = q.Where(d => d.MemberId == query.MemberId.Value);
+
+        if (query.DeviceType.HasValue)
+            q = q.Where(d => d.DeviceType == query.DeviceType.Value);
+
+        if (query.SupportStatus.HasValue)
+            q = q.Where(d => d.SupportStatus == query.SupportStatus.Value);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = query.Search.Trim().ToLower();
+            q = q.Where(d =>
+                d.Brand.ToLower().Contains(term) ||
+                d.Model.ToLower().Contains(term) ||
+                d.OsName.ToLower().Contains(term) ||
+                (d.Notes != null && d.Notes.ToLower().Contains(term)));
+        }
+
+        return await q
             .OrderBy(d => d.DeviceType)
             .ThenBy(d => d.Brand)
             .ThenBy(d => d.Model)
@@ -33,7 +54,7 @@ public class DeviceService : IDeviceService
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
         var device = await _db.Devices
-            .FirstOrDefaultAsync(d => d.Id == id && d.FamilyId == familyId, ct);
+            .FirstOrDefaultAsync(d => d.Id == id && d.FamilyId == familyId && d.ArchivedAt == null, ct);
 
         return device is null ? null : ToResponse(device);
     }
@@ -75,7 +96,7 @@ public class DeviceService : IDeviceService
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
         var device = await _db.Devices
-            .FirstOrDefaultAsync(d => d.Id == id && d.FamilyId == familyId, ct);
+            .FirstOrDefaultAsync(d => d.Id == id && d.FamilyId == familyId && d.ArchivedAt == null, ct);
 
         if (device is null)
             return null;
@@ -100,6 +121,48 @@ public class DeviceService : IDeviceService
         await _db.SaveChangesAsync(ct);
 
         return ToResponse(device);
+    }
+
+    public async Task<bool> ArchiveDeviceAsync(Guid userId, Guid id, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var device = await _db.Devices
+            .FirstOrDefaultAsync(d => d.Id == id && d.FamilyId == familyId && d.ArchivedAt == null, ct);
+
+        if (device is null)
+            return false;
+
+        device.ArchivedAt = DateTimeOffset.UtcNow;
+        device.UpdatedById = userId;
+        await _db.SaveChangesAsync(ct);
+
+        return true;
+    }
+
+    public async Task<DeviceSummaryResponse> GetSummaryAsync(Guid userId, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var devices = await _db.Devices
+            .Where(d => d.FamilyId == familyId && d.ArchivedAt == null)
+            .Select(d => new
+            {
+                d.ScreenLockEnabled,
+                d.BackupEnabled,
+                d.BiometricEnabled,
+                d.FindMyDeviceEnabled,
+                d.SupportStatus,
+            })
+            .ToListAsync(ct);
+
+        return new DeviceSummaryResponse(
+            Total: devices.Count,
+            WithoutScreenLock: devices.Count(d => !d.ScreenLockEnabled),
+            WithoutBackup: devices.Count(d => !d.BackupEnabled),
+            WithoutBiometric: devices.Count(d => !d.BiometricEnabled),
+            EndOfLife: devices.Count(d => d.SupportStatus == SupportStatus.EndOfLife),
+            WithoutFindMyDevice: devices.Count(d => !d.FindMyDeviceEnabled));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -3,9 +3,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
   DEVICE_TYPES,
+  DEVICE_TYPE_LABELS,
   SUPPORT_STATUSES,
+  SUPPORT_STATUS_LABELS,
   type DeviceFormValues,
 } from '../devices.types'
+import type { FamilyMember } from '@/features/families/families.types'
 
 const schema = z.object({
   memberId: z.string().optional().default(''),
@@ -28,6 +31,7 @@ const schema = z.object({
 })
 
 interface Props {
+  members?: FamilyMember[]
   defaultValues?: Partial<DeviceFormValues>
   onSubmit: (values: DeviceFormValues) => void
   onCancel: () => void
@@ -43,16 +47,8 @@ const selectClass =
 const labelClass = 'mb-1 block text-sm font-medium text-gray-700'
 const errorClass = 'mt-1 text-xs text-red-500'
 
-function SupportStatusLabel(value: string): string {
-  switch (value) {
-    case 'Supported': return 'Supported'
-    case 'EndOfLife': return 'End of life'
-    case 'NoLongerReceivingUpdates': return 'No longer receiving updates'
-    default: return 'Unknown'
-  }
-}
-
 export function DeviceForm({
+  members = [],
   defaultValues,
   onSubmit,
   onCancel,
@@ -91,6 +87,23 @@ export function DeviceForm({
         </p>
       )}
 
+      {/* Member */}
+      {members.length > 0 && (
+        <div>
+          <label htmlFor="memberId" className={labelClass}>
+            Family member
+          </label>
+          <select id="memberId" {...register('memberId')} className={selectClass}>
+            <option value="">-- None (shared / unassigned) --</option>
+            {members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Device type */}
       <div>
         <label htmlFor="deviceType" className={labelClass}>
@@ -98,7 +111,7 @@ export function DeviceForm({
         </label>
         <select id="deviceType" {...register('deviceType')} className={selectClass}>
           {DEVICE_TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
+            <option key={t} value={t}>{DEVICE_TYPE_LABELS[t]}</option>
           ))}
         </select>
         {errors.deviceType && <p className={errorClass}>{errors.deviceType.message}</p>}
@@ -171,7 +184,7 @@ export function DeviceForm({
         </label>
         <select id="supportStatus" {...register('supportStatus')} className={selectClass}>
           {SUPPORT_STATUSES.map((s) => (
-            <option key={s} value={s}>{SupportStatusLabel(s)}</option>
+            <option key={s} value={s}>{SUPPORT_STATUS_LABELS[s]}</option>
           ))}
         </select>
       </div>

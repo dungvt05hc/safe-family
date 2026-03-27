@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SafeFamily.Api.Domain.Accounts;
 using SafeFamily.Api.Features.Accounts.Dtos;
 
 namespace SafeFamily.Api.Features.Accounts;
@@ -17,15 +18,31 @@ public class AccountsController : ControllerBase
         _accountService = accountService;
     }
 
-    // GET /api/accounts
+    // GET /api/accounts?memberId=...&accountType=...&search=...
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<AccountResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetAccounts(CancellationToken ct)
+    public async Task<IActionResult> GetAccounts(
+        [FromQuery] Guid? memberId,
+        [FromQuery] AccountType? accountType,
+        [FromQuery] string? search,
+        CancellationToken ct)
     {
         var userId = GetUserId();
-        var accounts = await _accountService.GetAccountsAsync(userId, ct);
+        var query = new AccountQuery { MemberId = memberId, AccountType = accountType, Search = search };
+        var accounts = await _accountService.GetAccountsAsync(userId, query, ct);
         return Ok(accounts);
+    }
+
+    // GET /api/accounts/summary
+    [HttpGet("summary")]
+    [ProducesResponseType(typeof(AccountSummaryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetSummary(CancellationToken ct)
+    {
+        var userId = GetUserId();
+        var summary = await _accountService.GetSummaryAsync(userId, ct);
+        return Ok(summary);
     }
 
     // GET /api/accounts/{id}
@@ -73,6 +90,23 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
+    // DELETE /api/accounts/{id}  (soft-archive)
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ArchiveAccount(Guid id, CancellationToken ct)
+    {
+        var userId = GetUserId();
+        var found = await _accountService.ArchiveAccountAsync(userId, id, ct);
+
+        if (!found)
+            return NotFound();
+
+        return NoContent();
+    }
+
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }
+

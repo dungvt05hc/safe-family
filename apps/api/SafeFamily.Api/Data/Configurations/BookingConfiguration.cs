@@ -24,6 +24,11 @@ public class BookingConfiguration : AuditableEntityConfiguration<Booking>
         builder.Property(b => b.Notes)
             .HasMaxLength(1000);
 
+        builder.Property(b => b.Status)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         builder.Property(b => b.PaymentStatus)
             .IsRequired()
             .HasConversion<string>()

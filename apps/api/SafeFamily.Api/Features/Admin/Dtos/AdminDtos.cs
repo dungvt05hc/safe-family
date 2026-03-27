@@ -33,12 +33,20 @@ public record AdminBookingResponse(
     DateTimeOffset PreferredStartAt,
     BookingChannel Channel,
     string? Notes,
+    BookingStatus Status,
     PaymentStatus PaymentStatus,
     DateTimeOffset CreatedAt);
 
+/// <summary>Admin-only: update the payment status of a booking.</summary>
 public class UpdateBookingStatusRequest
 {
     public required PaymentStatus Status { get; set; }
+}
+
+/// <summary>Admin-only: update the lifecycle status of a booking (confirm, cancel, complete).</summary>
+public class UpdateAdminBookingStatusRequest
+{
+    public required BookingStatus Status { get; set; }
 }
 
 // ── Incidents ────────────────────────────────────────────────────────────────

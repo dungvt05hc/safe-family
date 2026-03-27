@@ -1,28 +1,10 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Eye, EyeOff, Info, Lock } from 'lucide-react'
 import { Alert, Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui'
 import { useChangePassword } from '../settings.hooks'
-import type { ChangePasswordRequest } from '../settings.types'
-
-// ── Schema ────────────────────────────────────────────────────────────────────
-
-const schema = z
-  .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword:     z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Include at least one uppercase letter')
-      .regex(/[0-9]/, 'Include at least one number'),
-    confirmPassword: z.string().min(1, 'Please confirm your new password'),
-  })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: 'Passwords do not match',
-    path:    ['confirmPassword'],
-  })
+import { passwordSchema, type PasswordFormValues } from '../settings.schema'
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
@@ -84,9 +66,9 @@ export function PasswordSettingsForm() {
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<ChangePasswordRequest>({ resolver: zodResolver(schema) })
+  } = useForm<PasswordFormValues>({ resolver: zodResolver(passwordSchema) })
 
-  async function onSubmit(data: ChangePasswordRequest) {
+  async function onSubmit(data: PasswordFormValues) {
     setSucceeded(false)
     await changePassword.mutateAsync(data)
     setSucceeded(true)

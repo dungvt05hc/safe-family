@@ -35,6 +35,51 @@ export const TWO_FACTOR_STATUSES: TwoFactorStatus[] = ['Unknown', 'Enabled', 'Di
 export type RecoveryStatus = 'Unknown' | 'Set' | 'NotSet'
 export const RECOVERY_STATUSES: RecoveryStatus[] = ['Unknown', 'Set', 'NotSet']
 
+// ── Display labels ─────────────────────────────────────────────────────────
+
+export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
+  Email: 'Email',
+  SocialMedia: 'Social Media',
+  Banking: 'Banking',
+  Shopping: 'Shopping',
+  Streaming: 'Streaming',
+  Gaming: 'Gaming',
+  Government: 'Government',
+  Healthcare: 'Healthcare',
+  Insurance: 'Insurance',
+  Utility: 'Utility',
+  Work: 'Work',
+  Other: 'Other',
+}
+
+export const TWO_FACTOR_LABELS: Record<TwoFactorStatus, string> = {
+  Unknown: 'Unknown',
+  Enabled: 'Enabled',
+  Disabled: 'Disabled',
+}
+
+export const RECOVERY_LABELS: Record<RecoveryStatus, string> = {
+  Unknown: 'Unknown',
+  Set: 'Set',
+  NotSet: 'Not set',
+}
+
+// ── Summary & filter types ─────────────────────────────────────────────────
+
+export interface AccountSummary {
+  total: number
+  without2Fa: number
+  missingRecoveryEmail: number
+  missingRecoveryPhone: number
+  suspicious: number
+}
+
+export interface AccountFilters {
+  memberId?: string
+  accountType?: AccountType
+  search?: string
+}
+
 // ── API model ──────────────────────────────────────────────────────────────
 
 export interface Account {

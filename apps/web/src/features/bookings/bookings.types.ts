@@ -1,6 +1,14 @@
-export type BookingChannel = 'Online' | 'Phone' | 'Email'
+import type { BadgeVariant } from '@/components/ui'
+
+// ─── Enums / union types ──────────────────────────────────────────────────────
+
+export type BookingChannel = 'Online' | 'Phone' | 'Email' | 'Onsite'
+
+export type BookingStatus = 'Pending' | 'Confirmed' | 'InProgress' | 'Cancelled' | 'Completed'
 
 export type PaymentStatus = 'Pending' | 'Paid' | 'Refunded' | 'Waived'
+
+// ─── Domain types ─────────────────────────────────────────────────────────────
 
 export interface ServicePackage {
   id: string
@@ -25,19 +33,55 @@ export interface BookingResult {
   preferredStartAt: string
   channel: BookingChannel
   notes: string | null
+  status: BookingStatus
   paymentStatus: PaymentStatus
   createdAt: string
+  updatedAt: string
 }
 
-export const CHANNEL_CONFIG: Record<BookingChannel, { label: string; icon: string }> = {
-  Online: { label: 'Online (video call)', icon: '💻' },
-  Phone: { label: 'Phone call', icon: '📞' },
-  Email: { label: 'Email', icon: '✉️' },
+export interface BookingSummary {
+  totalBookings: number
+  upcomingBookings: number
+  pendingConfirmations: number
+  recentBookings: BookingResult[]
 }
 
-export const PAYMENT_STATUS_CONFIG: Record<PaymentStatus, { label: string; color: string }> = {
-  Pending: { label: 'Pending', color: 'text-yellow-700 bg-yellow-100' },
-  Paid: { label: 'Paid', color: 'text-green-700 bg-green-100' },
-  Refunded: { label: 'Refunded', color: 'text-blue-700 bg-blue-100' },
-  Waived: { label: 'Waived', color: 'text-gray-700 bg-gray-100' },
+// ─── Display configs ──────────────────────────────────────────────────────────
+
+export const CHANNEL_CONFIG: Record<BookingChannel, { label: string; icon: string; description: string }> = {
+  Online:  { label: 'Online (video)',  icon: '💻', description: 'Google Meet or Zoom session' },
+  Phone:   { label: 'Phone call',     icon: '📞', description: 'We call you at your preferred number' },
+  Email:   { label: 'Email',          icon: '✉️', description: 'Async communication via email' },
+  Onsite:  { label: 'Onsite visit',   icon: '🏠', description: 'In-person session at your location' },
 }
+
+export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
+  Pending:    'Awaiting confirmation',
+  Confirmed:  'Confirmed',
+  InProgress: 'In Progress',
+  Cancelled:  'Cancelled',
+  Completed:  'Completed',
+}
+
+export const BOOKING_STATUS_BADGE: Record<BookingStatus, BadgeVariant> = {
+  Pending:    'warning',
+  Confirmed:  'info',
+  InProgress: 'purple',
+  Cancelled:  'neutral',
+  Completed:  'success',
+}
+
+export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
+  Pending:  'Payment pending',
+  Paid:     'Paid',
+  Refunded: 'Refunded',
+  Waived:   'Waived',
+}
+
+export const PAYMENT_STATUS_BADGE: Record<PaymentStatus, BadgeVariant> = {
+  Pending:  'warning',
+  Paid:     'success',
+  Refunded: 'info',
+  Waived:   'neutral',
+}
+

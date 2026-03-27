@@ -1,19 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Mail, Phone, User } from 'lucide-react'
 import { Alert, Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui'
 import { useSettings, useUpdateProfileSettings } from '../settings.hooks'
+import { profileSchema, type ProfileFormValues } from '../settings.schema'
 import type { ProfileSettings } from '../settings.types'
-
-// ── Schema ────────────────────────────────────────────────────────────────────
-
-const schema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  email:    z.string().min(1, 'Email is required').email('Enter a valid email address'),
-  phone:    z.string().min(8, 'Enter a valid phone number'),
-})
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
@@ -38,17 +30,19 @@ function ProfileForm({ defaults }: FormProps) {
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<ProfileSettings>({
-    resolver:      zodResolver(schema),
-    defaultValues: defaults,
+  } = useForm<ProfileFormValues>({
+    resolver:      zodResolver(profileSchema),
+    defaultValues: { fullName: defaults.fullName, phone: defaults.phone },
   })
 
   // Keep form in sync if query refreshes
-  useEffect(() => { reset(defaults) }, [defaults, reset])
+  useEffect(() => {
+    reset({ fullName: defaults.fullName, phone: defaults.phone })
+  }, [defaults, reset])
 
-  async function onSubmit(data: ProfileSettings) {
+  async function onSubmit(data: ProfileFormValues) {
     setSaved(false)
-    await update.mutateAsync(data)
+    await update.mutateAsync({ fullName: data.fullName, phone: data.phone ?? '', email: defaults.email })
     setSaved(true)
     reset(data)
   }
@@ -84,7 +78,7 @@ function ProfileForm({ defaults }: FormProps) {
           {errors.fullName && <p className={errorCls}>{errors.fullName.message}</p>}
         </div>
 
-        {/* Email */}
+        {/* Email — read-only, backend does not support email changes */}
         <div>
           <label htmlFor="prof-email" className={labelCls}>
             <span className="flex items-center gap-1.5">
@@ -93,14 +87,14 @@ function ProfileForm({ defaults }: FormProps) {
             </span>
           </label>
           <input
-            {...register('email')}
             id="prof-email"
             type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            className={inputCls}
+            defaultValue={defaults.email}
+            readOnly
+            disabled
+            className={`${inputCls} cursor-not-allowed`}
           />
-          {errors.email && <p className={errorCls}>{errors.email.message}</p>}
+          <p className="mt-1 text-xs text-gray-400">Email address cannot be changed here.</p>
         </div>
 
         {/* Phone */}

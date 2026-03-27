@@ -22,3 +22,13 @@ export function useUpdateAccount(id: string) {
     },
   })
 }
+
+export function useArchiveAccount() {
+  return useMutation<void, ApiError, string>({
+    mutationFn: accountsService.archive,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ACCOUNTS_KEY })
+    },
+  })
+}
+

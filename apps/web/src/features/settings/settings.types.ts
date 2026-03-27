@@ -30,6 +30,13 @@ export interface ChangePasswordRequest {
   confirmPassword: string
 }
 
+// ── Privacy action response ───────────────────────────────────────────────────
+
+export interface PrivacyActionResponse {
+  message:     string
+  requestedAt: string  // ISO-8601 timestamp
+}
+
 // ── Tab navigation ────────────────────────────────────────────────────────────
 
 export type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'danger'

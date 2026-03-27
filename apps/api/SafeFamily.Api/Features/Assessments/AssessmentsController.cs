@@ -56,6 +56,17 @@ public class AssessmentsController : ControllerBase
         return Ok(assessment);
     }
 
+    // GET /api/assessments/history
+    [HttpGet("history")]
+    [ProducesResponseType(typeof(IReadOnlyList<AssessmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetHistory(CancellationToken ct)
+    {
+        var userId = GetUserId();
+        var history = await _assessmentService.GetHistoryAsync(userId, ct);
+        return Ok(history);
+    }
+
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }

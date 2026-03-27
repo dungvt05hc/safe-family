@@ -1,8 +1,18 @@
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { CalendarDays, ChevronRight, PlusCircle } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
+import { Badge, Button, LoadingState, Alert } from '@/components/ui'
 import { NoBookingsEmpty } from '@/components/ui/entity-empty-states'
+import { fadeUpVariants } from '@/lib/motion'
 import { useMyBookings } from '../hooks/useBookingQueries'
-import { CHANNEL_CONFIG, PAYMENT_STATUS_CONFIG } from '../bookings.types'
+import {
+  BOOKING_STATUS_BADGE,
+  BOOKING_STATUS_LABEL,
+  CHANNEL_CONFIG,
+  PAYMENT_STATUS_BADGE,
+  PAYMENT_STATUS_LABEL,
+} from '../bookings.types'
 
 export function MyBookingsPage() {
   const navigate = useNavigate()
@@ -13,18 +23,16 @@ export function MyBookingsPage() {
       title="My Bookings"
       description="Your upcoming and past safety sessions."
       action={
-        <button
-          onClick={() => navigate('/bookings')}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
+        <Button size="sm" onClick={() => navigate('/bookings')}>
+          <PlusCircle className="h-4 w-4" />
           Book a Session
-        </button>
+        </Button>
       }
     >
-      {isLoading && <p className="text-sm text-gray-500">Loading bookings…</p>}
+      {isLoading && <LoadingState />}
 
       {isError && (
-        <p className="text-sm text-red-600">Failed to load bookings. Please try again.</p>
+        <Alert variant="error">Failed to load bookings. Please refresh and try again.</Alert>
       )}
 
       {!isLoading && !isError && (!bookings || bookings.length === 0) && (
@@ -32,33 +40,60 @@ export function MyBookingsPage() {
       )}
 
       {bookings && bookings.length > 0 && (
-        <div className="space-y-4">
-          {bookings.map((booking) => {
-            const channelConfig = CHANNEL_CONFIG[booking.channel]
-            const statusConfig = PAYMENT_STATUS_CONFIG[booking.paymentStatus]
-            const preferredDate = new Date(booking.preferredStartAt).toLocaleString()
+        <div className="space-y-3">
+          {bookings.map((booking, i) => {
+            const channel = CHANNEL_CONFIG[booking.channel]
+            const preferredDate = new Date(booking.preferredStartAt).toLocaleString(undefined, {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
 
             return (
-              <div
+              <motion.button
                 key={booking.id}
-                className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between"
+                custom={i}
+                variants={fadeUpVariants}
+                initial="hidden"
+                animate="visible"
+                onClick={() => navigate(`/bookings/${booking.id}`)}
+                className="flex w-full items-center gap-4 rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm transition hover:shadow-md text-left"
               >
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-gray-900">{booking.packageName}</h3>
-                  <p className="text-sm text-gray-500">
-                    {channelConfig.icon} {channelConfig.label}
-                  </p>
-                  <p className="text-sm text-gray-500">🗓 {preferredDate}</p>
+                {/* Icon */}
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg">
+                  {channel.icon}
+                </span>
+
+                {/* Main content */}
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="truncate font-semibold text-gray-900">{booking.packageName}</p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                      {preferredDate}
+                    </span>
+                    <span>{channel.label}</span>
+                  </div>
                   {booking.notes && (
-                    <p className="text-sm italic text-gray-400">"{booking.notes}"</p>
+                    <p className="truncate text-xs italic text-gray-400">"{booking.notes}"</p>
                   )}
                 </div>
-                <span
-                  className={`inline-block self-start rounded-full px-3 py-1 text-xs font-semibold ${statusConfig.color}`}
-                >
-                  {statusConfig.label}
-                </span>
-              </div>
+
+                {/* Badges */}
+                <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
+                  <Badge variant={BOOKING_STATUS_BADGE[booking.status]} dot>
+                    {BOOKING_STATUS_LABEL[booking.status]}
+                  </Badge>
+                  <Badge variant={PAYMENT_STATUS_BADGE[booking.paymentStatus]}>
+                    {PAYMENT_STATUS_LABEL[booking.paymentStatus]}
+                  </Badge>
+                </div>
+
+                <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
+              </motion.button>
             )
           })}
         </div>
@@ -66,3 +101,4 @@ export function MyBookingsPage() {
     </PageLayout>
   )
 }
+

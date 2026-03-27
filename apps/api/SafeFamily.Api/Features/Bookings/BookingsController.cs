@@ -54,6 +54,27 @@ public class BookingsController : ControllerBase
         return Ok(bookings);
     }
 
+    // GET /api/bookings/summary
+    [HttpGet("api/bookings/summary")]
+    [ProducesResponseType(typeof(BookingSummaryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetBookingSummary(CancellationToken ct)
+    {
+        var summary = await _bookingService.GetBookingSummaryAsync(GetUserId(), ct);
+        return Ok(summary);
+    }
+
+    // GET /api/bookings/{id}
+    [HttpGet("api/bookings/{id:guid}")]
+    [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBooking(Guid id, CancellationToken ct)
+    {
+        var booking = await _bookingService.GetBookingByIdAsync(GetUserId(), id, ct);
+        return booking is null ? NotFound() : Ok(booking);
+    }
+
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }

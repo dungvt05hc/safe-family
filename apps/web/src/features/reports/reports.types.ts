@@ -16,6 +16,18 @@ export interface Report {
   downloadUrl?: string | null
   /** Rich markdown / plain-text body shown in the preview panel */
   body:        string
+  /** Linked booking ID for context */
+  bookingId?:  string | null
+  /** Linked incident ID for context */
+  incidentId?: string | null
+}
+
+export interface ReportSummary {
+  totalReports:       number
+  assessmentReports:  number
+  incidentReports:    number
+  familyResetReports: number
+  latestGeneratedAt?: string | null
 }
 
 // ── Filter types ──────────────────────────────────────────────────────────────

@@ -7,4 +7,7 @@ public interface IBookingService
     Task<IReadOnlyList<ServicePackageResponse>> GetServicePackagesAsync(CancellationToken ct = default);
     Task<BookingResponse> CreateBookingAsync(Guid userId, CreateBookingRequest request, CancellationToken ct = default);
     Task<IReadOnlyList<BookingResponse>> GetMyBookingsAsync(Guid userId, CancellationToken ct = default);
+    Task<BookingResponse?> GetBookingByIdAsync(Guid userId, Guid id, CancellationToken ct = default);
+    Task<BookingSummaryResponse> GetBookingSummaryAsync(Guid userId, CancellationToken ct = default);
 }
+

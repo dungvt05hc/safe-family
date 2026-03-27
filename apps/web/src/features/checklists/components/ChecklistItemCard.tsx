@@ -7,6 +7,9 @@ import {
   BookOpen,
   Tag,
   XCircle,
+  Clock,
+  ExternalLink,
+  PlayCircle,
 } from 'lucide-react'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge, Button } from '@/components/ui'
@@ -43,13 +46,21 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
   const navigate = useNavigate()
   const { mutate: updateStatus, isPending } = useUpdateChecklistStatus()
 
-  const isDone      = item.status === 'Completed'
-  const isDismissed = item.status === 'Dismissed'
-  const isPending_  = item.status === 'Pending'
+  const isDone       = item.status === 'Completed'
+  const isDismissed  = item.status === 'Dismissed'
+  const isPending_   = item.status === 'Pending'
+  const isInProgress = item.status === 'InProgress'
 
   const categoryLabel = CATEGORY_LABEL[item.category] ?? item.category
   const priorityLabel = PRIORITY_LABEL[item.priority as 1 | 2 | 3] ?? 'Medium'
   const statusLabel   = STATUS_LABEL[item.status]
+
+  // Due date helpers
+  const dueDate = item.dueAt ? new Date(item.dueAt) : null
+  const isOverdue = dueDate ? dueDate < new Date() && !isDone && !isDismissed : false
+  const dueDateLabel = dueDate
+    ? dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    : null
 
   return (
     <motion.div
@@ -62,9 +73,10 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
       transition={{ layout: { duration: 0.2 } }}
       className={cn(
         'rounded-2xl border bg-white shadow-sm px-5 py-4 transition-shadow hover:shadow-md',
-        isDone      && 'border-green-100 bg-green-50/30',
-        isDismissed && 'border-gray-200 opacity-60',
-        isPending_  && 'border-gray-100',
+        isDone       && 'border-green-100 bg-green-50/30',
+        isDismissed  && 'border-gray-200 opacity-60',
+        isInProgress && 'border-blue-100 bg-blue-50/20',
+        isPending_   && 'border-gray-100',
       )}
     >
       {/* Top row — title + badges */}
@@ -94,23 +106,38 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
         </div>
       </div>
 
-      {/* Meta row — category */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      {/* Meta row — category, due date */}
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         <span className="inline-flex items-center gap-1 text-xs text-gray-400">
           <Tag className="w-3 h-3" aria-hidden="true" />
           {categoryLabel}
         </span>
-        {item.sourceId && (
-          <span className="text-[10px] text-gray-300 truncate max-w-[180px]" title={item.sourceId}>
-            {item.sourceId}
+        {dueDateLabel && (
+          <span className={cn(
+            'inline-flex items-center gap-1 text-xs',
+            isOverdue ? 'text-red-500 font-medium' : 'text-gray-400',
+          )}>
+            <Clock className="w-3 h-3" aria-hidden="true" />
+            {isOverdue ? 'Overdue · ' : 'Due · '}{dueDateLabel}
           </span>
+        )}
+        {item.helpUrl && (
+          <a
+            href={item.helpUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700 hover:underline"
+          >
+            <ExternalLink className="w-3 h-3" aria-hidden="true" />
+            Guide
+          </a>
         )}
       </div>
 
       {/* Action row */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {/* Primary action — mark done or reopen */}
-        {isPending_ && (
+        {/* Mark done */}
+        {(isPending_ || isInProgress) && (
           <Button
             variant="primary"
             size="sm"
@@ -122,6 +149,20 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
           </Button>
         )}
 
+        {/* Start / mark in progress */}
+        {isPending_ && (
+          <Button
+            variant="outline"
+            size="sm"
+            loading={isPending}
+            onClick={() => updateStatus({ id: item.id, status: 'InProgress' })}
+          >
+            <PlayCircle className="w-3.5 h-3.5" aria-hidden="true" />
+            Start
+          </Button>
+        )}
+
+        {/* Reopen */}
         {(isDone || isDismissed) && (
           <Button
             variant="outline"
@@ -135,7 +176,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
         )}
 
         {/* Skip */}
-        {isPending_ && (
+        {(isPending_ || isInProgress) && (
           <Button
             variant="ghost"
             size="sm"
@@ -157,7 +198,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
           Book help
         </Button>
 
-        {/* Open guide — links to the assessment for guidance */}
+        {/* Open guide */}
         <Button
           variant="ghost"
           size="sm"

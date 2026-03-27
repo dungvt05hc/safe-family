@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useUpdateDevice } from '../hooks/useDeviceMutations'
+import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 import { DeviceForm } from './DeviceForm'
 import type { Device, DeviceFormValues } from '../devices.types'
 import { ApiError } from '@/types/api'
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function EditDeviceModal({ device, onClose }: Props) {
+  const { data: members = [] } = useFamilyMembers()
   const { mutate, isPending } = useUpdateDevice(device.id)
   const [serverError, setServerError] = useState<string | null>(null)
 
@@ -50,6 +52,7 @@ export function EditDeviceModal({ device, onClose }: Props) {
           Edit device
         </h2>
         <DeviceForm
+          members={members}
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
           onCancel={onClose}

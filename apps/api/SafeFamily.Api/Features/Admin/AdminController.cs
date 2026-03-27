@@ -56,6 +56,22 @@ public class AdminController : ControllerBase
     {
         var booking = await _adminService.UpdateBookingStatusAsync(id, request.Status, ct);
         var adminId = GetUserId();
+        await _audit.LogAsync("AdminBookingPaymentStatusChanged", adminId,
+            entityType: "Booking", entityId: id,
+            details: $"PaymentStatus changed to {request.Status}",
+            ipAddress: GetIp(), ct: ct);
+        return Ok(booking);
+    }
+
+    // PATCH /api/admin/bookings/{id}/booking-status
+    [HttpPatch("bookings/{id:guid}/booking-status")]
+    [ProducesResponseType(typeof(AdminBookingResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateAdminBookingStatus(Guid id, [FromBody] UpdateAdminBookingStatusRequest request, CancellationToken ct)
+    {
+        var booking = await _adminService.UpdateAdminBookingStatusAsync(id, request.Status, ct);
+        var adminId = GetUserId();
         await _audit.LogAsync("AdminBookingStatusChanged", adminId,
             entityType: "Booking", entityId: id,
             details: $"Status changed to {request.Status}",

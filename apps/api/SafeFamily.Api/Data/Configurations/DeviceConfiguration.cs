@@ -47,6 +47,8 @@ public class DeviceConfiguration : AuditableEntityConfiguration<Device>
         builder.Property(d => d.Notes)
             .HasMaxLength(1000);
 
+        builder.Property(d => d.ArchivedAt);
+
         builder.HasOne(d => d.Family)
             .WithMany()
             .HasForeignKey(d => d.FamilyId)

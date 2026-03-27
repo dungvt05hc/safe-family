@@ -60,16 +60,36 @@ export interface FamilyMember {
   displayName: string
   relationship: Relationship
   ageGroup: AgeGroup
-  primaryEcosystem: string
+  primaryEcosystem: PrimaryEcosystem | ''
   isPrimaryContact: boolean
   createdAt: string
   updatedAt: string
 }
 
+export type PrimaryEcosystem = 'google' | 'apple' | 'microsoft' | 'android' | 'mixed' | 'other'
+
+export interface EcosystemOption {
+  value: PrimaryEcosystem
+  label: string
+}
+
+export const ECOSYSTEM_OPTIONS: EcosystemOption[] = [
+  { value: 'google',    label: 'Google' },
+  { value: 'apple',     label: 'Apple' },
+  { value: 'microsoft', label: 'Microsoft / Windows' },
+  { value: 'android',   label: 'Android' },
+  { value: 'mixed',     label: 'Mixed' },
+  { value: 'other',     label: 'Other' },
+]
+
+export const ECOSYSTEM_LABEL: Record<PrimaryEcosystem, string> = Object.fromEntries(
+  ECOSYSTEM_OPTIONS.map(({ value, label }) => [value, label]),
+) as Record<PrimaryEcosystem, string>
+
 export interface FamilyMemberFormValues {
   displayName: string
   relationship: Relationship
   ageGroup: AgeGroup
-  primaryEcosystem: string
+  primaryEcosystem: PrimaryEcosystem | ''
   isPrimaryContact: boolean
 }

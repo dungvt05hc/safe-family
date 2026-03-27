@@ -1,3 +1,5 @@
+// ── Enums (mirror backend) ──────────────────────────────────────────────────
+
 export type DeviceType =
   | 'Smartphone'
   | 'Tablet'
@@ -32,6 +34,46 @@ export const SUPPORT_STATUSES: SupportStatus[] = [
   'NoLongerReceivingUpdates',
 ]
 
+// ── Display labels ──────────────────────────────────────────────────────────
+
+export const DEVICE_TYPE_LABELS: Record<DeviceType, string> = {
+  Smartphone: 'Smartphone',
+  Tablet: 'Tablet',
+  Laptop: 'Laptop',
+  Desktop: 'Desktop',
+  SmartWatch: 'Smart Watch',
+  SmartTV: 'Smart TV',
+  GameConsole: 'Game Console',
+  Other: 'Other',
+}
+
+export const SUPPORT_STATUS_LABELS: Record<SupportStatus, string> = {
+  Unknown: 'Unknown',
+  Supported: 'Supported',
+  EndOfLife: 'End of Life',
+  NoLongerReceivingUpdates: 'No Longer Receiving Updates',
+}
+
+// ── Summary & filter types ──────────────────────────────────────────────────
+
+export interface DeviceSummary {
+  total: number
+  withoutScreenLock: number
+  withoutBackup: number
+  withoutBiometric: number
+  endOfLife: number
+  withoutFindMyDevice: number
+}
+
+export interface DeviceFilters {
+  memberId?: string
+  deviceType?: DeviceType
+  supportStatus?: SupportStatus
+  search?: string
+}
+
+// ── API model ───────────────────────────────────────────────────────────────
+
 export interface Device {
   id: string
   familyId: string
@@ -50,6 +92,8 @@ export interface Device {
   createdAt: string
   updatedAt: string
 }
+
+// ── Form values ─────────────────────────────────────────────────────────────
 
 export interface DeviceFormValues {
   memberId: string

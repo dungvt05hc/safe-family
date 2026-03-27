@@ -12,10 +12,16 @@ export type IncidentType =
 
 export type IncidentSeverity = 'Low' | 'Medium' | 'High' | 'Critical'
 
+export type IncidentStatus = 'Open' | 'InProgress' | 'Resolved' | 'Dismissed'
+
 export interface CreateIncidentRequest {
   type: IncidentType
   severity: IncidentSeverity
   summary: string
+}
+
+export interface UpdateIncidentStatusRequest {
+  status: IncidentStatus
 }
 
 export interface IncidentResult {
@@ -23,6 +29,7 @@ export interface IncidentResult {
   familyId: string
   type: IncidentType
   severity: IncidentSeverity
+  status: IncidentStatus
   summary: string
   firstActionPlan: string | null
   createdAt: string
@@ -115,4 +122,29 @@ export const SEVERITY_CONFIG: Record<IncidentSeverity, SeverityConfig> = {
     color: 'text-red-700 bg-red-100',
     description: 'Severe risk, take immediate action now',
   },
+}
+
+// ── Display helpers for Badge components ─────────────────────────────────
+
+import type { BadgeVariant } from '@/components/ui'
+
+export const SEVERITY_BADGE: Record<IncidentSeverity, BadgeVariant> = {
+  Low:      'success',
+  Medium:   'warning',
+  High:     'danger',
+  Critical: 'danger',
+}
+
+export const STATUS_LABEL: Record<IncidentStatus, string> = {
+  Open:       'Open',
+  InProgress: 'In Progress',
+  Resolved:   'Resolved',
+  Dismissed:  'Dismissed',
+}
+
+export const STATUS_BADGE: Record<IncidentStatus, BadgeVariant> = {
+  Open:       'danger',
+  InProgress: 'warning',
+  Resolved:   'success',
+  Dismissed:  'neutral',
 }

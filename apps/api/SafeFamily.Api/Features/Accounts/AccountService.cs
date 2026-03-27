@@ -15,12 +15,28 @@ public class AccountService : IAccountService
         _db = db;
     }
 
-    public async Task<IReadOnlyList<AccountResponse>> GetAccountsAsync(Guid userId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<AccountResponse>> GetAccountsAsync(Guid userId, AccountQuery query, CancellationToken ct = default)
     {
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
-        return await _db.Accounts
-            .Where(a => a.FamilyId == familyId)
+        var q = _db.Accounts
+            .Where(a => a.FamilyId == familyId && a.ArchivedAt == null);
+
+        if (query.MemberId.HasValue)
+            q = q.Where(a => a.MemberId == query.MemberId.Value);
+
+        if (query.AccountType.HasValue)
+            q = q.Where(a => a.AccountType == query.AccountType.Value);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = query.Search.Trim().ToLower();
+            q = q.Where(a =>
+                a.MaskedIdentifier.ToLower().Contains(term) ||
+                (a.Notes != null && a.Notes.ToLower().Contains(term)));
+        }
+
+        return await q
             .OrderBy(a => a.AccountType)
             .ThenBy(a => a.MaskedIdentifier)
             .Select(a => ToResponse(a))
@@ -32,7 +48,7 @@ public class AccountService : IAccountService
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
         var account = await _db.Accounts
-            .FirstOrDefaultAsync(a => a.Id == id && a.FamilyId == familyId, ct);
+            .FirstOrDefaultAsync(a => a.Id == id && a.FamilyId == familyId && a.ArchivedAt == null, ct);
 
         return account is null ? null : ToResponse(account);
     }
@@ -41,7 +57,6 @@ public class AccountService : IAccountService
     {
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
-        // When a memberId is supplied, verify it belongs to this family.
         if (request.MemberId.HasValue)
             await RequireMemberInFamilyAsync(request.MemberId.Value, familyId, ct);
 
@@ -71,12 +86,11 @@ public class AccountService : IAccountService
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
         var account = await _db.Accounts
-            .FirstOrDefaultAsync(a => a.Id == id && a.FamilyId == familyId, ct);
+            .FirstOrDefaultAsync(a => a.Id == id && a.FamilyId == familyId && a.ArchivedAt == null, ct);
 
         if (account is null)
             return null;
 
-        // When a memberId is supplied, verify it belongs to this family.
         if (request.MemberId.HasValue)
             await RequireMemberInFamilyAsync(request.MemberId.Value, familyId, ct);
 
@@ -95,12 +109,49 @@ public class AccountService : IAccountService
         return ToResponse(account);
     }
 
+    public async Task<bool> ArchiveAccountAsync(Guid userId, Guid id, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var account = await _db.Accounts
+            .FirstOrDefaultAsync(a => a.Id == id && a.FamilyId == familyId && a.ArchivedAt == null, ct);
+
+        if (account is null)
+            return false;
+
+        account.ArchivedAt = DateTimeOffset.UtcNow;
+        account.UpdatedById = userId;
+
+        await _db.SaveChangesAsync(ct);
+
+        return true;
+    }
+
+    public async Task<AccountSummaryResponse> GetSummaryAsync(Guid userId, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var accounts = await _db.Accounts
+            .Where(a => a.FamilyId == familyId && a.ArchivedAt == null)
+            .Select(a => new
+            {
+                a.TwoFactorStatus,
+                a.RecoveryEmailStatus,
+                a.RecoveryPhoneStatus,
+                a.SuspiciousActivityFlag,
+            })
+            .ToListAsync(ct);
+
+        return new AccountSummaryResponse(
+            Total: accounts.Count,
+            Without2Fa: accounts.Count(a => a.TwoFactorStatus != TwoFactorStatus.Enabled),
+            MissingRecoveryEmail: accounts.Count(a => a.RecoveryEmailStatus == RecoveryStatus.NotSet),
+            MissingRecoveryPhone: accounts.Count(a => a.RecoveryPhoneStatus == RecoveryStatus.NotSet),
+            Suspicious: accounts.Count(a => a.SuspiciousActivityFlag));
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Returns the FamilyId for the given user, or throws <see cref="ForbiddenException"/>
-    /// when the user has not joined a family yet.
-    /// </summary>
     private async Task<Guid> RequireFamilyIdAsync(Guid userId, CancellationToken ct)
     {
         var familyId = await _db.FamilyMembers
@@ -114,10 +165,6 @@ public class AccountService : IAccountService
         return familyId.Value;
     }
 
-    /// <summary>
-    /// Verifies that the given member (FamilyPerson) belongs to the given family,
-    /// throwing <see cref="ForbiddenException"/> if not found.
-    /// </summary>
     private async Task RequireMemberInFamilyAsync(Guid memberId, Guid familyId, CancellationToken ct)
     {
         var exists = await _db.FamilyPersons

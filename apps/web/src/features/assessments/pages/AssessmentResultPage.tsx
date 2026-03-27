@@ -174,16 +174,30 @@ export function AssessmentResultPage() {
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
-              onClick={() => navigate('/accounts')}
+              onClick={() => navigate('/checklists')}
               className="flex-1 rounded-xl border border-gray-200 bg-white px-5 py-3 text-center text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
             >
-              📋 View security checklist
+              ✅ View security checklist
             </button>
             <button
               onClick={() => navigate('/assessment/wizard')}
               className="flex-1 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-center text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
             >
               🔄 Retake assessment
+            </button>
+          </div>
+          <div className="mt-4 flex justify-between text-sm">
+            <button
+              onClick={() => navigate('/bookings')}
+              className="font-medium text-gray-500 hover:text-gray-700 hover:underline"
+            >
+              📅 Book a consultation
+            </button>
+            <button
+              onClick={() => navigate('/assessment/history')}
+              className="font-medium text-blue-600 hover:underline"
+            >
+              View history →
             </button>
           </div>
         </section>

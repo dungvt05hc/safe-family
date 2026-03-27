@@ -18,8 +18,16 @@ public record BookingResponse(
     DateTimeOffset PreferredStartAt,
     BookingChannel Channel,
     string? Notes,
+    BookingStatus Status,
     PaymentStatus PaymentStatus,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public record BookingSummaryResponse(
+    int TotalBookings,
+    int UpcomingBookings,
+    int PendingConfirmations,
+    IReadOnlyList<BookingResponse> RecentBookings);
 
 public class CreateBookingRequest
 {
@@ -36,8 +44,3 @@ public class CreateBookingRequest
     public string? Notes { get; set; }
 }
 
-public class UpdateBookingStatusRequest
-{
-    [Required]
-    public PaymentStatus Status { get; set; }
-}

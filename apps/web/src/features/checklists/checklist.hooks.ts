@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { checklistApi } from './checklist.api'
-import type { ChecklistItem, ChecklistStatus } from './checklist.types'
+import type { ChecklistApiFilters, ChecklistItem, ChecklistStatus, ChecklistSummary } from './checklist.types'
 import type { ApiError } from '@/types/api'
 
 // ── Query keys ────────────────────────────────────────────────────────────────
 
-export const CHECKLIST_ITEMS_KEY = ['checklist-items'] as const
+export const CHECKLIST_ITEMS_KEY   = ['checklist-items'] as const
+export const CHECKLIST_SUMMARY_KEY = ['checklist-summary'] as const
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
@@ -14,10 +15,22 @@ export const CHECKLIST_ITEMS_KEY = ['checklist-items'] as const
  * Re-fetches on window focus so the list stays in sync after a user completes
  * actions elsewhere (e.g. adding 2FA on the Accounts page).
  */
-export function useChecklistItems() {
+export function useChecklistItems(filters?: ChecklistApiFilters) {
   return useQuery<ChecklistItem[], ApiError>({
-    queryKey: CHECKLIST_ITEMS_KEY,
-    queryFn:  checklistApi.getItems,
+    queryKey: filters ? [...CHECKLIST_ITEMS_KEY, filters] : CHECKLIST_ITEMS_KEY,
+    queryFn:  () => checklistApi.getItems(filters),
+    staleTime: 30_000,
+  })
+}
+
+/**
+ * Fetches aggregate counts for the family's checklist (total, high-priority,
+ * in-progress, completed). Useful for dashboard badges and summary cards.
+ */
+export function useChecklistSummary() {
+  return useQuery<ChecklistSummary, ApiError>({
+    queryKey: CHECKLIST_SUMMARY_KEY,
+    queryFn:  checklistApi.getSummary,
     staleTime: 30_000,
   })
 }

@@ -2,7 +2,8 @@ namespace SafeFamily.Api.Domain.Bookings;
 
 public enum BookingChannel
 {
-    Online = 0,
-    Phone  = 1,
-    Email  = 2,
+    Online  = 0,
+    Phone   = 1,
+    Email   = 2,
+    Onsite  = 3,
 }

@@ -10,6 +10,7 @@ public interface IAdminService
     Task<IReadOnlyList<AdminCustomerResponse>> GetCustomersAsync(CancellationToken ct = default);
     Task<IReadOnlyList<AdminBookingResponse>> GetBookingsAsync(CancellationToken ct = default);
     Task<AdminBookingResponse> UpdateBookingStatusAsync(Guid bookingId, PaymentStatus newStatus, CancellationToken ct = default);
+    Task<AdminBookingResponse> UpdateAdminBookingStatusAsync(Guid bookingId, BookingStatus newStatus, CancellationToken ct = default);
     Task<IReadOnlyList<AdminIncidentResponse>> GetIncidentsAsync(CancellationToken ct = default);
     Task<AdminIncidentResponse> UpdateIncidentStatusAsync(Guid incidentId, IncidentStatus newStatus, CancellationToken ct = default);
 }

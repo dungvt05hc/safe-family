@@ -1,9 +1,15 @@
+import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
+import { CheckCircle2, CalendarPlus, ListChecks, ShieldAlert } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
+import { Alert, Badge, Button, LoadingState } from '@/components/ui'
+import { fadeUpVariants } from '@/lib/motion'
 import { useIncident } from '../hooks/useIncidentQueries'
 import {
   INCIDENT_TYPE_CONFIG,
-  SEVERITY_CONFIG,
+  SEVERITY_BADGE,
+  STATUS_BADGE,
+  STATUS_LABEL,
 } from '../incidents.types'
 
 export function IncidentResultPage() {
@@ -14,7 +20,7 @@ export function IncidentResultPage() {
   if (isLoading) {
     return (
       <PageLayout title="Incident Report">
-        <p className="text-gray-500">Loading your action plan…</p>
+        <LoadingState />
       </PageLayout>
     )
   }
@@ -22,72 +28,130 @@ export function IncidentResultPage() {
   if (isError || !incident) {
     return (
       <PageLayout title="Incident Report">
-        <p className="text-red-600">Failed to load incident. Please try again.</p>
+        <Alert variant="error">Failed to load incident. Please try again.</Alert>
       </PageLayout>
     )
   }
 
-  const typeConfig = INCIDENT_TYPE_CONFIG[incident.type]
-  const severityConfig = SEVERITY_CONFIG[incident.severity]
-
-  const actionSteps = incident.firstActionPlan
-    ? incident.firstActionPlan.split('\n').filter((line) => line.trim().length > 0)
+  const typeConfig     = INCIDENT_TYPE_CONFIG[incident.type]
+  const actionSteps    = incident.firstActionPlan
+    ? incident.firstActionPlan.split(/\n|(?<=\.) (?=[A-Z])/).filter((s) => s.trim().length > 10)
     : []
+  const isHighSeverity = incident.severity === 'High' || incident.severity === 'Critical'
 
   return (
     <PageLayout
       title="Incident Action Plan"
       description="Follow the steps below to contain and remediate this incident."
     >
-      {/* Incident summary card */}
-      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-3xl">{typeConfig.icon}</span>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{typeConfig.label}</h2>
-            <p className="text-sm text-gray-500">{incident.summary}</p>
-          </div>
-          <span
-            className={`ml-auto inline-block rounded-full px-3 py-1 text-sm font-semibold ${severityConfig.color}`}
-          >
-            {severityConfig.label}
-          </span>
+      {/* Success banner */}
+      <motion.div
+        variants={fadeUpVariants}
+        custom={0}
+        initial="hidden"
+        animate="visible"
+        className="mb-5 flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 px-5 py-4"
+      >
+        <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
+        <div>
+          <p className="text-sm font-semibold text-green-800">Incident recorded</p>
+          <p className="text-xs text-green-700">
+            Your incident has been logged. Follow the action plan below to stay protected.
+          </p>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Action steps */}
+      {/* Incident summary card */}
+      <motion.div
+        variants={fadeUpVariants}
+        custom={1}
+        initial="hidden"
+        animate="visible"
+        className="mb-5 rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-5"
+      >
+        <div className="flex flex-wrap items-start gap-4">
+          <span className="text-4xl" aria-hidden="true">{typeConfig.icon}</span>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base font-semibold text-gray-900">{typeConfig.label}</h2>
+            <p className="mt-1 text-sm text-gray-500">{incident.summary}</p>
+          </div>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Badge variant={SEVERITY_BADGE[incident.severity]} dot>
+              {incident.severity}
+            </Badge>
+            <Badge variant={STATUS_BADGE[incident.status]}>
+              {STATUS_LABEL[incident.status]}
+            </Badge>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* High severity alert */}
+      {isHighSeverity && (
+        <motion.div
+          variants={fadeUpVariants}
+          custom={2}
+          initial="hidden"
+          animate="visible"
+          className="mb-5"
+        >
+          <Alert variant="warning">
+            This is a <strong>{incident.severity.toLowerCase()}-severity</strong> incident. Consider
+            booking a session with a SafeFamily advisor for guided support.
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* Action plan */}
       {actionSteps.length > 0 && (
-        <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-5">
-          <h3 className="mb-4 text-base font-semibold text-indigo-800">
-            Recommended Actions
-          </h3>
+        <motion.div
+          variants={fadeUpVariants}
+          custom={3}
+          initial="hidden"
+          animate="visible"
+          className="mb-5 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-5"
+        >
+          <h3 className="mb-4 text-sm font-semibold text-indigo-800">Recommended Actions</h3>
           <ol className="space-y-3">
-            {actionSteps.map((step, index) => (
-              <li key={index} className="flex gap-3 text-sm text-gray-800">
+            {actionSteps.map((step, i) => (
+              <li key={i} className="flex gap-3 text-sm text-gray-800">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
-                  {index + 1}
+                  {i + 1}
                 </span>
-                <span>{step.replace(/^\d+\.\s*/, '')}</span>
+                <span>{step.replace(/^\d+\.\s*/, '').replace(/^[🚨⚠️📋✅]\s*/, '')}</span>
               </li>
             ))}
           </ol>
-        </div>
+        </motion.div>
       )}
 
-      <div className="mt-6 flex gap-3">
-        <button
-          onClick={() => navigate('/incidents')}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Report Another Incident
-        </button>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          Back to Dashboard
-        </button>
-      </div>
+      {/* CTA buttons */}
+      <motion.div
+        variants={fadeUpVariants}
+        custom={4}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-wrap gap-3"
+      >
+        {isHighSeverity && (
+          <Button variant="primary" onClick={() => navigate('/bookings')}>
+            <CalendarPlus className="w-4 h-4" aria-hidden="true" />
+            Book help
+          </Button>
+        )}
+        <Button variant="outline" onClick={() => navigate('/checklists')}>
+          <ListChecks className="w-4 h-4" aria-hidden="true" />
+          View checklist
+        </Button>
+        <Button variant="ghost" onClick={() => navigate('/incidents/report')}>
+          <ShieldAlert className="w-4 h-4" aria-hidden="true" />
+          Report another
+        </Button>
+        <Button variant="ghost" onClick={() => navigate('/incidents')}>
+          All incidents
+        </Button>
+      </motion.div>
     </PageLayout>
   )
 }
+
