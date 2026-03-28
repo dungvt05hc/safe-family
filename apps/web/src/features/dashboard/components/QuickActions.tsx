@@ -72,6 +72,7 @@ export function QuickActions({ counts }: QuickActionsProps) {
         {actions.map((action, i) => (
           <motion.button
             key={action.label}
+            type="button"
             custom={i}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}

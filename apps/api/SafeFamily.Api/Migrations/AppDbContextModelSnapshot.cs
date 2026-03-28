@@ -89,6 +89,52 @@ namespace SafeFamily.Api.Migrations
                     b.ToTable("accounts", (string)null);
                 });
 
+            modelBuilder.Entity("SafeFamily.Api.Domain.Admin.AdminNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AuthorEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("IncidentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("IncidentId");
+
+                    b.ToTable("admin_notes", (string)null);
+                });
+
             modelBuilder.Entity("SafeFamily.Api.Domain.Admin.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -136,6 +182,42 @@ namespace SafeFamily.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("audit_logs", (string)null);
+                });
+
+            modelBuilder.Entity("SafeFamily.Api.Domain.Admin.FamilyNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AuthorEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("FamilyId");
+
+                    b.ToTable("family_notes", (string)null);
                 });
 
             modelBuilder.Entity("SafeFamily.Api.Domain.Assessments.Assessment", b =>
@@ -223,6 +305,13 @@ namespace SafeFamily.Api.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AssignedAdminEmail")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("AssignedAdminId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Channel")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -272,13 +361,57 @@ namespace SafeFamily.Api.Migrations
                     b.ToTable("bookings", (string)null);
                 });
 
+            modelBuilder.Entity("SafeFamily.Api.Domain.Bookings.BookingNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AuthorEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("booking_notes", (string)null);
+                });
+
             modelBuilder.Entity("SafeFamily.Api.Domain.Bookings.ServicePackage", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamptz");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -290,10 +423,23 @@ namespace SafeFamily.Api.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("PriceDisplay")
                         .IsRequired()
@@ -305,46 +451,73 @@ namespace SafeFamily.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .IsUnique();
+
                     b.ToTable("service_packages", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Code = "FREE-CHECK",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
                             Description = "A complimentary 30-minute session to review your family's current digital safety posture and identify quick wins.",
                             DurationLabel = "30 min",
+                            DurationMinutes = 30,
+                            IsActive = true,
+                            IsVisible = true,
                             Name = "Free Safety Check",
+                            Price = 0m,
                             PriceDisplay = "Free",
                             UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Code = "FAMILY-CORE",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
                             Description = "An in-depth 60-minute consultation covering password hygiene, device security, phishing awareness, and safe browsing for all family members.",
                             DurationLabel = "60 min",
+                            DurationMinutes = 60,
+                            IsActive = true,
+                            IsVisible = true,
                             Name = "Family Safety Session",
+                            Price = 99m,
                             PriceDisplay = "$99 / session",
                             UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Code = "INCIDENT-RESP",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
                             Description = "A 90-minute guided incident response session to contain and remediate an active security incident affecting your family.",
                             DurationLabel = "90 min",
+                            DurationMinutes = 90,
+                            IsActive = true,
+                            IsVisible = true,
                             Name = "Incident Response",
+                            Price = 149m,
                             PriceDisplay = "$149 / session",
                             UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Code = "ANNUAL-PLAN",
                             CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Currency = "USD",
                             Description = "Year-round protection planning: quarterly check-ins, priority incident response, and a personalised family security roadmap.",
                             DurationLabel = "Ongoing",
+                            DurationMinutes = 720,
+                            IsActive = true,
+                            IsVisible = true,
                             Name = "Annual Safety Plan",
+                            Price = 299m,
                             PriceDisplay = "$299 / year",
                             UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
@@ -670,6 +843,39 @@ namespace SafeFamily.Api.Migrations
                     b.ToTable("incidents", (string)null);
                 });
 
+            modelBuilder.Entity("SafeFamily.Api.Domain.Incidents.IncidentNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AuthorEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("IncidentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IncidentId");
+
+                    b.ToTable("IncidentNotes");
+                });
+
             modelBuilder.Entity("SafeFamily.Api.Domain.Reports.Report", b =>
                 {
                     b.Property<Guid>("Id")
@@ -784,8 +990,20 @@ namespace SafeFamily.Api.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<bool>("EmailVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("PasswordResetExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PasswordResetToken")
                         .HasColumnType("text");
 
                     b.Property<string>("Phone")
@@ -798,6 +1016,9 @@ namespace SafeFamily.Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("User");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamptz");
@@ -826,6 +1047,41 @@ namespace SafeFamily.Api.Migrations
                     b.Navigation("Family");
 
                     b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("SafeFamily.Api.Domain.Admin.AdminNote", b =>
+                {
+                    b.HasOne("SafeFamily.Api.Domain.Bookings.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SafeFamily.Api.Domain.Families.Family", "Family")
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SafeFamily.Api.Domain.Incidents.Incident", "Incident")
+                        .WithMany()
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Family");
+
+                    b.Navigation("Incident");
+                });
+
+            modelBuilder.Entity("SafeFamily.Api.Domain.Admin.FamilyNote", b =>
+                {
+                    b.HasOne("SafeFamily.Api.Domain.Families.Family", "Family")
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Family");
                 });
 
             modelBuilder.Entity("SafeFamily.Api.Domain.Assessments.Assessment", b =>
@@ -867,6 +1123,17 @@ namespace SafeFamily.Api.Migrations
                     b.Navigation("Family");
 
                     b.Navigation("Package");
+                });
+
+            modelBuilder.Entity("SafeFamily.Api.Domain.Bookings.BookingNote", b =>
+                {
+                    b.HasOne("SafeFamily.Api.Domain.Bookings.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("SafeFamily.Api.Domain.Checklists.ChecklistItem", b =>
@@ -939,6 +1206,17 @@ namespace SafeFamily.Api.Migrations
                     b.Navigation("Family");
                 });
 
+            modelBuilder.Entity("SafeFamily.Api.Domain.Incidents.IncidentNote", b =>
+                {
+                    b.HasOne("SafeFamily.Api.Domain.Incidents.Incident", "Incident")
+                        .WithMany("Notes")
+                        .HasForeignKey("IncidentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Incident");
+                });
+
             modelBuilder.Entity("SafeFamily.Api.Domain.Reports.Report", b =>
                 {
                     b.HasOne("SafeFamily.Api.Domain.Families.Family", "Family")
@@ -974,6 +1252,11 @@ namespace SafeFamily.Api.Migrations
             modelBuilder.Entity("SafeFamily.Api.Domain.Families.Family", b =>
                 {
                     b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("SafeFamily.Api.Domain.Incidents.Incident", b =>
+                {
+                    b.Navigation("Notes");
                 });
 #pragma warning restore 612, 618
         }

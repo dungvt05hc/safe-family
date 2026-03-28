@@ -26,11 +26,20 @@ import { BookingDetailsPage } from '@/features/bookings/pages/BookingDetailsPage
 import { ChecklistPage } from '@/features/checklists/ChecklistPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
-import { AdminRoute } from '@/features/admin/components/AdminRoute'
+import { AdminProtectedRoute } from '@/features/admin/components/AdminProtectedRoute'
+import { AdminAppShell } from '@/features/admin/components/AdminAppShell'
 import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage'
 import { AdminCustomersPage } from '@/features/admin/pages/AdminCustomersPage'
 import { AdminBookingsPage } from '@/features/admin/pages/AdminBookingsPage'
 import { AdminIncidentsPage } from '@/features/admin/pages/AdminIncidentsPage'
+import { AdminAuditLogPage } from '@/features/admin/pages/AdminAuditLogPage'
+import { AdminActivityPage } from '@/features/admin/activity/AdminActivityPage'
+import { AdminReportsPage } from '@/features/admin/pages/AdminReportsPage'
+import { AdminServicePackagesPage } from '@/features/admin/pages/AdminServicePackagesPage'
+import { AdminUsersPage } from '@/features/admin/users/AdminUsersPage'
+import { AdminUserDetailPage } from '@/features/admin/users/AdminUserDetailPage'
+import { AdminCustomerDetailPage } from '@/features/admin/pages/AdminCustomerDetailPage'
+import { AdminNotesPage } from '@/features/admin/notes/AdminNotesPage'
 
 export const router = createBrowserRouter([
   // ── Guest-only routes (redirect to /dashboard when already signed in) ──────
@@ -94,15 +103,24 @@ export const router = createBrowserRouter([
   // ── Admin shell ─────────────────────────────────────────────────────────────
   {
     element: (
-      <AdminRoute>
-        <AppLayout />
-      </AdminRoute>
+      <AdminProtectedRoute>
+        <AdminAppShell />
+      </AdminProtectedRoute>
     ),
     children: [
-      { path: 'admin',           element: <AdminDashboardPage /> },
-      { path: 'admin/customers', element: <AdminCustomersPage /> },
-      { path: 'admin/bookings',  element: <AdminBookingsPage /> },
-      { path: 'admin/incidents', element: <AdminIncidentsPage /> },
+      { path: 'admin',               element: <AdminDashboardPage /> },
+      { path: 'admin/users',           element: <AdminUsersPage /> },
+      { path: 'admin/users/:id',       element: <AdminUserDetailPage /> },
+      { path: 'admin/customers',              element: <AdminCustomersPage /> },
+      { path: 'admin/customers/:familyId',    element: <AdminCustomerDetailPage /> },
+      { path: 'admin/bookings',      element: <AdminBookingsPage /> },
+      { path: 'admin/incidents',     element: <AdminIncidentsPage /> },
+      { path: 'admin/reports',       element: <AdminReportsPage /> },
+      { path: 'admin/packages',      element: <AdminServicePackagesPage /> },
+      { path: 'admin/notes',         element: <AdminNotesPage /> },
+      { path: 'admin/activity',      element: <AdminActivityPage /> },
+      // Legacy: keep /admin/audit-log working
+      { path: 'admin/audit-log',     element: <AdminAuditLogPage /> },
     ],
   },
 ])

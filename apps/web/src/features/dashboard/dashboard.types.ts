@@ -20,10 +20,11 @@ export interface DashboardRiskSummary {
 // ── Counts ────────────────────────────────────────────────────────────────────
 
 export interface DashboardCounts {
-  members:              number
-  accounts:             number
-  devices:              number
+  members:               number
+  accounts:              number
+  devices:               number
   pendingChecklistItems: number
+  activeIncidents:       number
 }
 
 // ── Checklist items ───────────────────────────────────────────────────────────

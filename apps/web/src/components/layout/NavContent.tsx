@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { NavLink } from 'react-router-dom'
-import { NAV_GROUPS } from './nav-items'
+import { NAV_GROUPS, type NavGroup } from './nav-items'
 import { navItemVariants } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
@@ -16,6 +16,8 @@ interface NavContentProps {
    * Useful when the nav is inside an animated container, e.g. the mobile drawer.
    */
   itemDelay?: number
+  /** Override the default customer nav groups (e.g. for the admin shell). */
+  navGroups?: NavGroup[]
 }
 
 /**
@@ -23,12 +25,13 @@ interface NavContentProps {
  * Renders NAV_GROUPS with labelled sections and per-item stagger animations.
  * Used by both Sidebar (desktop) and MobileSidebar (mobile drawer).
  */
-export function NavContent({ onItemClick, itemDelay = 0 }: NavContentProps) {
+export function NavContent({ onItemClick, itemDelay = 0, navGroups }: NavContentProps) {
+  const groups = navGroups ?? NAV_GROUPS
   // Precompute each group's global stagger-start index so the stagger delay
   // increments continuously across groups rather than resetting to 0 each time.
-  const groupsWithOffset = NAV_GROUPS.map((group, gi) => ({
+  const groupsWithOffset = groups.map((group, gi) => ({
     ...group,
-    startIdx: NAV_GROUPS.slice(0, gi).reduce((sum, g) => sum + g.items.length, 0),
+    startIdx: groups.slice(0, gi).reduce((sum, g) => sum + g.items.length, 0),
   }))
 
   return (
@@ -51,7 +54,7 @@ export function NavContent({ onItemClick, itemDelay = 0 }: NavContentProps) {
               <MotionNavLink
                 key={item.href}
                 to={item.href}
-                end={item.href === '/dashboard'}
+                end={item.href === '/dashboard' || item.href === '/admin'}
                 onClick={onItemClick}
                 custom={group.startIdx + i}
                 variants={navItemVariants}

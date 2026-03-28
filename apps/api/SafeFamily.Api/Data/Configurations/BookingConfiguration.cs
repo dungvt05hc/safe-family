@@ -34,6 +34,11 @@ public class BookingConfiguration : AuditableEntityConfiguration<Booking>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        builder.Property(b => b.AssignedAdminId);
+
+        builder.Property(b => b.AssignedAdminEmail)
+            .HasMaxLength(200);
+
         builder.HasOne(b => b.Family)
             .WithMany()
             .HasForeignKey(b => b.FamilyId)

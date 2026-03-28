@@ -25,4 +25,5 @@ public class Incident : AuditableEntity
 
     // ── Navigation ────────────────────────────────────────────────────────────
     public Family Family { get; set; } = null!;
+    public ICollection<IncidentNote> Notes { get; set; } = new List<IncidentNote>();
 }

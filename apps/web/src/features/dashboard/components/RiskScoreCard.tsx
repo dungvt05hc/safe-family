@@ -12,12 +12,11 @@ const RISK_CONFIG: Record<RiskLevel, {
   text:   string
   bg:     string
   border: string
-  pct:    number
 }> = {
-  Low:      { label: 'Low Risk',      bar: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200', pct: 20 },
-  Medium:   { label: 'Medium Risk',   bar: 'bg-amber-400',   text: 'text-amber-700',   bg: 'bg-amber-50',    border: 'border-amber-200',   pct: 50 },
-  High:     { label: 'High Risk',     bar: 'bg-orange-500',  text: 'text-orange-700',  bg: 'bg-orange-50',   border: 'border-orange-200',  pct: 75 },
-  Critical: { label: 'Critical Risk', bar: 'bg-red-500',     text: 'text-red-700',     bg: 'bg-red-50',      border: 'border-red-200',     pct: 95 },
+  Low:      { label: 'Low Risk',      bar: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200' },
+  Medium:   { label: 'Medium Risk',   bar: 'bg-amber-400',   text: 'text-amber-700',   bg: 'bg-amber-50',    border: 'border-amber-200'   },
+  High:     { label: 'High Risk',     bar: 'bg-orange-500',  text: 'text-orange-700',  bg: 'bg-orange-50',   border: 'border-orange-200'  },
+  Critical: { label: 'Critical Risk', bar: 'bg-red-500',     text: 'text-red-700',     bg: 'bg-red-50',      border: 'border-red-200'     },
 }
 
 interface RiskScoreCardProps {
@@ -72,7 +71,7 @@ export function RiskScoreCard({ riskSummary }: RiskScoreCardProps) {
           <div className="w-full h-2 rounded-full bg-black/10 overflow-hidden mb-3">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${cfg!.pct}%` }}
+              animate={{ width: `${riskSummary.overallScore}%` }}
               transition={{ delay: 0.5, duration: 0.6, ease: 'easeOut' }}
               className={cn('h-full rounded-full', cfg!.bar)}
             />
@@ -86,6 +85,7 @@ export function RiskScoreCard({ riskSummary }: RiskScoreCardProps) {
             )}
           </div>
           <button
+            type="button"
             onClick={() => navigate('/assessment')}
             className={cn('mt-3 text-xs font-semibold underline underline-offset-2 transition-opacity hover:opacity-70', cfg!.text)}
           >
@@ -98,6 +98,7 @@ export function RiskScoreCard({ riskSummary }: RiskScoreCardProps) {
             No assessment yet. Run a risk check to see your score.
           </p>
           <button
+            type="button"
             onClick={() => navigate('/assessment')}
             className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
           >

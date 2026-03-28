@@ -3,6 +3,7 @@ using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Assessments;
 using SafeFamily.Api.Domain.Checklists;
+using SafeFamily.Api.Domain.Incidents;
 using SafeFamily.Api.Features.Dashboard.Dtos;
 
 namespace SafeFamily.Api.Features.Dashboard;
@@ -36,6 +37,10 @@ public class DashboardService : IDashboardService
 
         var pendingChecklistCount = await _db.ChecklistItems
             .CountAsync(i => i.FamilyId == familyId && i.Status == ChecklistItemStatus.Pending, ct);
+
+        var activeIncidentsCount = await _db.Incidents
+            .CountAsync(i => i.FamilyId == familyId
+                && (i.Status == IncidentStatus.Open || i.Status == IncidentStatus.InProgress), ct);
 
         var topPendingItems = await _db.ChecklistItems
             .Where(i => i.FamilyId == familyId && i.Status == ChecklistItemStatus.Pending)
@@ -90,7 +95,7 @@ public class DashboardService : IDashboardService
         return new DashboardResponse(
             Family: new FamilySummaryDto(family.Id, family.DisplayName, family.CountryCode, family.Timezone),
             RiskSummary: riskSummary,
-            Counts: new CountsSummaryDto(memberCount, accountCount, deviceCount, pendingChecklistCount),
+            Counts: new CountsSummaryDto(memberCount, accountCount, deviceCount, pendingChecklistCount, activeIncidentsCount),
             ImmediateActions: immediateActions,
             TopPendingItems: topPendingItems,
             RecentIncidents: recentIncidents,

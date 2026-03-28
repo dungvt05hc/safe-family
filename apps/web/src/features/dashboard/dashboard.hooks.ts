@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { ApiError } from '@/types/api'
 import { dashboardApi } from './dashboard.api'
 
 // ── Query keys ────────────────────────────────────────────────────────────────
@@ -17,11 +18,7 @@ export function useDashboard() {
     queryFn:   dashboardApi.getDashboard,
     staleTime: 60_000,
     retry: (failureCount, error) => {
-      // Do not retry on 403 (no family) or 404
-      if (error && typeof error === 'object' && 'status' in error) {
-        const status = (error as { status: number }).status
-        if (status === 403 || status === 404) return false
-      }
+      if (error instanceof ApiError && (error.isForbidden || error.isNotFound)) return false
       return failureCount < 2
     },
   })

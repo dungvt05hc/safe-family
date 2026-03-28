@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { adminService } from '../admin.service'
 
 export const adminKeys = {
-  dashboard: ['admin', 'dashboard'] as const,
-  customers: ['admin', 'customers'] as const,
-  bookings: ['admin', 'bookings'] as const,
-  incidents: ['admin', 'incidents'] as const,
+  dashboard:       ['admin', 'dashboard'] as const,
+  auditLogs:       (page: number) => ['admin', 'audit-logs', page] as const,
+  reports:         (page: number) => ['admin', 'reports', page] as const,
+  servicePackages: ['admin', 'packages'] as const,
 }
 
 export function useAdminDashboard() {
@@ -15,23 +15,23 @@ export function useAdminDashboard() {
   })
 }
 
-export function useAdminCustomers() {
+export function useAdminAuditLogs(page = 1) {
   return useQuery({
-    queryKey: adminKeys.customers,
-    queryFn: adminService.getCustomers,
+    queryKey: adminKeys.auditLogs(page),
+    queryFn: () => adminService.getAuditLogs(page),
   })
 }
 
-export function useAdminBookings() {
+export function useAdminReports(page = 1) {
   return useQuery({
-    queryKey: adminKeys.bookings,
-    queryFn: adminService.getBookings,
+    queryKey: adminKeys.reports(page),
+    queryFn: () => adminService.getReports(page),
   })
 }
 
-export function useAdminIncidents() {
+export function useAdminServicePackages() {
   return useQuery({
-    queryKey: adminKeys.incidents,
-    queryFn: adminService.getIncidents,
+    queryKey: adminKeys.servicePackages,
+    queryFn: adminService.getServicePackages,
   })
 }

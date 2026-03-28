@@ -18,6 +18,7 @@ public class BookingService : IBookingService
     public async Task<IReadOnlyList<ServicePackageResponse>> GetServicePackagesAsync(CancellationToken ct = default)
     {
         return await _db.ServicePackages
+            .Where(p => p.IsVisible && p.IsActive)
             .OrderBy(p => p.CreatedAt)
             .Select(p => new ServicePackageResponse(p.Id, p.Name, p.Description, p.PriceDisplay, p.DurationLabel))
             .ToListAsync(ct);
@@ -27,7 +28,8 @@ public class BookingService : IBookingService
     {
         var familyId = await RequireFamilyIdAsync(userId, ct);
 
-        var packageExists = await _db.ServicePackages.AnyAsync(p => p.Id == request.PackageId, ct);
+        var packageExists = await _db.ServicePackages
+            .AnyAsync(p => p.Id == request.PackageId && p.IsVisible && p.IsActive, ct);
         if (!packageExists)
             throw new NotFoundException("ServicePackage", request.PackageId);
 

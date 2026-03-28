@@ -24,7 +24,8 @@ public record CountsSummaryDto(
     int Members,
     int Accounts,
     int Devices,
-    int PendingChecklistItems);
+    int PendingChecklistItems,
+    int ActiveIncidents);
 
 public record TopChecklistItemDto(
     Guid Id,

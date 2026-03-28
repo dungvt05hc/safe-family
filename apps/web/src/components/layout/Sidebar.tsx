@@ -1,12 +1,14 @@
 import { ShieldCheck } from 'lucide-react'
 import { NavContent } from './NavContent'
+import { type NavGroup } from './nav-items'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
   className?: string
+  navGroups?: NavGroup[]
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, navGroups }: SidebarProps) {
   return (
     <aside
       className={cn(
@@ -23,7 +25,7 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <NavContent />
+      <NavContent navGroups={navGroups} />
 
       {/* Footer */}
       <div className="px-4 py-4 border-t border-slate-800 text-xs text-slate-500">

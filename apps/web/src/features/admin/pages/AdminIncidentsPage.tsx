@@ -1,72 +1,144 @@
-import { useAdminIncidents } from '../hooks/useAdminQueries'
-import { useUpdateIncidentStatus } from '../hooks/useAdminMutations'
-import type { IncidentStatus } from '../admin.types'
+import { useState } from 'react'
+import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { AdminSpinner, AdminError, AdminEmpty } from '../components/AdminStateViews'
+import { AdminIncidentFiltersBar } from '../incidents/AdminIncidentFilters'
+import { AdminIncidentsTable } from '../incidents/AdminIncidentsTable'
+import { AdminIncidentDetailDrawer } from '../incidents/AdminIncidentDetailDrawer'
+import {
+  useAdminIncidentsList,
+  useUpdateIncidentStatus,
+} from '../incidents/adminIncidents.hooks'
+import type { AdminIncidentFiltersState, IncidentStatus } from '../incidents/adminIncidents.types'
 
-const INCIDENT_STATUSES: IncidentStatus[] = ['Open', 'InProgress', 'Resolved', 'Dismissed']
-
-const statusColors: Record<IncidentStatus, string> = {
-  Open: 'bg-red-100 text-red-700',
-  InProgress: 'bg-yellow-100 text-yellow-700',
-  Resolved: 'bg-green-100 text-green-700',
-  Dismissed: 'bg-gray-100 text-gray-500',
+const DEFAULT_FILTERS: AdminIncidentFiltersState = {
+  search: '',
+  severity: '',
+  status: '',
+  type: '',
+  from: '',
+  to: '',
+  page: 1,
+  pageSize: 25,
 }
 
 export function AdminIncidentsPage() {
-  const { data, isLoading, isError } = useAdminIncidents()
+  const [filters, setFilters] = useState<AdminIncidentFiltersState>(DEFAULT_FILTERS)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const { data, isLoading, isFetching, isError, refetch } = useAdminIncidentsList(filters)
   const updateStatus = useUpdateIncidentStatus()
 
-  if (isLoading) return <p className="p-6 text-gray-500">Loading…</p>
-  if (isError || !data) return <p className="p-6 text-red-500">Failed to load incidents.</p>
+  const isMutating = updateStatus.isPending
+
+  function handleFiltersChange(next: Partial<AdminIncidentFiltersState>) {
+    setFilters((prev) => ({ ...prev, ...next }))
+  }
+
+  function handleStatusChange(id: string, status: IncidentStatus) {
+    updateStatus.mutate({ id, status })
+  }
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / filters.pageSize)) : 1
+  const hasActiveFilters =
+    filters.search !== '' ||
+    filters.severity !== '' ||
+    filters.status !== '' ||
+    filters.type !== '' ||
+    filters.from !== '' ||
+    filters.to !== ''
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold text-gray-900">Incident Queue</h1>
-      <div className="overflow-x-auto rounded-lg border bg-white shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left">
-            <tr>
-              <th className="px-4 py-3 font-medium text-gray-600">Family</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Type</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Severity</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Summary</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3 font-medium text-gray-600">Reported</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-gray-400">No incidents yet.</td>
-              </tr>
-            )}
-            {data.map((inc) => (
-              <tr key={inc.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{inc.familyName}</td>
-                <td className="px-4 py-3 text-gray-700">{inc.type}</td>
-                <td className="px-4 py-3 text-gray-500">{inc.severity}</td>
-                <td className="px-4 py-3 text-gray-500 max-w-xs truncate" title={inc.summary}>
-                  {inc.summary}
-                </td>
-                <td className="px-4 py-3">
-                  <select
-                    value={inc.status}
-                    disabled={updateStatus.isPending}
-                    onChange={(e) =>
-                      updateStatus.mutate({ id: inc.id, status: e.target.value as IncidentStatus })
-                    }
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold border-0 cursor-pointer focus:ring-2 focus:ring-blue-400 ${statusColors[inc.status]}`}
-                  >
-                    {INCIDENT_STATUSES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-4 py-3 text-gray-400">{new Date(inc.createdAt).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Incidents</h1>
+          <p className="text-sm text-gray-500 mt-0.5" aria-live="polite" aria-atomic="true">
+            {data ? `${data.total.toLocaleString()} total` : '\u00A0'}
+          </p>
+        </div>
       </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <AdminIncidentFiltersBar filters={filters} onChange={handleFiltersChange} />
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={() => setFilters(DEFAULT_FILTERS)}
+            className="text-sm font-medium text-amber-600 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
+      {/* Table */}
+      <div
+        className="overflow-x-auto rounded-lg border bg-white shadow-sm transition-opacity duration-200"
+        aria-busy={isFetching}
+        style={{ opacity: isFetching && !isLoading ? 0.6 : 1 }}
+      >
+        {isLoading ? (
+          <AdminSpinner />
+        ) : isError ? (
+          <AdminError message="Failed to load incidents." onRetry={() => refetch()} />
+        ) : !data || data.items.length === 0 ? (
+          <AdminEmpty
+            icon={<AlertTriangle className="w-10 h-10" />}
+            message={hasActiveFilters ? 'No incidents match your filters.' : 'No incidents yet.'}
+          />
+        ) : (
+          <AdminIncidentsTable
+            incidents={data.items}
+            onOpen={setSelectedId}
+            onStatusChange={handleStatusChange}
+            isMutating={isMutating}
+          />
+        )}
+      </div>
+
+      {/* Pagination */}
+      {data && (
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <span>
+            {totalPages > 1 ? `Page ${filters.page} of ${totalPages} \u2014 ` : ''}
+            {data.total.toLocaleString()} {data.total === 1 ? 'incident' : 'incidents'}
+          </span>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={filters.page <= 1}
+                onClick={() => handleFiltersChange({ page: filters.page - 1 })}
+                aria-label="Previous page"
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />
+                Prev
+              </button>
+              <button
+                type="button"
+                disabled={filters.page >= totalPages}
+                onClick={() => handleFiltersChange({ page: filters.page + 1 })}
+                aria-label="Next page"
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+                <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Detail drawer */}
+      <AdminIncidentDetailDrawer
+        incidentId={selectedId}
+        onClose={() => setSelectedId(null)}
+        onStatusChange={handleStatusChange}
+        isMutating={isMutating}
+      />
     </div>
   )
 }

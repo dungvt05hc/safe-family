@@ -67,12 +67,14 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
           </p>
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={() => navigate('/incidents/report')}
               className="text-xs font-semibold text-orange-600 hover:text-orange-700 transition-colors"
             >
               Report an incident →
             </button>
             <button
+              type="button"
               onClick={() => navigate('/bookings')}
               className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
@@ -90,22 +92,27 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              onClick={() => navigate(`/incidents/result/${incident.id}`)}
-              className="flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors cursor-pointer group"
             >
-              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-orange-50 shrink-0 mt-0.5">
-                <AlertTriangle className="w-4 h-4 text-orange-500" aria-hidden="true" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{incident.summary}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{formatDate(incident.createdAt)}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-semibold', SEVERITY_CLS[incident.severity] ?? 'bg-gray-100 text-gray-600')}>
-                  {incident.severity}
-                </span>
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden="true" />
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate(`/incidents/result/${incident.id}`)}
+                aria-label={`View incident: ${incident.summary}`}
+                className="w-full flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group text-left"
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-orange-50 shrink-0 mt-0.5">
+                  <AlertTriangle className="w-4 h-4 text-orange-500" aria-hidden="true" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{incident.summary}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{formatDate(incident.createdAt)}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-semibold', SEVERITY_CLS[incident.severity] ?? 'bg-gray-100 text-gray-600')}>
+                    {incident.severity}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden="true" />
+                </div>
+              </button>
             </motion.li>
           ))}
 
@@ -117,24 +124,29 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              onClick={() => navigate('/bookings/my')}
-              className="flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors cursor-pointer group"
             >
-              <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50 shrink-0 mt-0.5">
-                <Calendar className="w-4 h-4 text-blue-500" aria-hidden="true" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{booking.packageName}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Booked {formatDate(booking.createdAt)}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-semibold', STATUS_CLS[booking.status] ?? 'bg-gray-100 text-gray-600')}>
-                  {booking.status}
-                </span>
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden="true" />
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/bookings/my')}
+                aria-label={`View booking: ${booking.packageName}`}
+                className="w-full flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group text-left"
+              >
+                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50 shrink-0 mt-0.5">
+                  <Calendar className="w-4 h-4 text-blue-500" aria-hidden="true" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{booking.packageName}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Booked {formatDate(booking.createdAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-semibold', STATUS_CLS[booking.status] ?? 'bg-gray-100 text-gray-600')}>
+                    {booking.status}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden="true" />
+                </div>
+              </button>
             </motion.li>
           ))}
         </ul>
@@ -144,12 +156,14 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
       {hasItems && (
         <div className="px-5 py-3 border-t border-gray-50 flex gap-4">
           <button
+            type="button"
             onClick={() => navigate('/incidents')}
             className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
           >
             All incidents →
           </button>
           <button
+            type="button"
             onClick={() => navigate('/bookings/my')}
             className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
           >

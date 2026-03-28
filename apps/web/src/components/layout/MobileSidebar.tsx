@@ -2,13 +2,15 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, ShieldCheck } from 'lucide-react'
 import { NavContent } from './NavContent'
+import { type NavGroup } from './nav-items'
 
 interface MobileSidebarProps {
   open: boolean
   onClose: () => void
+  navGroups?: NavGroup[]
 }
 
-export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
+export function MobileSidebar({ open, onClose, navGroups }: MobileSidebarProps) {
   // Close on Escape key
   useEffect(() => {
     if (!open) return
@@ -71,7 +73,7 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
             </div>
 
             {/* Navigation */}
-            <NavContent onItemClick={onClose} itemDelay={0.18} />
+            <NavContent onItemClick={onClose} itemDelay={0.18} navGroups={navGroups} />
 
             {/* Footer */}
             <div className="px-4 py-4 border-t border-slate-800 text-xs text-slate-500">

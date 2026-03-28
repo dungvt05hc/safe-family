@@ -23,4 +23,19 @@ public class User : BaseEntity
 
     /// <summary>Application-level role. Defaults to User; set to Admin for staff accounts.</summary>
     public UserRole Role { get; set; } = UserRole.User;
+
+    /// <summary>Account lifecycle status (active / suspended / deactivated).</summary>
+    public UserStatus Status { get; set; } = UserStatus.Active;
+
+    /// <summary>Whether the user has verified their email address.</summary>
+    public bool EmailVerified { get; set; } = false;
+
+    /// <summary>UTC timestamp of the user's most recent successful sign-in. Null until first login.</summary>
+    public DateTimeOffset? LastLoginAt { get; set; }
+
+    /// <summary>Single-use short-lived token for admin-triggered password resets. Null when none is pending.</summary>
+    public string? PasswordResetToken { get; set; }
+
+    /// <summary>UTC expiry for the pending password reset token.</summary>
+    public DateTimeOffset? PasswordResetExpiresAt { get; set; }
 }

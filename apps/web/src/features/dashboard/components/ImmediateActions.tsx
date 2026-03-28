@@ -51,9 +51,15 @@ export function ImmediateActions({ actions, hasAssessment }: ImmediateActionsPro
         </ul>
       ) : (
         <div className="flex flex-col items-center justify-center py-10 text-center px-6">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
-            <Info className="w-5 h-5 text-gray-400" aria-hidden="true" />
-          </div>
+          {hasAssessment ? (
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-50 mb-3">
+              <CheckCircle2 className="w-5 h-5 text-green-500" aria-hidden="true" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
+              <Info className="w-5 h-5 text-gray-400" aria-hidden="true" />
+            </div>
+          )}
           <p className="text-sm text-gray-500">
             {hasAssessment
               ? 'No immediate actions — great job! Your scores are all healthy.'
@@ -66,6 +72,7 @@ export function ImmediateActions({ actions, hasAssessment }: ImmediateActionsPro
       {hasAssessment && (
         <div className="px-5 py-3 border-t border-gray-50">
           <button
+            type="button"
             onClick={() => navigate('/assessment')}
             className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
           >

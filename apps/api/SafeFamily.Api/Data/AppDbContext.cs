@@ -28,9 +28,13 @@ public class AppDbContext : DbContext
     public DbSet<AssessmentAnswer> AssessmentAnswers => Set<AssessmentAnswer>();
     public DbSet<ChecklistItem> ChecklistItems => Set<ChecklistItem>();
     public DbSet<Incident> Incidents => Set<Incident>();
+    public DbSet<IncidentNote> IncidentNotes => Set<IncidentNote>();
     public DbSet<ServicePackage> ServicePackages => Set<ServicePackage>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<BookingNote> BookingNotes => Set<BookingNote>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<AdminNote> AdminNotes => Set<AdminNote>();
+    public DbSet<FamilyNote> FamilyNotes => Set<FamilyNote>();
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<UserSettings> UserSettings => Set<UserSettings>();
 

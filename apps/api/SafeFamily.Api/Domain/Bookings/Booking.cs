@@ -17,6 +17,12 @@ public class Booking : AuditableEntity
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
 
+    /// <summary>Admin currently responsible for this booking. Null = unassigned.</summary>
+    public Guid? AssignedAdminId { get; set; }
+
+    /// <summary>Denormalised admin email shown in the UI without a JOIN.</summary>
+    public string? AssignedAdminEmail { get; set; }
+
     // ── Navigation ────────────────────────────────────────────────────────────
     public Family Family { get; set; } = null!;
     public ServicePackage Package { get; set; } = null!;

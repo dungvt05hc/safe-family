@@ -21,7 +21,13 @@ var builder = WebApplication.CreateBuilder(args);
 // ── Services ────────────────────────────────────────────────────────────────────────────
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
-        opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+    {
+        // Serialize enum values as their name strings (e.g. "Low" not 0).
+        opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        // Make the camelCase property naming explicit (ASP.NET Core sets this by default,
+        // but being explicit prevents surprises if the default ever changes).
+        opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddSwaggerDocs();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddCorsPolicy(builder.Configuration);

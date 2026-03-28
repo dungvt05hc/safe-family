@@ -6,8 +6,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 echo "==> SafeFamily — Starting dev servers"
 echo "    Frontend : http://localhost:5173"
-echo "    API      : http://localhost:5000"
-echo "    Swagger  : http://localhost:5000/swagger"
+echo "    API      : http://localhost:5050"
+echo "    Swagger  : http://localhost:5050/swagger"
 echo ""
 
 # Start PostgreSQL if not running

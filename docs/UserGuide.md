@@ -1,312 +1,422 @@
 # SafeFamily — User Guide
 
-> SafeFamily helps your family track, assess, and improve your digital safety — all in one place.
-
----
+SafeFamily helps households organize family members, track digital risks, report incidents, and get practical help to improve online safety.
 
 ## Table of Contents
 
 1. [Getting Started](#1-getting-started)
-2. [Set Up Your Family](#2-set-up-your-family)
-3. [Manage Family Members](#3-manage-family-members)
-4. [Track Digital Accounts](#4-track-digital-accounts)
-5. [Track Devices](#5-track-devices)
-6. [Run a Digital Safety Assessment](#6-run-a-digital-safety-assessment)
-7. [Work Through Your Security Checklist](#7-work-through-your-security-checklist)
-8. [Report a Security Incident](#8-report-a-security-incident)
-9. [Book a Professional Safety Session](#9-book-a-professional-safety-session)
-10. [Admin Panel (Admins Only)](#10-admin-panel-admins-only)
-11. [Quick Reference](#11-quick-reference)
-
----
+2. [First-Time Setup Journey](#2-first-time-setup-journey)
+3. [Dashboard](#3-dashboard)
+4. [Family Members](#4-family-members)
+5. [Accounts](#5-accounts)
+6. [Devices](#6-devices)
+7. [Digital Safety Assessment](#7-digital-safety-assessment)
+8. [Checklist](#8-checklist)
+9. [Incidents](#9-incidents)
+10. [Bookings](#10-bookings)
+11. [Reports](#11-reports)
+12. [Settings](#12-settings)
+13. [Admin Panel (Admin Role Only)](#13-admin-panel-admin-role-only)
+14. [Quick Route Reference](#14-quick-route-reference)
 
 ## 1. Getting Started
 
 ### Create your account
 
-1. Click **Sign up** in the top-right corner of the home page, or go directly to `/register`.
-2. Fill in:
-   - **Email address** — your login identifier
-   - **Display name** — how your name appears in the app
-   - **Password** — at least 8 characters
-3. Click **Create account**. You'll be taken to your dashboard automatically.
+1. Open `/register`.
+2. Enter your email address.
+3. Enter your display name.
+4. Enter a password (minimum 8 characters).
+5. Select **Create account**.
+
+After account creation, you are signed in and taken to your dashboard.
 
 ### Sign in to an existing account
 
-Go to `/login`, enter your email and password, and click **Sign in**.
+1. Open `/login`.
+2. Enter your email and password.
+3. Select **Sign in**.
 
-> **Already signed in?** Visiting `/login` will redirect you straight to your dashboard.
+If you tried to open a protected page first, SafeFamily returns you to that page after successful login.
 
----
+### Guest-only pages
 
-## 2. Set Up Your Family
+- `/login` and `/register` are guest-only pages.
+- If you are already signed in, opening these pages redirects you to `/dashboard`.
 
-**This step is required before you can use any other feature.**
+## 2. First-Time Setup Journey
 
-When you sign up for the first time, you'll be prompted to create your family profile.
+This is the recommended order for new users.
 
-1. You'll see a **"Create your family"** form.
-2. Fill in:
-   - **Family name** — e.g. "The Nguyens"
-   - **Country** — your country (2-letter code, e.g. `AU`, `US`, `VN`)
-   - **Timezone** — your local timezone
-3. Click **Save**. You'll be taken to your dashboard.
+1. Create account at `/register`.
+2. Create your family profile at `/family/new`.
+3. Add family members at `/family/members`.
+4. Add accounts at `/accounts`.
+5. Add devices at `/devices`.
+6. Run your first assessment at `/assessment`.
+7. Review checklist actions at `/checklists`.
 
-> If you ever navigate to a protected page without a family set up, you'll be redirected back to this setup step.
+Notes:
 
----
+- Family profile is foundational. Many features are much more useful after creating a family.
+- Dashboard highlights setup shortcuts when family data is missing.
 
-## 3. Manage Family Members
+## 3. Dashboard
 
-**Go to:** `/family/members`
+**Route:** `/dashboard`
 
-Add the people in your household so you can track accounts and devices on their behalf.
+The dashboard is your control center.
+
+### What you see
+
+- Welcome banner with your family name (when available).
+- Summary cards:
+  - Number of members
+  - Number of accounts
+  - Number of devices
+  - Number of active incidents
+- Risk score overview from your latest assessment.
+- Quick actions to open key workflows.
+- Immediate action suggestions.
+- Recent activity (incidents and bookings).
+
+### If your family is not set up yet
+
+You will see a setup prompt with a **Create Family** action that takes you to `/family/new`.
+
+## 4. Family Members
+
+**Route:** `/family/members`
+
+Use this page to maintain the people in your household.
 
 ### Add a member
 
-1. Click **+ Add member** in the top-right corner.
-2. Fill in:
-   - **Name** — the person's display name
-   - **Relationship** — e.g. Partner, Child, Parent
-   - **Age group** — e.g. Adult, Teen, Child
-   - **Primary ecosystem** — their main device platform (e.g. Apple, Android, Windows)
-   - **Primary contact** — toggle on if this person is the main point of contact
-3. Click **Save**.
+1. Select **+ Add member**.
+2. Complete the form:
+  - Display name
+  - Relationship (for example: Self, Spouse, Son, Daughter, Parent, Sibling)
+  - Age group (Infant, Child, Teen, Adult, Senior)
+  - Primary ecosystem (Google, Apple, Microsoft/Windows, Android, Mixed, Other)
+  - Primary contact (yes/no)
+3. Save.
 
 ### Edit a member
 
-Click **Edit** on any row in the member list to update their details.
+1. Find the person in the list.
+2. Select **Edit**.
+3. Update fields and save.
 
-### Remove a member
+### Archive a member
 
-Click **Archive** on a member's row. They'll be hidden from the list but their historical data is preserved.
+1. Select **Archive** on the member row/card.
+2. Confirm the action.
 
----
+Archived members are hidden from the main list but historical records remain intact.
 
-## 4. Track Digital Accounts
+## 5. Accounts
 
-**Go to:** `/accounts`
+**Route:** `/accounts`
 
-Keep a record of your family's online accounts and monitor their security health.
+Track important family accounts and security posture.
+
+### What you can do
+
+- Add account records.
+- Edit existing records.
+- Archive records no longer in use.
+- Filter and search accounts.
 
 ### Add an account
 
-1. Click **+ Add account**.
-2. Fill in:
-   - **Account type** — e.g. Email, Banking, Social Media
-   - **Identifier** — a masked identifier like `j***@gmail.com` (do not enter full credentials)
-   - **Family member** — which member this account belongs to *(optional)*
-   - **Two-factor authentication** — Enabled / Disabled / Unknown
-   - **Recovery email** — whether a recovery email is set up
-   - **Recovery phone** — whether a recovery phone is set up
-   - **Suspicious activity** — flag if the account has shown any suspicious signs
-   - **Notes** — any additional context
-3. Click **Save**.
+1. Select **+ Add account**.
+2. Enter account details (type, identifier, linked family member, security posture fields, notes).
+3. Save.
 
-### What the status badges mean
+### Use filters
 
-| Badge | Meaning |
-|-------|---------|
-| 🟢 Enabled / Set | Security feature is active — good |
-| 🔴 Disabled / Not set | Security feature is missing — action needed |
-| ⚪ Unknown | Status hasn't been checked yet |
+- Filter by family member.
+- Filter by account type.
+- Search by identifier or notes.
+- Use **Clear filters** to reset view.
 
-### Edit or delete an account
+### Security indicators you will see
 
-Use the **Edit** and **Delete** buttons on each account row.
+- 2FA status
+- Recovery email status
+- Recovery phone status
+- Suspicious activity flag
 
----
+These indicators help prioritize what to improve first.
 
-## 5. Track Devices
+## 6. Devices
 
-**Go to:** `/devices`
+**Route:** `/devices`
 
-Log all computers, phones, and tablets your family uses and check their security configuration.
+Track family devices and key hardening settings.
 
-### Add a device
+### What you can do
 
-1. Click **+ Add device**.
-2. Fill in:
-   - **Device type** — e.g. Laptop, Smartphone, Tablet
-   - **Brand and model** — e.g. Apple MacBook Pro
-   - **OS name and version** — e.g. macOS 14.4
-   - **Support status** — whether the OS still receives security updates
-   - **Family member** — which member owns this device *(optional)*
-   - **Security features** — toggle each one:
-     - Screen lock enabled
-     - Biometric authentication enabled
-     - Backup enabled
-     - Find My Device enabled
-   - **Notes** — any additional context
-3. Click **Save**.
+- Add, edit, and archive devices.
+- Filter by member, device type, and support status.
+- Search devices by brand/model/OS.
 
-### Support status colours
+### Device security fields
 
-| Status | Meaning |
-|--------|---------|
-| 🟢 Supported | Still receiving security updates |
-| 🔴 End of life | No longer supported — replace or upgrade |
-| 🟡 No updates | Updates have stopped — consider upgrading |
+For each device, SafeFamily can track:
 
----
+- Screen lock enabled
+- Biometric enabled
+- Backup enabled
+- Find My Device enabled
+- OS support status
 
-## 6. Run a Digital Safety Assessment
+Support status helps identify end-of-life devices that should be upgraded or replaced.
 
-**Go to:** `/assessment`
+## 7. Digital Safety Assessment
 
-Answer 22 questions to get a personalised risk score for your family across five security areas.
+### Start page
 
-### How it works
+**Route:** `/assessment`
 
-1. Go to `/assessment` and click **Start assessment**.
-2. Answer questions in each category:
-   - 🔐 **Account Security** — passwords, 2FA, recovery options
-   - 💻 **Device Hygiene** — OS updates, screen locks, encryption
-   - ☁️ **Backup & Recovery** — cloud backups, local copies
-   - 👁️ **Privacy & Sharing** — what you share online and with whom
-   - 🎣 **Scam Readiness** — ability to identify phishing and fraud
-3. Click **Submit**. You'll see your result immediately.
+This page explains the assessment and includes the main call to action:
 
-### Understanding your result
+- **Start assessment** opens `/assessment/wizard`.
+- If a previous assessment exists, you can open latest result directly.
 
-- **Overall score (0–100)** — higher is safer
-- **Risk level** — Low (green) / Medium (amber) / High (orange) / Critical (red)
-- **Per-category breakdown** — a bar for each of the five categories showing where you're strong and where you need work
+### Assessment wizard
 
-### View a previous result
+**Route:** `/assessment/wizard`
 
-If you've already done an assessment, a **"View your last result →"** link appears on the assessment start page.
+The wizard is category-based and step-by-step.
 
-### After the assessment
+Categories include:
 
-Your result automatically generates a personalised **security checklist** — see the next section.
+- Account Security
+- Device Hygiene
+- Backup & Recovery
+- Privacy & Sharing
+- Scam Readiness
 
----
+How to complete:
 
-## 7. Work Through Your Security Checklist
+1. Answer all questions on the current step.
+2. Select **Next** to continue.
+3. Use **Back** to review previous answers.
+4. On the last step, select **Submit assessment**.
 
-The checklist is generated from your assessment results and your registered accounts and devices. It gives you concrete actions to improve your family's security.
+### Result page
 
-> Access the checklist from the **assessment result page** or navigate directly via your dashboard.
+**Route:** `/assessment/result`
 
-### Each checklist item shows:
-- **Title and description** — what to do and why
-- **Category** — which security area it belongs to
-- **Priority** — how urgent the action is
+Shows:
 
-### Updating an item's status
+- Overall score (0-100)
+- Risk level label
+- Category-by-category score bars
+- Immediate action recommendations
 
-Click on an item to mark it as:
-- **Done** — you've completed this action
-- **Dismissed** — not applicable to your situation
+If no assessment exists yet, this page prompts you to start one.
 
-Focus on high-priority items first, particularly anything in Account Security or Devices that shows red status badges.
+### History page
 
----
+**Route:** `/assessment/history`
 
-## 8. Report a Security Incident
+Use this page to compare previous runs over time.
 
-**Go to:** `/incidents`
+Actions available:
 
-Log a security event that has affected your family — like a phishing email, a compromised account, or malware on a device.
+- Open latest result
+- Retake assessment
 
-### Report a new incident
+## 8. Checklist
 
-1. Go to `/incidents` and you'll see a grid of incident types. Select the one that best describes what happened:
-   - Phishing / Scam
-   - Account Compromise
-   - Malware / Ransomware
-   - Data Breach
-   - Device Theft / Loss
-   - Fraud
-   - Cyberbullying
-   - Unsolicited Contact
-   - And more…
+**Route:** `/checklists`
 
-2. A form will appear asking for details about the incident — fill in what you know.
+Checklist gives practical actions to reduce risk.
 
-3. Submit to see your **Incident Action Plan** — a step-by-step guide for containing and recovering from the incident.
+### What you can do
 
-### After reporting
+- View summary stats.
+- Filter by priority.
+- Filter by status.
+- Filter by category.
+- Search by title/description.
 
-Your incident is saved so you can refer back to the action plan at any time. Go to `/incidents` to see all reported incidents and their current status (Open, In Progress, Resolved, Dismissed).
+Use checklist routinely after assessments and incident events to keep improvements on track.
 
----
+## 9. Incidents
 
-## 9. Book a Professional Safety Session
+### Incident list
 
-**Go to:** `/bookings`
+**Route:** `/incidents`
 
-If you need expert help, you can book a professional digital-safety consultation.
+Use this page to review all incidents and start new reports.
 
-### Book a session
+From here you can:
 
-1. Go to `/bookings`. You'll see available service packages — click a package to select it.
-2. Choose:
-   - **Preferred date and time**
-   - **Contact method** — Online, Phone, or Email
-   - **Notes** *(optional)* — anything specific you'd like to discuss
-3. Click **Book session**. You'll be redirected to your bookings list.
+- Select **Report Incident** to open `/incidents/report`.
+- Open any incident card for full details.
 
-### View your bookings
+### Report incident form
 
-Go to `/bookings/my` to see all upcoming and past sessions with:
+**Route:** `/incidents/report`
+
+Steps:
+
+1. Select incident type (for example phishing, password compromise, malware, data breach, scam/fraud, identity theft, social engineering, or other).
+2. Choose severity (Low, Medium, High, Critical).
+3. Enter a clear summary (minimum 10 characters).
+4. Submit.
+
+After submission, you are redirected to result page for that incident.
+
+### Incident action plan
+
+**Route:** `/incidents/result/:id`
+
+This page confirms the incident was saved and provides:
+
+- Incident summary
+- Severity and status badges
+- Recommended first action plan
+- Shortcuts to book support, open checklist, report another incident
+
+### Incident details
+
+**Route:** `/incidents/:id`
+
+Use this page to revisit full details and action plan for an existing incident.
+
+## 10. Bookings
+
+### Create booking
+
+**Route:** `/bookings`
+
+Book a safety support session in 4 steps:
+
+1. Choose service package.
+2. Select preferred date and time.
+3. Choose channel:
+  - Online (video)
+  - Phone
+  - Email
+  - Onsite
+4. Add optional notes, then submit.
+
+You are redirected to the booking details page after creation.
+
+### My bookings
+
+**Route:** `/bookings/my`
+
+Shows upcoming and past bookings with:
+
 - Package name
-- Contact method and date
-- Payment status (Pending / Paid / Refunded / Waived)
+- Preferred date/time
+- Channel
+- Booking status
+- Payment status
 
-From here you can also click **Book a Session** to make another booking.
+### Booking details
 
----
+**Route:** `/bookings/:id`
 
-## 10. Admin Panel (Admins Only)
+Shows full booking information and context-aware actions (for example follow-up booking when completed).
 
-If your account has been granted the **Admin** role, you'll have access to platform-wide management tools.
+## 11. Reports
 
-> Regular users cannot access these pages — they'll be redirected to the dashboard.
+**Route:** `/reports`
 
-### Admin Dashboard — `/admin`
+Reports brings assessment and incident outputs into one place.
 
-Overview of the entire platform:
-- Total users, families, bookings, and incidents
-- Pending bookings count
-- Open incidents count
-- Recent audit log (who did what and when)
+### What you can do
 
-### Customers — `/admin/customers`
+- View high-level report metrics.
+- Filter reports by type and date range.
+- Search by title/description/context.
+- Select a report to preview details in the side panel.
 
-View all registered users across the platform.
+Useful for tracking progress and sharing safety snapshots.
 
-### Bookings Management — `/admin/bookings`
+## 12. Settings
 
-View all bookings from all families. Update a booking's **payment status** (Pending → Paid / Refunded / Waived) once a session is confirmed or completed.
+**Route:** `/settings`
 
-### Incidents Management — `/admin/incidents`
+Settings includes multiple tabs:
 
-View all reported incidents from all families. Update an incident's **status** (Open → In Progress → Resolved / Dismissed) as your team works through them.
+- **Profile**: update personal info.
+- **Security**: update password/security controls.
+- **Notifications**: manage email notifications, booking updates, and incident alerts.
+- **Privacy**: review privacy preferences.
+- **Danger Zone**: request permanent account deletion.
 
----
+### Account deletion flow (Danger Zone)
 
-## 11. Quick Reference
+To request deletion, type the exact confirmation word `DELETE` and submit.
 
-| URL | What's there | Who can access |
-|-----|-------------|----------------|
-| `/` | Home / landing page | Everyone |
-| `/register` | Create a new account | Not logged in |
-| `/login` | Sign in | Not logged in |
-| `/dashboard` | Your personal dashboard | Logged in |
-| `/family/new` | Create your family (first-time setup) | Logged in |
-| `/family/members` | Add and manage family members | Logged in |
-| `/accounts` | Track digital accounts | Logged in |
-| `/devices` | Track family devices | Logged in |
-| `/assessment` | Start a digital safety assessment | Logged in |
-| `/assessment/wizard` | Assessment questions | Logged in |
-| `/assessment/result` | View your latest assessment result | Logged in |
-| `/incidents` | Select an incident type to report | Logged in |
-| `/incidents/report` | Report an incident | Logged in |
-| `/bookings` | Book a professional safety session | Logged in |
-| `/bookings/my` | View your bookings | Logged in |
-| `/admin` | Admin overview + audit log | Admin only |
-| `/admin/customers` | All platform users | Admin only |
-| `/admin/bookings` | All bookings + payment management | Admin only |
-| `/admin/incidents` | All incidents + status management | Admin only |
+Important: deletion request is irreversible and includes family data, assessments, incidents, and booking history.
+
+## 13. Admin Panel (Admin Role Only)
+
+Admin routes are available only to users with Admin role.
+
+### Admin Dashboard
+
+**Route:** `/admin`
+
+Shows:
+
+- Platform totals (users, families, bookings, incidents)
+- Pending/open operational counts
+- Recent audit log entries
+
+### Customers
+
+**Route:** `/admin/customers`
+
+View all customer accounts, role, family count, and joined date.
+
+### Admin Bookings
+
+**Route:** `/admin/bookings`
+
+View all bookings and update payment status directly.
+
+### Admin Incidents
+
+**Route:** `/admin/incidents`
+
+View all incidents and update incident status directly.
+
+## 14. Quick Route Reference
+
+| Route | Purpose | Access |
+|---|---|---|
+| `/` | Home page | Public |
+| `/login` | Sign in | Guest only |
+| `/register` | Create account | Guest only |
+| `/dashboard` | Main dashboard | Authenticated |
+| `/family/new` | Create family profile | Authenticated |
+| `/family/members` | Manage family members | Authenticated |
+| `/accounts` | Manage account records | Authenticated |
+| `/devices` | Manage device records | Authenticated |
+| `/assessment` | Assessment overview/start | Authenticated |
+| `/assessment/wizard` | Multi-step assessment form | Authenticated |
+| `/assessment/result` | Latest assessment result | Authenticated |
+| `/assessment/history` | Past assessment runs | Authenticated |
+| `/checklists` | Action checklist | Authenticated |
+| `/incidents` | Incident list | Authenticated |
+| `/incidents/report` | New incident form | Authenticated |
+| `/incidents/result/:id` | Incident action plan | Authenticated |
+| `/incidents/:id` | Incident details | Authenticated |
+| `/bookings` | Book support session | Authenticated |
+| `/bookings/my` | View your bookings | Authenticated |
+| `/bookings/:id` | Booking details | Authenticated |
+| `/reports` | Reports and preview | Authenticated |
+| `/settings` | Account and privacy settings | Authenticated |
+| `/admin` | Admin dashboard | Admin only |
+| `/admin/customers` | Customer management view | Admin only |
+| `/admin/bookings` | Booking operations view | Admin only |
+| `/admin/incidents` | Incident operations view | Admin only |

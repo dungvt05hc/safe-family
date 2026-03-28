@@ -1,29 +1,24 @@
 import { apiClient } from '@/lib/api-client'
 import type {
   AdminDashboard,
-  AdminCustomer,
-  AdminBooking,
-  AdminIncident,
-  PaymentStatus,
-  IncidentStatus,
+  AdminReportPage,
+  AuditLogPage,
 } from './admin.types'
+import { adminServicePackagesApi } from './servicePackages/adminServicePackages.api'
 
 export const adminService = {
   getDashboard: (): Promise<AdminDashboard> =>
     apiClient.get<AdminDashboard>('/api/admin/dashboard'),
 
-  getCustomers: (): Promise<AdminCustomer[]> =>
-    apiClient.get<AdminCustomer[]>('/api/admin/customers'),
+  getAuditLogs: (page = 1, pageSize = 50): Promise<AuditLogPage> =>
+    apiClient.get<AuditLogPage>(`/api/admin/audit-logs?page=${page}&pageSize=${pageSize}`),
 
-  getBookings: (): Promise<AdminBooking[]> =>
-    apiClient.get<AdminBooking[]>('/api/admin/bookings'),
+  // ── Reports ────────────────────────────────────────────────────────────────
 
-  updateBookingStatus: (id: string, status: PaymentStatus): Promise<AdminBooking> =>
-    apiClient.patch<AdminBooking>(`/api/admin/bookings/${id}/status`, { status }),
+  getReports: (page = 1, pageSize = 25): Promise<AdminReportPage> =>
+    apiClient.get<AdminReportPage>(`/api/admin/reports?page=${page}&pageSize=${pageSize}`),
 
-  getIncidents: (): Promise<AdminIncident[]> =>
-    apiClient.get<AdminIncident[]>('/api/admin/incidents'),
+  // ── Service Packages ───────────────────────────────────────────────────────
 
-  updateIncidentStatus: (id: string, status: IncidentStatus): Promise<AdminIncident> =>
-    apiClient.patch<AdminIncident>(`/api/admin/incidents/${id}/status`, { status }),
+  getServicePackages: () => adminServicePackagesApi.list(),
 }
