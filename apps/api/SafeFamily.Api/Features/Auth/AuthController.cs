@@ -82,6 +82,8 @@ public class AuthController : ControllerBase
         if (user is null)
             throw new NotFoundException("User", userId);
 
+        await RefreshSessionClaimsIfNeededAsync(user);
+
         return Ok(user);
     }
 
@@ -101,6 +103,28 @@ public class AuthController : ControllerBase
         var principal = new ClaimsPrincipal(identity);
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+    }
+
+    /// <summary>
+    /// Keeps cookie claims in sync with the latest user profile/role from DB.
+    /// This avoids stale-role 403s after admin role changes until next login.
+    /// </summary>
+    private async Task RefreshSessionClaimsIfNeededAsync(AuthUserResponse user)
+    {
+        var currentEmail = User.FindFirstValue(ClaimTypes.Email);
+        var currentName = User.FindFirstValue(ClaimTypes.Name);
+        var currentRole = User.FindFirstValue(ClaimTypes.Role);
+        var latestRole = user.Role.ToString();
+
+        var needsRefresh =
+            !string.Equals(currentEmail, user.Email, StringComparison.Ordinal) ||
+            !string.Equals(currentName, user.DisplayName, StringComparison.Ordinal) ||
+            !string.Equals(currentRole, latestRole, StringComparison.Ordinal);
+
+        if (!needsRefresh)
+            return;
+
+        await SignInAsync(user);
     }
 
     private string? GetIp() =>

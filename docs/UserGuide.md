@@ -370,25 +370,121 @@ Shows:
 
 - Platform totals (users, families, bookings, incidents)
 - Pending/open operational counts
-- Recent audit log entries
+- Recent activity entries
+- Quick links to major admin workflows
+
+### Users
+
+**Route:** `/admin/users`
+
+Use this page to manage platform users.
+
+What you can do:
+
+- Search users
+- Filter by role
+- Filter by status
+- Filter by email verification status
+- Open a user profile for more details
+
+### User Detail
+
+**Route:** `/admin/users/:id`
+
+Use this page to review and manage one user account.
+
+What you can see and do:
+
+- Profile details (email, display name, phone)
+- Account metadata (role, status, verified status, joined date, last login)
+- Linked family info when available
+- Admin actions for account operations
 
 ### Customers
 
 **Route:** `/admin/customers`
 
-View all customer accounts, role, family count, and joined date.
+Use this page to manage family-level customers.
+
+What you can do:
+
+- Search customers
+- Filter by risk level
+- Filter by plan type
+- Open full customer detail view
+
+### Customer Detail
+
+**Route:** `/admin/customers/:familyId`
+
+Use this page for a 360-degree view of one customer family.
+
+Tabs and tools include:
+
+- Overview: owner profile, members, assessment summary, checklist status
+- Security: account and device security posture
+- Activity: incidents, bookings, reports timeline
+- Notes: internal customer notes panel
 
 ### Admin Bookings
 
 **Route:** `/admin/bookings`
 
-View all bookings and update payment status directly.
+View all bookings and manage operational status updates.
 
 ### Admin Incidents
 
 **Route:** `/admin/incidents`
 
 View all incidents and update incident status directly.
+
+### Admin Reports
+
+**Route:** `/admin/reports`
+
+Review all generated reports across families.
+
+What you can do:
+
+- Filter by report type and date range
+- Search by title/summary
+- Open a report detail panel for deeper review
+
+### Service Packages
+
+**Route:** `/admin/packages`
+
+Manage bookable service packages.
+
+What you can do:
+
+- Create new package
+- Edit title, description, price, duration, and visibility
+- Activate or deactivate packages
+
+### Internal Notes
+
+**Route:** `/admin/notes`
+
+Create and review internal admin notes linked to families, bookings, or incidents.
+
+### System Activity (Audit Log)
+
+**Route:** `/admin/activity`
+
+Review system activity with filters.
+
+What you can do:
+
+- Filter by activity type
+- Filter by date range
+- Review actor, entity, summary, and event time
+
+### Legacy Audit Log Route
+
+**Route:** `/admin/audit-log`
+
+This route is still available for compatibility. Use `/admin/activity` for the full experience.
 
 ## 14. Quick Route Reference
 
@@ -417,6 +513,14 @@ View all incidents and update incident status directly.
 | `/reports` | Reports and preview | Authenticated |
 | `/settings` | Account and privacy settings | Authenticated |
 | `/admin` | Admin dashboard | Admin only |
+| `/admin/users` | User management view | Admin only |
+| `/admin/users/:id` | User detail and actions | Admin only |
 | `/admin/customers` | Customer management view | Admin only |
+| `/admin/customers/:familyId` | Family customer detail view | Admin only |
 | `/admin/bookings` | Booking operations view | Admin only |
 | `/admin/incidents` | Incident operations view | Admin only |
+| `/admin/reports` | Reports operations view | Admin only |
+| `/admin/packages` | Service package management | Admin only |
+| `/admin/notes` | Internal notes workspace | Admin only |
+| `/admin/activity` | System activity / audit log view | Admin only |
+| `/admin/audit-log` | Legacy audit log route | Admin only |
