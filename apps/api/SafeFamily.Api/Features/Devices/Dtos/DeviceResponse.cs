@@ -6,11 +6,20 @@ public record DeviceResponse(
     Guid Id,
     Guid FamilyId,
     Guid? MemberId,
-    DeviceType DeviceType,
-    string Brand,
-    string Model,
-    string OsName,
-    string OsVersion,
+
+    // ── Catalog references (codes + display names) ──────────────────────────
+    string DeviceTypeCode,
+    string DeviceTypeName,
+    string BrandCode,
+    string BrandName,
+    string ModelCode,
+    string ModelName,
+    string OsFamilyCode,
+    string OsFamilyName,
+    string OsVersionCode,
+    string OsVersionName,
+
+    // ── Security & metadata ─────────────────────────────────────────────────
     SupportStatus SupportStatus,
     bool ScreenLockEnabled,
     bool BiometricEnabled,

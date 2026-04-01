@@ -5,7 +5,7 @@ export const devicesService = {
   list: (filters?: DeviceFilters): Promise<Device[]> => {
     const params = new URLSearchParams()
     if (filters?.memberId) params.set('memberId', filters.memberId)
-    if (filters?.deviceType) params.set('deviceType', filters.deviceType)
+    if (filters?.deviceTypeCode) params.set('deviceTypeCode', filters.deviceTypeCode)
     if (filters?.supportStatus) params.set('supportStatus', filters.supportStatus)
     if (filters?.search) params.set('search', filters.search)
     const qs = params.toString()

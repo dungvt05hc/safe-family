@@ -30,6 +30,11 @@ public class ForbiddenException : AppException
         : base(message, 403) { }
 }
 
+public class BadRequestException : AppException
+{
+    public BadRequestException(string message) : base(message, 400) { }
+}
+
 public class UnauthorizedException : AppException
 {
     public UnauthorizedException(string message = "Authentication is required.")

@@ -24,6 +24,11 @@ public class AppDbContext : DbContext
     public DbSet<FamilyPerson> FamilyPersons => Set<FamilyPerson>();
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Device> Devices => Set<Device>();
+    public DbSet<DeviceCatalogDeviceType> DeviceCatalogDeviceTypes => Set<DeviceCatalogDeviceType>();
+    public DbSet<DeviceCatalogBrand> DeviceCatalogBrands => Set<DeviceCatalogBrand>();
+    public DbSet<DeviceCatalogModel> DeviceCatalogModels => Set<DeviceCatalogModel>();
+    public DbSet<DeviceCatalogOsFamily> DeviceCatalogOsFamilies => Set<DeviceCatalogOsFamily>();
+    public DbSet<DeviceCatalogOsVersion> DeviceCatalogOsVersions => Set<DeviceCatalogOsVersion>();
     public DbSet<Assessment> Assessments => Set<Assessment>();
     public DbSet<AssessmentAnswer> AssessmentAnswers => Set<AssessmentAnswer>();
     public DbSet<ChecklistItem> ChecklistItems => Set<ChecklistItem>();

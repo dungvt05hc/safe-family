@@ -10,6 +10,7 @@ using SafeFamily.Api.Features.Assessments;
 using SafeFamily.Api.Features.Checklists;
 using SafeFamily.Api.Features.Bookings;
 using SafeFamily.Api.Features.Dashboard;
+using SafeFamily.Api.Features.DeviceCatalog;
 using SafeFamily.Api.Features.Devices;
 using SafeFamily.Api.Features.Families;
 using SafeFamily.Api.Features.Incidents;
@@ -47,6 +48,9 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 
 // Devices feature
 builder.Services.AddScoped<IDeviceService, DeviceService>();
+
+// Device Catalog feature
+builder.Services.AddScoped<IDeviceCatalogService, DeviceCatalogService>();
 
 // Assessments feature
 builder.Services.AddScoped<RiskScoringService>();

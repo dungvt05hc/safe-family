@@ -22,6 +22,10 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+function toUtcIsoString(localDateTime: string): string {
+  return new Date(localDateTime).toISOString()
+}
+
 export function BookingFormPage() {
   const navigate = useNavigate()
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
@@ -45,7 +49,11 @@ export function BookingFormPage() {
 
   function onSubmit(values: FormValues) {
     createBooking(
-      { ...values, notes: values.notes || undefined },
+      {
+        ...values,
+        preferredStartAt: toUtcIsoString(values.preferredStartAt),
+        notes: values.notes || undefined,
+      },
       { onSuccess: (booking) => navigate(`/bookings/${booking.id}`) },
     )
   }

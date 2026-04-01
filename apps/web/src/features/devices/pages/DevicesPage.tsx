@@ -11,8 +11,9 @@ import { AddDeviceModal } from '../components/AddDeviceModal'
 import { EditDeviceModal } from '../components/EditDeviceModal'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 import { ApiError } from '@/types/api'
-import type { Device, DeviceFilters, DeviceType, SupportStatus } from '../devices.types'
-import { DEVICE_TYPES, DEVICE_TYPE_LABELS, SUPPORT_STATUSES, SUPPORT_STATUS_LABELS } from '../devices.types'
+import type { Device, DeviceFilters, SupportStatus } from '../devices.types'
+import { SUPPORT_STATUSES, SUPPORT_STATUS_LABELS } from '../devices.types'
+import { useDeviceTypes } from '../deviceCatalog.hooks'
 
 function supportVariant(status: SupportStatus): BadgeVariant {
   if (status === 'Supported') return 'success'
@@ -34,6 +35,7 @@ const inputClass =
 
 export function DevicesPage() {
   const { data: members = [] } = useFamilyMembers()
+  const { data: catalogTypes = [] } = useDeviceTypes()
   const [filters, setFilters] = useState<DeviceFilters>({})
   const { data: devices, isLoading, isError, error } = useDevices(filters)
   const { mutate: archive } = useArchiveDevice()
@@ -70,15 +72,15 @@ export function DevicesPage() {
         </select>
 
         <select
-          value={filters.deviceType ?? ''}
+          value={filters.deviceTypeCode ?? ''}
           onChange={(e) =>
-            setFilters((f) => ({ ...f, deviceType: (e.target.value || undefined) as DeviceType | undefined }))
+            setFilters((f) => ({ ...f, deviceTypeCode: e.target.value || undefined }))
           }
           className={selectClass}
         >
           <option value="">All types</option>
-          {DEVICE_TYPES.map((t) => (
-            <option key={t} value={t}>{DEVICE_TYPE_LABELS[t]}</option>
+          {catalogTypes.map((t) => (
+            <option key={t.code} value={t.code}>{t.name}</option>
           ))}
         </select>
 
@@ -103,7 +105,7 @@ export function DevicesPage() {
           className={inputClass}
         />
 
-        {(filters.memberId || filters.deviceType || filters.supportStatus || filters.search) && (
+        {(filters.memberId || filters.deviceTypeCode || filters.supportStatus || filters.search) && (
           <button
             type="button"
             onClick={() => setFilters({})}
@@ -149,13 +151,13 @@ export function DevicesPage() {
                 {devices.map((device) => (
                   <Tr key={device.id}>
                     <Td className="whitespace-nowrap font-medium text-gray-900">
-                      {DEVICE_TYPE_LABELS[device.deviceType]}
+                      {device.deviceTypeName}
                     </Td>
-                    <Td>{device.brand} {device.model}</Td>
+                    <Td>{device.brandName} {device.modelName}</Td>
                     <Td className="text-gray-600">
                       {memberName(device.memberId) ?? <span className="text-gray-400 italic">Unassigned</span>}
                     </Td>
-                    <Td className="whitespace-nowrap text-gray-600">{device.osName} {device.osVersion}</Td>
+                    <Td className="whitespace-nowrap text-gray-600">{device.osFamilyName} {device.osVersionName}</Td>
                     <Td className="whitespace-nowrap">
                       <Badge variant={supportVariant(device.supportStatus)}>
                         {SUPPORT_STATUS_LABELS[device.supportStatus]}
@@ -194,10 +196,10 @@ export function DevicesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-medium text-gray-900">
-                      {device.brand} {device.model}
+                      {device.brandName} {device.modelName}
                     </p>
                     <p className="mt-0.5 text-sm text-gray-500">
-                      {DEVICE_TYPE_LABELS[device.deviceType]} · {device.osName} {device.osVersion}
+                      {device.deviceTypeName} · {device.osFamilyName} {device.osVersionName}
                     </p>
                     {memberName(device.memberId) && (
                       <p className="mt-0.5 text-sm text-gray-500">{memberName(device.memberId)}</p>

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SafeFamily.Api.Data.Configurations;
 using SafeFamily.Api.Domain.Devices;
 
 namespace SafeFamily.Api.Data.Configurations;
@@ -13,26 +12,59 @@ public class DeviceConfiguration : AuditableEntityConfiguration<Device>
 
         builder.ToTable("devices");
 
+        // ── Legacy free-text (kept nullable for migration period) ──────────────
+
+        #pragma warning disable CS0618 // Obsolete members — still mapped for migration
         builder.Property(d => d.DeviceType)
-            .IsRequired()
             .HasConversion<string>()
-            .HasMaxLength(30);
+            .HasMaxLength(30)
+            .HasDefaultValue(DeviceType.Other);
 
         builder.Property(d => d.Brand)
-            .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .HasDefaultValue(string.Empty);
 
         builder.Property(d => d.Model)
-            .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(200)
+            .HasDefaultValue(string.Empty);
 
         builder.Property(d => d.OsName)
-            .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .HasDefaultValue(string.Empty);
 
         builder.Property(d => d.OsVersion)
-            .IsRequired()
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .HasDefaultValue(string.Empty);
+        #pragma warning restore CS0618
+
+        // ── Catalog FKs (new) ──────────────────────────────────────────────────
+
+        builder.HasOne(d => d.CatalogDeviceType)
+            .WithMany()
+            .HasForeignKey(d => d.CatalogDeviceTypeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(d => d.CatalogBrand)
+            .WithMany()
+            .HasForeignKey(d => d.CatalogBrandId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(d => d.CatalogModel)
+            .WithMany()
+            .HasForeignKey(d => d.CatalogModelId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(d => d.CatalogOsFamily)
+            .WithMany()
+            .HasForeignKey(d => d.CatalogOsFamilyId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(d => d.CatalogOsVersion)
+            .WithMany()
+            .HasForeignKey(d => d.CatalogOsVersionId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // ── Other fields ───────────────────────────────────────────────────────
 
         builder.Property(d => d.SupportStatus)
             .IsRequired()

@@ -1,26 +1,5 @@
 // ── Enums (mirror backend) ──────────────────────────────────────────────────
 
-export type DeviceType =
-  | 'Smartphone'
-  | 'Tablet'
-  | 'Laptop'
-  | 'Desktop'
-  | 'SmartWatch'
-  | 'SmartTV'
-  | 'GameConsole'
-  | 'Other'
-
-export const DEVICE_TYPES: DeviceType[] = [
-  'Smartphone',
-  'Tablet',
-  'Laptop',
-  'Desktop',
-  'SmartWatch',
-  'SmartTV',
-  'GameConsole',
-  'Other',
-]
-
 export type SupportStatus =
   | 'Unknown'
   | 'Supported'
@@ -35,17 +14,6 @@ export const SUPPORT_STATUSES: SupportStatus[] = [
 ]
 
 // ── Display labels ──────────────────────────────────────────────────────────
-
-export const DEVICE_TYPE_LABELS: Record<DeviceType, string> = {
-  Smartphone: 'Smartphone',
-  Tablet: 'Tablet',
-  Laptop: 'Laptop',
-  Desktop: 'Desktop',
-  SmartWatch: 'Smart Watch',
-  SmartTV: 'Smart TV',
-  GameConsole: 'Game Console',
-  Other: 'Other',
-}
 
 export const SUPPORT_STATUS_LABELS: Record<SupportStatus, string> = {
   Unknown: 'Unknown',
@@ -67,22 +35,27 @@ export interface DeviceSummary {
 
 export interface DeviceFilters {
   memberId?: string
-  deviceType?: DeviceType
+  deviceTypeCode?: string
   supportStatus?: SupportStatus
   search?: string
 }
 
-// ── API model ───────────────────────────────────────────────────────────────
+// ── API model (matches DeviceResponse on backend) ───────────────────────────
 
 export interface Device {
   id: string
   familyId: string
   memberId: string | null
-  deviceType: DeviceType
-  brand: string
-  model: string
-  osName: string
-  osVersion: string
+  deviceTypeCode: string
+  deviceTypeName: string
+  brandCode: string
+  brandName: string
+  modelCode: string
+  modelName: string
+  osFamilyCode: string
+  osFamilyName: string
+  osVersionCode: string
+  osVersionName: string
   supportStatus: SupportStatus
   screenLockEnabled: boolean
   biometricEnabled: boolean
@@ -94,18 +67,7 @@ export interface Device {
 }
 
 // ── Form values ─────────────────────────────────────────────────────────────
+// Canonical definition lives in devices.schema.ts (derived from Zod).
+// Re-exported here so existing consumers keep working with one import path.
 
-export interface DeviceFormValues {
-  memberId: string
-  deviceType: DeviceType
-  brand: string
-  model: string
-  osName: string
-  osVersion: string
-  supportStatus: SupportStatus
-  screenLockEnabled: boolean
-  biometricEnabled: boolean
-  backupEnabled: boolean
-  findMyDeviceEnabled: boolean
-  notes: string
-}
+export type { DeviceFormValues } from './devices.schema'

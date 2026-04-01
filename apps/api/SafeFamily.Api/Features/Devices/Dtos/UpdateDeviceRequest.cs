@@ -9,23 +9,24 @@ public class UpdateDeviceRequest
     public Guid? MemberId { get; set; }
 
     [Required]
-    public DeviceType DeviceType { get; set; }
-
-    [Required]
-    [MaxLength(100)]
-    public string Brand { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(200)]
-    public string Model { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(100)]
-    public string OsName { get; set; } = string.Empty;
+    [MaxLength(50)]
+    public string DeviceTypeCode { get; set; } = string.Empty;
 
     [Required]
     [MaxLength(50)]
-    public string OsVersion { get; set; } = string.Empty;
+    public string BrandCode { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(100)]
+    public string ModelCode { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(50)]
+    public string OsFamilyCode { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(50)]
+    public string OsVersionCode { get; set; } = string.Empty;
 
     public SupportStatus SupportStatus { get; set; }
     public bool ScreenLockEnabled { get; set; }

@@ -27,6 +27,7 @@ public class BookingService : IBookingService
     public async Task<BookingResponse> CreateBookingAsync(Guid userId, CreateBookingRequest request, CancellationToken ct = default)
     {
         var familyId = await RequireFamilyIdAsync(userId, ct);
+        var preferredStartAtUtc = request.PreferredStartAt.ToUniversalTime();
 
         var packageExists = await _db.ServicePackages
             .AnyAsync(p => p.Id == request.PackageId && p.IsVisible && p.IsActive, ct);
@@ -37,7 +38,7 @@ public class BookingService : IBookingService
         {
             FamilyId         = familyId,
             PackageId        = request.PackageId,
-            PreferredStartAt = request.PreferredStartAt,
+            PreferredStartAt = preferredStartAtUtc,
             Channel          = request.Channel,
             Notes            = request.Notes?.Trim(),
             PaymentStatus    = PaymentStatus.Pending,

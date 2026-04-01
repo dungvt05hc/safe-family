@@ -8,24 +8,30 @@ public class CreateDeviceRequest
     /// <summary>Optional — links this device to a specific family member (FamilyPerson).</summary>
     public Guid? MemberId { get; set; }
 
-    [Required]
-    public DeviceType DeviceType { get; set; }
-
-    [Required]
-    [MaxLength(100)]
-    public string Brand { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(200)]
-    public string Model { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(100)]
-    public string OsName { get; set; } = string.Empty;
-
+    /// <summary>Catalog device-type code, e.g. "smartphone", "laptop".</summary>
     [Required]
     [MaxLength(50)]
-    public string OsVersion { get; set; } = string.Empty;
+    public string DeviceTypeCode { get; set; } = string.Empty;
+
+    /// <summary>Catalog brand code, e.g. "apple", "samsung".</summary>
+    [Required]
+    [MaxLength(50)]
+    public string BrandCode { get; set; } = string.Empty;
+
+    /// <summary>Catalog model code, e.g. "iphone-15-pro".</summary>
+    [Required]
+    [MaxLength(100)]
+    public string ModelCode { get; set; } = string.Empty;
+
+    /// <summary>Catalog OS family code, e.g. "ios", "android".</summary>
+    [Required]
+    [MaxLength(50)]
+    public string OsFamilyCode { get; set; } = string.Empty;
+
+    /// <summary>Catalog OS version code, e.g. "ios-18", "android-15".</summary>
+    [Required]
+    [MaxLength(50)]
+    public string OsVersionCode { get; set; } = string.Empty;
 
     public SupportStatus SupportStatus { get; set; }
     public bool ScreenLockEnabled { get; set; }
