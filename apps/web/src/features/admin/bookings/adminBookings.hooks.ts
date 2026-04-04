@@ -7,6 +7,7 @@ import type {
   PaymentStatus,
   AssignBookingRequest,
   AddBookingNoteRequest,
+  LinkBookingReportRequest,
 } from './adminBookings.types'
 
 // ── Query key factory ─────────────────────────────────────────────────────────
@@ -80,6 +81,17 @@ export function useAddBookingNote() {
     mutationFn: ({ id, req }: { id: string; req: AddBookingNoteRequest }) =>
       adminBookingsApi.addNote(id, req),
     onSuccess: (_note, { id }) => {
+      qc.invalidateQueries({ queryKey: adminBookingKeys.detail(id) })
+    },
+  })
+}
+
+export function useLinkBookingReport() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: LinkBookingReportRequest }) =>
+      adminBookingsApi.linkReport(id, req),
+    onSuccess: (_result, { id }) => {
       qc.invalidateQueries({ queryKey: adminBookingKeys.detail(id) })
     },
   })

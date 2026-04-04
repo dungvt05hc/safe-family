@@ -22,6 +22,9 @@ export const adminReportsApi = {
     return apiClient.get<AdminReportListResponse>(`/api/admin/reports?${qs}`)
   },
 
+  getFamilyReports: (familyId: string): Promise<AdminReportListResponse> =>
+    apiClient.get<AdminReportListResponse>(`/api/admin/reports?familyId=${encodeURIComponent(familyId)}&pageSize=50`),
+
   getReportById: (id: string): Promise<AdminReportDetail> =>
     apiClient.get<AdminReportDetail>(`/api/admin/reports/${id}`),
 

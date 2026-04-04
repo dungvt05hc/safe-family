@@ -39,6 +39,9 @@ public class PaymentOrder : BaseEntity
     /// <summary>Final transaction / charge ID returned after successful capture.</summary>
     public string? GatewayTransactionId { get; set; }
 
+    /// <summary>Payment method / flow used for this order. Set when the gateway session is opened.</summary>
+    public PaymentType PaymentType { get; set; } = PaymentType.Redirect;
+
     /// <summary>
     /// Checkout / redirect URL returned by the gateway (payOS checkoutUrl, ZaloPay order_url, etc.).
     /// Stored so the frontend can retrieve them later without re-initiating.
@@ -50,6 +53,12 @@ public class PaymentOrder : BaseEntity
     /// Stored alongside PaymentUrl for in-app QR display.
     /// </summary>
     public string? QrCodeUrl { get; set; }
+
+    /// <summary>
+    /// Human-readable failure reason from the gateway, populated on Failed or Expired transitions.
+    /// Stored for customer support and analytics; never exposed to family users.
+    /// </summary>
+    public string? FailureReason { get; set; }
 
     /// <summary>
     /// Raw JSON snapshot of the most recent gateway webhook payload.

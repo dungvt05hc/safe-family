@@ -53,7 +53,7 @@ export function AdminBookingsPage() {
   }
 
   function handleAssign(id: string, adminId: string | null, adminEmail: string | null) {
-    assignBooking.mutate({ id, req: { assignedAdminId: adminId, assignedAdminEmail: adminEmail } })
+    assignBooking.mutate({ id, req: { assignedAdminUserId: adminId, assignedAdminEmail: adminEmail } })
   }
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / filters.pageSize)) : 1
@@ -114,6 +114,7 @@ export function AdminBookingsPage() {
             bookings={data.items}
             onOpen={setSelectedId}
             onStatusChange={handleStatusChange}
+            onAssign={handleAssign}
             isMutating={isMutating}
           />
         )}

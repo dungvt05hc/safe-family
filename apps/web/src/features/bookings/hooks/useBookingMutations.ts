@@ -18,7 +18,10 @@ export function useInitiatePayment() {
 
   return useMutation({
     mutationFn: (bookingId: string) => bookingsService.initiatePayment(bookingId),
-    onSuccess: (_, bookingId) => {
+    onSuccess: (data, bookingId) => {
+      if (data.paymentUrl) {
+        window.open(data.paymentUrl, '_blank', 'noopener,noreferrer')
+      }
       queryClient.invalidateQueries({ queryKey: bookingKeys.detail(bookingId) })
       queryClient.invalidateQueries({ queryKey: bookingKeys.paymentOrders(bookingId) })
     },
@@ -30,7 +33,10 @@ export function useRetryPayment() {
 
   return useMutation({
     mutationFn: (bookingId: string) => bookingsService.retryPayment(bookingId),
-    onSuccess: (_, bookingId) => {
+    onSuccess: (data, bookingId) => {
+      if (data.paymentUrl) {
+        window.open(data.paymentUrl, '_blank', 'noopener,noreferrer')
+      }
       queryClient.invalidateQueries({ queryKey: bookingKeys.detail(bookingId) })
       queryClient.invalidateQueries({ queryKey: bookingKeys.paymentOrders(bookingId) })
     },

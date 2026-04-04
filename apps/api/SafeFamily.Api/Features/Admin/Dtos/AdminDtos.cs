@@ -118,6 +118,8 @@ public record AdminBookingPaymentOrderInfo(
     string? GatewayTransactionId,
     string? PaymentUrl,
     string? QrCodeUrl,
+    PaymentType PaymentType,
+    string? FailureReason,
     DateTimeOffset? PaidAt,
     DateTimeOffset? ExpiresAt,
     DateTimeOffset? FailedAt,
@@ -154,20 +156,21 @@ public record AdminBookingResponse(
     int SnapshotDurationMinutes,
     // Scheduling
     DateTimeOffset PreferredStartAt,
-    DateTimeOffset? ScheduledStartAt,
-    DateTimeOffset? ScheduledEndAt,
+    DateTimeOffset? ConfirmedStartAt,
+    DateTimeOffset? ConfirmedEndAt,
     // Channel & origin
     BookingChannel Channel,
     BookingSource Source,
     Guid? SourceIncidentId,
     Guid? SourceAssessmentId,
     // Notes & status
-    string? Notes,
+    string? CustomerNotes,
     BookingStatus Status,
     PaymentStatus PaymentStatus,
     DateTimeOffset? ExpiresAt,
+    DateTimeOffset? CompletedAt,
     // Assignment
-    Guid? AssignedAdminId,
+    Guid? AssignedAdminUserId,
     string? AssignedAdminEmail,
     // Payment summary (latest order — null if no order created yet)
     AdminBookingPaymentSummary? LatestPayment,
@@ -181,6 +184,15 @@ public record AdminBookingListResponse(
     int Total,
     int Page,
     int PageSize);
+
+/// <summary>Slim report linked to a booking (shown in the booking detail view).</summary>
+public record AdminBookingReportInfo(
+    Guid ReportId,
+    ReportType ReportType,
+    string Title,
+    string Description,
+    string? FileUrl,
+    DateTimeOffset GeneratedAt);
 
 /// <summary>Internal admin note on a booking.</summary>
 public record AdminBookingNoteInfo(
@@ -208,8 +220,8 @@ public record AdminBookingDetailResponse(
     int SnapshotDurationMinutes,
     // Scheduling
     DateTimeOffset PreferredStartAt,
-    DateTimeOffset? ScheduledStartAt,
-    DateTimeOffset? ScheduledEndAt,
+    DateTimeOffset? ConfirmedStartAt,
+    DateTimeOffset? ConfirmedEndAt,
     // Channel & origin
     BookingChannel Channel,
     BookingSource Source,
@@ -219,12 +231,14 @@ public record AdminBookingDetailResponse(
     string? SourceIncidentSummary,
     DateTimeOffset? SourceAssessmentDate,
     // Notes & status
-    string? Notes,
+    string? CustomerNotes,
+    string? InternalNotes,
     BookingStatus Status,
     PaymentStatus PaymentStatus,
     DateTimeOffset? ExpiresAt,
+    DateTimeOffset? CompletedAt,
     // Assignment
-    Guid? AssignedAdminId,
+    Guid? AssignedAdminUserId,
     string? AssignedAdminEmail,
     // Payment summary (latest order)
     AdminBookingPaymentSummary? LatestPayment,
@@ -234,7 +248,8 @@ public record AdminBookingDetailResponse(
     // Collections
     IReadOnlyList<AdminBookingPaymentOrderInfo> PaymentOrders,
     IReadOnlyList<AdminBookingEventInfo> Events,
-    IReadOnlyList<AdminBookingNoteInfo> BookingNotes);
+    IReadOnlyList<AdminBookingNoteInfo> BookingNotes,
+    IReadOnlyList<AdminBookingReportInfo> RelatedReports);
 
 /// <summary>Admin-only: update the payment status of a booking.</summary>
 public class UpdateBookingPaymentStatusRequest
@@ -251,10 +266,19 @@ public class UpdateAdminBookingStatusRequest
 /// <summary>Request body for PATCH /api/admin/bookings/{id}/assign.</summary>
 public class AssignBookingRequest
 {
-    public Guid? AssignedAdminId { get; set; }
+    public Guid? AssignedAdminUserId { get; set; }
 
     [MaxLength(200)]
     public string? AssignedAdminEmail { get; set; }
+}
+
+/// <summary>Request body for PUT /api/admin/bookings/{id}/report.
+/// Pass a non-null ReportId to link, null to unlink.
+/// The report must belong to the same family as the booking.
+/// MVP: one primary report per booking — linking replaces any existing link.</summary>
+public class LinkBookingReportRequest
+{
+    public Guid? ReportId { get; set; }
 }
 
 /// <summary>Request body for POST /api/admin/bookings/{id}/notes.</summary>
@@ -634,7 +658,7 @@ public record AdminCustomerBookingInfo(
     BookingChannel Channel,
     BookingStatus Status,
     PaymentStatus PaymentStatus,
-    string? Notes,
+    string? CustomerNotes,
     DateTimeOffset CreatedAt);
 
 /// <summary>Report row embedded in the customer detail response.</summary>

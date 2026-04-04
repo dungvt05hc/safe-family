@@ -254,8 +254,8 @@ public class AdminService : IAdminService
             .Where(b => b.FamilyId == familyId)
             .OrderByDescending(b => b.CreatedAt)
             .Select(b => new AdminCustomerBookingInfo(
-                b.Id, b.PackageId, b.Package.Name,
-                b.PreferredStartAt, b.Channel, b.Status, b.PaymentStatus, b.Notes, b.CreatedAt))
+                b.Id, b.PackageId, b.SnapshotPackageName,
+                b.PreferredStartAt, b.Channel, b.Status, b.PaymentStatus, b.CustomerNotes, b.CreatedAt))
             .ToListAsync(ct);
 
         // Reports — newest first
@@ -328,7 +328,6 @@ public class AdminService : IAdminService
 
         var q = _db.Bookings
             .Include(b => b.Family)
-            .Include(b => b.Package)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -336,7 +335,7 @@ public class AdminService : IAdminService
             var term = search.Trim().ToLower();
             q = q.Where(b =>
                 b.Family.DisplayName.ToLower().Contains(term) ||
-                b.Package.Name.ToLower().Contains(term));
+                b.SnapshotPackageName.ToLower().Contains(term));
         }
 
         // Quick-filter takes precedence over individual status/paymentStatus filters
@@ -372,7 +371,7 @@ public class AdminService : IAdminService
             q = q.Where(b => b.Source == source.Value);
 
         if (assignedAdminId.HasValue)
-            q = q.Where(b => b.AssignedAdminId == assignedAdminId.Value);
+            q = q.Where(b => b.AssignedAdminUserId == assignedAdminId.Value);
 
         if (packageId.HasValue)
             q = q.Where(b => b.PackageId == packageId.Value);
@@ -397,12 +396,13 @@ public class AdminService : IAdminService
             .Select(b => new
             {
                 b.Id, b.FamilyId, FamilyName = b.Family.DisplayName,
-                b.PackageId, PackageName = b.Package.Name,
+                b.PackageId, PackageName = b.SnapshotPackageName,
                 b.SnapshotPackageCode, b.SnapshotPrice, b.SnapshotCurrency, b.SnapshotDurationMinutes,
-                b.PreferredStartAt, b.ScheduledStartAt, b.ScheduledEndAt,
+                b.PreferredStartAt, b.ConfirmedStartAt, b.ConfirmedEndAt,
                 b.Channel, b.Source, b.SourceIncidentId, b.SourceAssessmentId,
-                b.Notes, b.Status, b.PaymentStatus, b.ExpiresAt,
-                b.AssignedAdminId, b.AssignedAdminEmail,
+                b.CustomerNotes, b.Status, b.PaymentStatus, b.ExpiresAt,
+                b.CompletedAt,
+                b.AssignedAdminUserId, b.AssignedAdminEmail,
                 b.CreatedAt, b.UpdatedAt,
                 LatestPayment = _db.PaymentOrders
                     .Where(p => p.BookingId == b.Id)
@@ -416,10 +416,10 @@ public class AdminService : IAdminService
             b.Id, b.FamilyId, b.FamilyName,
             b.PackageId, b.PackageName,
             b.SnapshotPackageCode, b.SnapshotPrice, b.SnapshotCurrency, b.SnapshotDurationMinutes,
-            b.PreferredStartAt, b.ScheduledStartAt, b.ScheduledEndAt,
+            b.PreferredStartAt, b.ConfirmedStartAt, b.ConfirmedEndAt,
             b.Channel, b.Source, b.SourceIncidentId, b.SourceAssessmentId,
-            b.Notes, b.Status, b.PaymentStatus, b.ExpiresAt,
-            b.AssignedAdminId, b.AssignedAdminEmail,
+            b.CustomerNotes, b.Status, b.PaymentStatus, b.ExpiresAt, b.CompletedAt,
+            b.AssignedAdminUserId, b.AssignedAdminEmail,
             b.LatestPayment is null ? null : new AdminBookingPaymentSummary(
                 b.LatestPayment.Id, b.LatestPayment.Amount, b.LatestPayment.Currency,
                 b.LatestPayment.Status, b.LatestPayment.GatewayProvider,
@@ -471,6 +471,7 @@ public class AdminService : IAdminService
                 p.Id, p.Amount, p.Currency, p.Status,
                 p.GatewayProvider, p.GatewayOrderId, p.GatewayTransactionId,
                 p.PaymentUrl, p.QrCodeUrl,
+                p.PaymentType, p.FailureReason,
                 p.PaidAt, p.ExpiresAt, p.FailedAt, p.RefundedAt, p.RefundedAmount,
                 p.CreatedAt))
             .ToList();
@@ -482,6 +483,12 @@ public class AdminService : IAdminService
                 e.Description, e.ActorId, e.ActorEmail, e.CreatedAt))
             .ToList();
 
+        var relatedReports = await _db.Reports
+            .Where(r => r.BookingId == id)
+            .OrderByDescending(r => r.GeneratedAt)
+            .Select(r => new AdminBookingReportInfo(r.Id, r.ReportType, r.Title, r.Description, r.FileUrl, r.GeneratedAt))
+            .ToListAsync(ct);
+
         var latestPaymentOrder = booking.PaymentOrders.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
         var latestPayment = latestPaymentOrder is null ? null : new AdminBookingPaymentSummary(
             latestPaymentOrder.Id, latestPaymentOrder.Amount, latestPaymentOrder.Currency,
@@ -490,16 +497,16 @@ public class AdminService : IAdminService
 
         return new AdminBookingDetailResponse(
             booking.Id, booking.FamilyId, booking.Family.DisplayName,
-            booking.PackageId, booking.Package.Name,
+            booking.PackageId, booking.SnapshotPackageName,
             booking.SnapshotPackageCode, booking.SnapshotPrice, booking.SnapshotCurrency, booking.SnapshotDurationMinutes,
-            booking.PreferredStartAt, booking.ScheduledStartAt, booking.ScheduledEndAt,
+            booking.PreferredStartAt, booking.ConfirmedStartAt, booking.ConfirmedEndAt,
             booking.Channel, booking.Source, booking.SourceIncidentId, booking.SourceAssessmentId,
             sourceIncidentSummary, sourceAssessmentDate,
-            booking.Notes, booking.Status, booking.PaymentStatus, booking.ExpiresAt,
-            booking.AssignedAdminId, booking.AssignedAdminEmail,
+            booking.CustomerNotes, booking.InternalNotes, booking.Status, booking.PaymentStatus, booking.ExpiresAt, booking.CompletedAt,
+            booking.AssignedAdminUserId, booking.AssignedAdminEmail,
             latestPayment,
             booking.CreatedAt, booking.UpdatedAt,
-            paymentOrders, events, notes);
+            paymentOrders, events, notes, relatedReports);
     }
 
     public async Task<AdminBookingResponse> UpdatePaymentStatusAsync(Guid bookingId, PaymentStatus newStatus, Guid actorId, string actorEmail, CancellationToken ct = default)
@@ -515,10 +522,15 @@ public class AdminService : IAdminService
         var oldStatus = booking.PaymentStatus;
         booking.PaymentStatus = newStatus;
 
+        // Keep BookingStatus consistent: a manual Paid override on a Submitted booking must
+        // advance the booking into the same state the webhook would have produced.
+        if (newStatus == PaymentStatus.Paid && booking.Status == BookingStatus.Submitted)
+            booking.Status = BookingStatus.Paid;
+
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = bookingId,
-            EventType   = "PaymentStatusChanged",
+            EventType   = BookingEventTypes.PaymentStatusChanged,
             FromValue   = oldStatus.ToString(),
             ToValue     = newStatus.ToString(),
             Description = "Payment status changed by admin",
@@ -542,16 +554,52 @@ public class AdminService : IAdminService
         if (booking is null)
             throw new NotFoundException("Booking", bookingId);
 
+        // State-machine guard: prevent jumps that skip mandatory lifecycle stages.
         var oldStatus = booking.Status;
+        var allowed = (oldStatus, newStatus) switch
+        {
+            // Admin confirms a paid booking
+            (BookingStatus.Paid,        BookingStatus.Confirmed)  => true,
+            // Admin schedules a confirmed booking
+            (BookingStatus.Confirmed,   BookingStatus.Scheduled)  => true,
+            // Admin starts a scheduled session
+            (BookingStatus.Scheduled,   BookingStatus.InProgress) => true,
+            // Admin completes an in-progress session
+            (BookingStatus.InProgress,  BookingStatus.Completed)  => true,
+            // Cancellation is allowed from most non-terminal states
+            (BookingStatus.Submitted, BookingStatus.Cancelled)    => true,
+            (BookingStatus.Paid,      BookingStatus.Cancelled)    => true,
+            (BookingStatus.Confirmed, BookingStatus.Cancelled)    => true,
+            (BookingStatus.Scheduled, BookingStatus.Cancelled)    => true,
+            _ => false,
+        };
+        if (!allowed)
+            throw new BadRequestException(
+                $"Cannot transition booking from {oldStatus} to {newStatus}.");
+
         booking.Status = newStatus;
+
+        // Set CompletedAt timestamp when finalising a session
+        if (newStatus == BookingStatus.Completed)
+            booking.CompletedAt = DateTimeOffset.UtcNow;
+
+        var (eventType, description) = newStatus switch
+        {
+            BookingStatus.Confirmed  => (BookingEventTypes.Confirmed,  "Booking confirmed by admin."),
+            BookingStatus.Scheduled  => (BookingEventTypes.Scheduled,  "Time slot assigned by admin."),
+            BookingStatus.InProgress => (BookingEventTypes.InProgress, "Session started."),
+            BookingStatus.Completed  => (BookingEventTypes.Completed,  "Session completed."),
+            BookingStatus.Cancelled  => (BookingEventTypes.Cancelled,  "Booking cancelled by admin."),
+            _                        => (BookingEventTypes.StatusChanged, $"Status changed to {newStatus} by admin."),
+        };
 
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = bookingId,
-            EventType   = "StatusChanged",
+            EventType   = eventType,
             FromValue   = oldStatus.ToString(),
             ToValue     = newStatus.ToString(),
-            Description = "Status changed by admin",
+            Description = description,
             ActorId     = actorId,
             ActorEmail  = actorEmail,
         });
@@ -572,13 +620,13 @@ public class AdminService : IAdminService
             ?? throw new NotFoundException("Booking", id);
 
         var previousAdminEmail = booking.AssignedAdminEmail;
-        booking.AssignedAdminId    = adminId;
+        booking.AssignedAdminUserId    = adminId;
         booking.AssignedAdminEmail = adminEmail?.Trim();
 
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = id,
-            EventType   = "AdminAssigned",
+            EventType   = BookingEventTypes.AdminAssigned,
             FromValue   = previousAdminEmail,
             ToValue     = adminEmail?.Trim(),
             Description = adminEmail is null
@@ -609,12 +657,12 @@ public class AdminService : IAdminService
     private static AdminBookingResponse ToBookingResponse(Booking booking, AdminBookingPaymentSummary? latestPayment)
         => new(
             booking.Id, booking.FamilyId, booking.Family.DisplayName,
-            booking.PackageId, booking.Package.Name,
+            booking.PackageId, booking.SnapshotPackageName,
             booking.SnapshotPackageCode, booking.SnapshotPrice, booking.SnapshotCurrency, booking.SnapshotDurationMinutes,
-            booking.PreferredStartAt, booking.ScheduledStartAt, booking.ScheduledEndAt,
+            booking.PreferredStartAt, booking.ConfirmedStartAt, booking.ConfirmedEndAt,
             booking.Channel, booking.Source, booking.SourceIncidentId, booking.SourceAssessmentId,
-            booking.Notes, booking.Status, booking.PaymentStatus, booking.ExpiresAt,
-            booking.AssignedAdminId, booking.AssignedAdminEmail,
+            booking.CustomerNotes, booking.Status, booking.PaymentStatus, booking.ExpiresAt, booking.CompletedAt,
+            booking.AssignedAdminUserId, booking.AssignedAdminEmail,
             latestPayment,
             booking.CreatedAt, booking.UpdatedAt);
 
@@ -634,9 +682,67 @@ public class AdminService : IAdminService
         };
 
         _db.BookingNotes.Add(note);
+
+        _db.BookingEvents.Add(new BookingEvent
+        {
+            BookingId   = id,
+            EventType   = BookingEventTypes.NoteAdded,
+            Description = "Internal note added by admin.",
+            ActorId     = authorId,
+            ActorEmail  = authorEmail,
+        });
+
         await _db.SaveChangesAsync(ct);
 
         return new AdminBookingNoteInfo(note.Id, note.Content, note.AuthorId, note.AuthorEmail, note.CreatedAt);
+    }
+
+    public async Task<AdminBookingReportInfo?> LinkBookingReportAsync(
+        Guid bookingId, Guid? reportId, Guid actorId, string actorEmail, CancellationToken ct = default)
+    {
+        var booking = await _db.Bookings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == bookingId, ct)
+            ?? throw new NotFoundException("Booking", bookingId);
+
+        // Unlink any existing report currently tied to this booking
+        var existing = await _db.Reports
+            .Where(r => r.BookingId == bookingId)
+            .ToListAsync(ct);
+
+        foreach (var r in existing)
+            r.BookingId = null;
+
+        AdminBookingReportInfo? result = null;
+
+        if (reportId.HasValue)
+        {
+            var report = await _db.Reports
+                .FirstOrDefaultAsync(r => r.Id == reportId.Value, ct)
+                ?? throw new NotFoundException("Report", reportId.Value);
+
+            if (report.FamilyId != booking.FamilyId)
+                throw new ForbiddenException("Report does not belong to the same family as this booking.");
+
+            report.BookingId = bookingId;
+            result = new AdminBookingReportInfo(
+                report.Id, report.ReportType, report.Title, report.Description, report.FileUrl, report.GeneratedAt);
+        }
+
+        _db.BookingEvents.Add(new BookingEvent
+        {
+            BookingId   = bookingId,
+            EventType   = BookingEventTypes.ReportLinked,
+            ToValue     = reportId.HasValue ? reportId.Value.ToString() : null,
+            Description = reportId.HasValue
+                ? $"Report linked by admin"
+                : "Report unlinked by admin",
+            ActorId    = actorId,
+            ActorEmail = actorEmail,
+        });
+
+        await _db.SaveChangesAsync(ct);
+        return result;
     }
 
     public async Task<AdminIncidentListResponse> GetIncidentsPagedAsync(
@@ -891,7 +997,7 @@ public class AdminService : IAdminService
             linkedBooking = await _db.Bookings
                 .Where(b => b.Id == report.BookingId.Value)
                 .Select(b => new ReportLinkedBookingInfo(
-                    b.Id, b.Package.Name, b.Status, b.CreatedAt))
+                    b.Id, b.SnapshotPackageName, b.Status, b.CreatedAt))
                 .FirstOrDefaultAsync(ct);
         }
 

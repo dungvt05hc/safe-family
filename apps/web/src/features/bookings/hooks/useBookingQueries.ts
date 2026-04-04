@@ -7,6 +7,7 @@ export const bookingKeys = {
   detail:        (id: string) => ['bookings', id] as const,
   summary:       ['bookings', 'summary'] as const,
   paymentOrders: (id: string) => ['bookings', id, 'payments'] as const,
+  events:        (id: string) => ['bookings', id, 'events'] as const,
 }
 
 export function useServicePackages() {
@@ -23,12 +24,13 @@ export function useMyBookings() {
   })
 }
 
-export function useBooking(id: string | undefined, pollWhilePending = false) {
+export function useBooking(id: string | undefined) {
   return useQuery({
     queryKey: bookingKeys.detail(id ?? ''),
     queryFn: () => bookingsService.getById(id!),
     enabled: !!id,
-    refetchInterval: pollWhilePending ? 10_000 : false,
+    refetchInterval: (query) =>
+      query.state.data?.paymentStatus === 'Pending' ? 10_000 : false,
   })
 }
 
@@ -41,14 +43,25 @@ export function useBookingSummary() {
 
 /**
  * Fetches payment orders for a booking.
- * Polls every 10 s when `pollWhilePending` is true (i.e. paymentStatus === 'Pending').
+ * Polls every 10 s automatically while any order has Pending status.
  */
-export function usePaymentOrders(bookingId: string | undefined, pollWhilePending = false) {
+export function usePaymentOrders(bookingId: string | undefined) {
   return useQuery({
     queryKey: bookingKeys.paymentOrders(bookingId ?? ''),
     queryFn: () => bookingsService.getPaymentOrders(bookingId!),
     enabled: !!bookingId,
-    refetchInterval: pollWhilePending ? 10_000 : false,
+    refetchInterval: (query) =>
+      query.state.data?.some((o) => o.status === 'Pending') ? 10_000 : false,
+  })
+}
+
+/** Chronological activity log for a booking. */
+export function useBookingEvents(bookingId: string | undefined) {
+  return useQuery({
+    queryKey: bookingKeys.events(bookingId ?? ''),
+    queryFn: () => bookingsService.getEvents(bookingId!),
+    enabled: !!bookingId,
+    staleTime: 30_000,
   })
 }
 

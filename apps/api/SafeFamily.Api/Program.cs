@@ -71,7 +71,23 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 
 // Payment feature
 builder.Services.Configure<PaymentSettings>(builder.Configuration.GetSection(PaymentSettings.SectionName));
-builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>(); // swap for real gateway in production
+
+var paymentCfg = builder.Configuration
+    .GetSection(PaymentSettings.SectionName)
+    .Get<PaymentSettings>() ?? new PaymentSettings();
+
+// Named HttpClients — base addresses come from config so they can be overridden per environment.
+builder.Services.AddHttpClient("payos",   c => c.BaseAddress = new Uri(paymentCfg.PayOs.BaseUrl));
+builder.Services.AddHttpClient("momo",    c => c.BaseAddress = new Uri(paymentCfg.MoMo.BaseUrl));
+builder.Services.AddHttpClient("zalapay", c => c.BaseAddress = new Uri(paymentCfg.ZalaPay.BaseUrl));
+
+// All gateway implementations are registered so PaymentService / PaymentWebhookService can
+// resolve the correct one at runtime via IEnumerable<IPaymentGateway>.
+builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+builder.Services.AddScoped<IPaymentGateway, PayOsGateway>();
+builder.Services.AddScoped<IPaymentGateway, MoMoGateway>();
+builder.Services.AddScoped<IPaymentGateway, ZalaPayGateway>();
+
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
 builder.Services.AddHostedService<PaymentExpiryService>();

@@ -160,7 +160,7 @@ public class AdminController : ControllerBase
     {
         var adminId    = GetUserId();
         var adminEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-        var booking = await _adminService.AssignBookingAsync(id, request.AssignedAdminId, request.AssignedAdminEmail, adminId, adminEmail, ct);
+        var booking = await _adminService.AssignBookingAsync(id, request.AssignedAdminUserId, request.AssignedAdminEmail, adminId, adminEmail, ct);
         var detail  = request.AssignedAdminEmail is null ? "Unassigned" : $"Assigned to {request.AssignedAdminEmail}";
         await _audit.LogAsync("AdminBookingAssigned", adminId,
             entityType: "Booking", entityId: id,
@@ -187,6 +187,29 @@ public class AdminController : ControllerBase
             details: "Internal note added",
             ipAddress: GetIp(), ct: ct);
         return StatusCode(StatusCodes.Status201Created, note);
+    }
+
+    // PUT /api/admin/bookings/{id}/report  — link or unlink the primary report
+    [HttpPut("bookings/{id:guid}/report")]
+    [ProducesResponseType(typeof(AdminBookingReportInfo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> LinkBookingReport(
+        Guid id,
+        [FromBody] LinkBookingReportRequest request,
+        CancellationToken ct)
+    {
+        var adminId    = GetUserId();
+        var adminEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        var info = await _adminService.LinkBookingReportAsync(id, request.ReportId, adminId, adminEmail, ct);
+        await _audit.LogAsync(
+            action: request.ReportId.HasValue ? "AdminBookingReportLinked" : "AdminBookingReportUnlinked",
+            userId: adminId,
+            entityType: "Booking", entityId: id,
+            details: request.ReportId.HasValue ? $"Report {request.ReportId} linked" : "Report unlinked",
+            ipAddress: GetIp(), ct: ct);
+        return info is null ? NoContent() : Ok(info);
     }
 
     // GET /api/admin/incidents?search=&severity=&status=&type=&from=&to=&page=1&pageSize=25

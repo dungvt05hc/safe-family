@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Bookings;
+using SafeFamily.Api.Domain.Reports;
 using SafeFamily.Api.Features.Bookings.Dtos;
 
 namespace SafeFamily.Api.Features.Bookings;
@@ -78,7 +79,7 @@ public class BookingService : IBookingService
             SourceIncidentId        = request.SourceIncidentId,
             SourceAssessmentId      = request.SourceAssessmentId,
             // Notes & status
-            Notes                   = request.Notes?.Trim(),
+            CustomerNotes           = request.CustomerNotes?.Trim(),
             Status                  = BookingStatus.Draft,
             PaymentStatus           = PaymentStatus.Unpaid,
             // Audit
@@ -92,7 +93,7 @@ public class BookingService : IBookingService
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = booking.Id,
-            EventType   = "StatusChanged",
+            EventType   = BookingEventTypes.Created,
             FromValue   = null,
             ToValue     = BookingStatus.Draft.ToString(),
             Description = "Booking created in Draft state.",
@@ -141,7 +142,7 @@ public class BookingService : IBookingService
             _db.BookingEvents.Add(new BookingEvent
             {
                 BookingId   = booking.Id,
-                EventType   = "StatusChanged",
+                EventType   = BookingEventTypes.Confirmed,
                 FromValue   = previousStatus.ToString(),
                 ToValue     = BookingStatus.Confirmed.ToString(),
                 Description = "Free package — booking auto-confirmed on submission.",
@@ -166,7 +167,7 @@ public class BookingService : IBookingService
             _db.BookingEvents.Add(new BookingEvent
             {
                 BookingId   = booking.Id,
-                EventType   = "StatusChanged",
+                EventType   = BookingEventTypes.Submitted,
                 FromValue   = previousStatus.ToString(),
                 ToValue     = BookingStatus.Submitted.ToString(),
                 Description = "Booking submitted by family. Awaiting payment.",
@@ -190,7 +191,7 @@ public class BookingService : IBookingService
             .Include(b => b.Package)
             .Where(b => b.FamilyId == familyId)
             .OrderByDescending(b => b.PreferredStartAt)
-            .Select(b => ToResponse(b))
+            .Select(b => ToResponse(b, null))
             .ToListAsync(ct);
     }
 
@@ -202,7 +203,16 @@ public class BookingService : IBookingService
             .Include(b => b.Package)
             .FirstOrDefaultAsync(b => b.Id == id && b.FamilyId == familyId, ct);
 
-        return booking is null ? null : ToResponse(booking);
+        if (booking is null) return null;
+
+        // Load the primary linked report (if one exists) for the detail view.
+        var primaryReport = await _db.Reports
+            .Where(r => r.BookingId == id)
+            .OrderByDescending(r => r.GeneratedAt)
+            .Select(r => new BookingReportInfo(r.Id, r.ReportType, r.Title, r.Description, r.FileUrl, r.GeneratedAt))
+            .FirstOrDefaultAsync(ct);
+
+        return ToResponse(booking, primaryReport);
     }
 
     public async Task<BookingSummaryResponse> GetBookingSummaryAsync(Guid userId, CancellationToken ct = default)
@@ -229,7 +239,7 @@ public class BookingService : IBookingService
             .Where(b => b.FamilyId == familyId)
             .OrderByDescending(b => b.CreatedAt)
             .Take(5)
-            .Select(b => ToResponse(b))
+            .Select(b => ToResponse(b, null))
             .ToListAsync(ct);
 
         return new BookingSummaryResponse(total, upcoming, awaitingConfirmation, recent);
@@ -270,7 +280,7 @@ public class BookingService : IBookingService
         return familyId.Value;
     }
 
-    private static BookingResponse ToResponse(Booking b) =>
+    private static BookingResponse ToResponse(Booking b, BookingReportInfo? primaryReport = null) =>
         new(b.Id,
             b.FamilyId,
             b.PackageId,
@@ -282,22 +292,24 @@ public class BookingService : IBookingService
             b.SnapshotDurationMinutes,
             // Scheduling
             b.PreferredStartAt,
-            b.ScheduledStartAt,
-            b.ScheduledEndAt,
+            b.ConfirmedStartAt,
+            b.ConfirmedEndAt,
             // Channel & source
             b.Channel,
             b.Source,
             b.SourceIncidentId,
             b.SourceAssessmentId,
             // Notes & status
-            b.Notes,
+            b.CustomerNotes,
             b.Status,
             b.PaymentStatus,
             b.ExpiresAt,
+            b.CompletedAt,
             // Admin
-            b.AssignedAdminId,
+            b.AssignedAdminUserId,
             b.AssignedAdminEmail,
             b.CreatedAt,
-            b.UpdatedAt);
+            b.UpdatedAt,
+            primaryReport);
 }
 

@@ -113,9 +113,6 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         }
 
         // ── 6. Determine business action ──────────────────────────────────────
-        // Store raw response for every event (overwrites on retry — last call wins for non-Paid).
-        order.GatewayRawResponse = rawBody;
-
         switch (normalizedEventType)
         {
             case "paid":
@@ -133,7 +130,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
                 }
                 else
                 {
-                    ApplyPaid(order, evt);
+                    ApplyPaid(order, evt, rawBody);
                     webhookLog.Processed = true;
                 }
                 break;
@@ -149,7 +146,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
                 }
                 else
                 {
-                    ApplyFailed(order, evt);
+                    ApplyFailed(order, evt, rawBody);
                     webhookLog.Processed = true;
                 }
                 break;
@@ -211,7 +208,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
 
     // ── Event handlers ────────────────────────────────────────────────────────
 
-    private void ApplyPaid(PaymentOrder order, WebhookPaymentEvent evt)
+    private void ApplyPaid(PaymentOrder order, WebhookPaymentEvent evt, string rawBody)
     {
         var booking           = order.Booking;
         var prevBookingStatus = booking.Status;
@@ -219,6 +216,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         order.Status               = PaymentStatus.Paid;
         order.PaidAt               = DateTimeOffset.UtcNow;
         order.GatewayTransactionId = evt.TransactionId;
+        order.GatewayRawResponse   = rawBody; // capture payment proof
 
         booking.PaymentStatus = PaymentStatus.Paid;
         booking.Status        = BookingStatus.Paid;
@@ -226,7 +224,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = booking.Id,
-            EventType   = "PaymentReceived",
+            EventType   = BookingEventTypes.PaymentReceived,
             FromValue   = PaymentStatus.Pending.ToString(),
             ToValue     = PaymentStatus.Paid.ToString(),
             Description = $"Payment confirmed by {order.GatewayProvider}. " +
@@ -236,19 +234,23 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = booking.Id,
-            EventType   = "StatusChanged",
+            EventType   = BookingEventTypes.Paid,
             FromValue   = prevBookingStatus.ToString(),
             ToValue     = BookingStatus.Paid.ToString(),
             Description = "Booking advanced to Paid after gateway payment confirmation.",
         });
     }
 
-    private void ApplyFailed(PaymentOrder order, WebhookPaymentEvent evt)
+    private void ApplyFailed(PaymentOrder order, WebhookPaymentEvent evt, string rawBody)
     {
         var booking = order.Booking;
 
-        order.Status   = PaymentStatus.Failed;
-        order.FailedAt = DateTimeOffset.UtcNow;
+        order.Status         = PaymentStatus.Failed;
+        order.FailedAt        = DateTimeOffset.UtcNow;
+        order.FailureReason   = evt.FailureReason;
+        // Only store raw body when not already Paid — avoids overwriting payment proof.
+        if (order.GatewayRawResponse is null)
+            order.GatewayRawResponse = rawBody;
 
         booking.PaymentStatus = PaymentStatus.Failed;
         // Booking.Status remains Submitted — the family can retry payment.
@@ -256,7 +258,7 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = booking.Id,
-            EventType   = "PaymentFailed",
+            EventType   = BookingEventTypes.PaymentFailed,
             FromValue   = PaymentStatus.Pending.ToString(),
             ToValue     = PaymentStatus.Failed.ToString(),
             Description = $"Payment failed via {order.GatewayProvider}. " +

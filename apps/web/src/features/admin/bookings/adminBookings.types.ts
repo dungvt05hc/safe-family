@@ -79,20 +79,20 @@ export interface AdminBookingRow {
   snapshotDurationMinutes: number
   // Scheduling
   preferredStartAt: string
-  scheduledStartAt: string | null
-  scheduledEndAt: string | null
+  confirmedStartAt: string | null
+  confirmedEndAt: string | null
   // Channel & origin
   channel: BookingChannel
   source: BookingSource
   sourceIncidentId: string | null
   sourceAssessmentId: string | null
   // Notes & status
-  notes: string | null
+  customerNotes: string | null
   status: BookingStatus
   paymentStatus: PaymentStatus
   expiresAt: string | null
   // Assignment
-  assignedAdminId: string | null
+  assignedAdminUserId: string | null
   assignedAdminEmail: string | null
   // Payment summary (latest order)
   latestPayment: AdminBookingPaymentSummary | null
@@ -114,14 +114,28 @@ export interface AdminBookingNoteInfo {
   createdAt: string
 }
 
+export type ReportType = 'Assessment' | 'Incident' | 'FamilyReset' | 'General'
+
+export interface AdminBookingReportInfo {
+  reportId: string
+  reportType: ReportType
+  title: string
+  description: string
+  fileUrl: string | null
+  generatedAt: string
+}
+
 export interface AdminBookingDetail extends AdminBookingRow {
   // Resolved source entity names
   sourceIncidentSummary: string | null
   sourceAssessmentDate: string | null
+  // Extended fields only present in detail (not list row)
+  internalNotes: string | null
   // Collections
   paymentOrders: AdminBookingPaymentOrderInfo[]
   events: AdminBookingEventInfo[]
   bookingNotes: AdminBookingNoteInfo[]
+  relatedReports: AdminBookingReportInfo[]
 }
 
 // ── Filter state ──────────────────────────────────────────────────────────────
@@ -143,12 +157,16 @@ export interface AdminBookingFilters {
 // ── Request bodies ────────────────────────────────────────────────────────────
 
 export interface AssignBookingRequest {
-  assignedAdminId: string | null
+  assignedAdminUserId: string | null
   assignedAdminEmail: string | null
 }
 
 export interface AddBookingNoteRequest {
   content: string
+}
+
+export interface LinkBookingReportRequest {
+  reportId: string | null
 }
 
 

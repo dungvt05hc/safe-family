@@ -37,10 +37,10 @@ public class BookingConfiguration : AuditableEntityConfiguration<Booking>
             .IsRequired()
             .HasColumnType("timestamptz");
 
-        builder.Property(b => b.ScheduledStartAt)
+        builder.Property(b => b.ConfirmedStartAt)
             .HasColumnType("timestamptz");
 
-        builder.Property(b => b.ScheduledEndAt)
+        builder.Property(b => b.ConfirmedEndAt)
             .HasColumnType("timestamptz");
 
         // ── Channel & source ──────────────────────────────────────────────────
@@ -55,8 +55,11 @@ public class BookingConfiguration : AuditableEntityConfiguration<Booking>
             .HasMaxLength(30);
 
         // ── Notes ─────────────────────────────────────────────────────────────
-        builder.Property(b => b.Notes)
+        builder.Property(b => b.CustomerNotes)
             .HasMaxLength(1000);
+
+        builder.Property(b => b.InternalNotes)
+            .HasMaxLength(2000);
 
         // ── Status ────────────────────────────────────────────────────────────
         builder.Property(b => b.Status)
@@ -72,8 +75,11 @@ public class BookingConfiguration : AuditableEntityConfiguration<Booking>
         builder.Property(b => b.ExpiresAt)
             .HasColumnType("timestamptz");
 
+        builder.Property(b => b.CompletedAt)
+            .HasColumnType("timestamptz");
+
         // ── Admin ─────────────────────────────────────────────────────────────
-        builder.Property(b => b.AssignedAdminId);
+        builder.Property(b => b.AssignedAdminUserId);
 
         builder.Property(b => b.AssignedAdminEmail)
             .HasMaxLength(200);

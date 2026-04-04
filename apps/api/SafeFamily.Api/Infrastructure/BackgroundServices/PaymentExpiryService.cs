@@ -88,6 +88,11 @@ public sealed class PaymentExpiryService : BackgroundService
         _logger.LogInformation(
             "PaymentExpiryService: expiring {Count} payment order(s).", expiredOrders.Count);
 
+        // Pre-collect the IDs being expired in this batch so the DB check below can
+        // correctly exclude them.  (EF Core queries hit the DB before SaveChanges,
+        // meaning orders we just marked Expired in memory still appear Pending in the DB.)
+        var expiringIds = expiredOrders.Select(o => o.Id).ToHashSet();
+
         foreach (var order in expiredOrders)
         {
             order.Status           = PaymentStatus.Expired;
@@ -99,7 +104,7 @@ public sealed class PaymentExpiryService : BackgroundService
             db.BookingEvents.Add(new BookingEvent
             {
                 BookingId   = booking.Id,
-                EventType   = "PaymentExpired",
+                EventType   = BookingEventTypes.PaymentExpired,
                 FromValue   = PaymentStatus.Pending.ToString(),
                 ToValue     = PaymentStatus.Expired.ToString(),
                 Description = $"Payment order {order.Id} expired at {now:O}. " +
@@ -108,12 +113,14 @@ public sealed class PaymentExpiryService : BackgroundService
 
             // Expire the booking itself only when:
             //   1. The booking's own ExpiresAt deadline has passed, AND
-            //   2. There are no remaining active (Unpaid or Pending) orders
-            //      — a concurrent retry could have created a new active order.
+            //   2. There are no remaining active (Unpaid or Pending) orders.
+            //      Exclude orders in the current expiry batch (not yet saved to DB)
+            //      and account for concurrent retries that may have created a new order.
             if (booking.ExpiresAt.HasValue && booking.ExpiresAt.Value <= now)
             {
                 var hasActiveOrder = await db.PaymentOrders
                     .AnyAsync(o => o.BookingId == booking.Id
+                               && !expiringIds.Contains(o.Id)
                                && (o.Status == PaymentStatus.Unpaid
                                    || o.Status == PaymentStatus.Pending), ct);
 
@@ -125,7 +132,7 @@ public sealed class PaymentExpiryService : BackgroundService
                     db.BookingEvents.Add(new BookingEvent
                     {
                         BookingId   = booking.Id,
-                        EventType   = "StatusChanged",
+                        EventType   = BookingEventTypes.Expired,
                         FromValue   = previousBookingStatus.ToString(),
                         ToValue     = BookingStatus.Expired.ToString(),
                         Description = "Booking expired — payment window closed with no successful payment.",

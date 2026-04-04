@@ -48,6 +48,13 @@ public interface IAdminService
     Task<AdminBookingNoteInfo> AddBookingNoteAsync(
         Guid id, string content, Guid authorId, string authorEmail, CancellationToken ct = default);
 
+    /// <summary>
+    /// Links or unlinks the primary report for a booking.
+    /// Pass null reportId to unlink. Returns null after an unlink operation.
+    /// </summary>
+    Task<AdminBookingReportInfo?> LinkBookingReportAsync(
+        Guid bookingId, Guid? reportId, Guid actorId, string actorEmail, CancellationToken ct = default);
+
     // Incidents
     Task<AdminIncidentListResponse> GetIncidentsPagedAsync(
         string? search, IncidentSeverity? severity, IncidentStatus? status, IncidentType? type,

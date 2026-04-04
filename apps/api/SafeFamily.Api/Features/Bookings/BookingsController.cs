@@ -41,7 +41,7 @@ public class BookingsController : ControllerBase
         var booking = await _bookingService.CreateBookingAsync(userId, request, ct);
         await _audit.LogAsync("BookingCreated", userId, entityType: "Booking", entityId: booking.Id,
             details: $"Package={booking.PackageName}", ct: ct);
-        return CreatedAtAction(nameof(GetMyBookings), booking);
+        return CreatedAtAction(nameof(GetBooking), new { id = booking.Id }, booking);
     }
 
     // POST /api/bookings/{id}/submit  — Draft → Submitted (or Confirmed for free packages)

@@ -50,7 +50,7 @@ export interface CreateBookingRequest {
   packageId: string
   preferredStartAt: string
   channel: BookingChannel
-  notes?: string
+  customerNotes?: string
   source?: BookingSource
   sourceIncidentId?: string
   sourceAssessmentId?: string
@@ -67,21 +67,32 @@ export interface BookingResult {
   packageCurrency: string
   packageDurationMinutes: number
   preferredStartAt: string
-  scheduledStartAt: string | null
-  scheduledEndAt: string | null
+  confirmedStartAt: string | null
+  confirmedEndAt: string | null
   channel: BookingChannel
   source: BookingSource
   sourceIncidentId: string | null
   sourceAssessmentId: string | null
-  notes: string | null
+  customerNotes: string | null
   status: BookingStatus
   paymentStatus: PaymentStatus
   /** UTC deadline for the current payment session. Null when not in Pending state. */
   expiresAt: string | null
-  assignedAdminId: string | null
+  completedAt: string | null
+  assignedAdminUserId: string | null
   assignedAdminEmail: string | null
   createdAt: string
   updatedAt: string
+  primaryReport: BookingReportInfo | null
+}
+
+export interface BookingReportInfo {
+  reportId: string
+  reportType: 'Assessment' | 'Incident' | 'FamilyReset' | 'General'
+  title: string
+  description: string
+  fileUrl: string | null
+  generatedAt: string
 }
 
 /** Matches the backend PaymentOrderResponse DTO. */
@@ -97,6 +108,8 @@ export interface PaymentOrder {
   paymentUrl: string | null
   /** QR code image URL or data URI (MoMo qrCodeUrl, etc.). */
   qrCodeUrl: string | null
+  paymentType: string
+  failureReason: string | null
   paidAt: string | null
   expiresAt: string | null
   refundedAt: string | null
@@ -123,7 +136,30 @@ export interface BookingSummary {
   recentBookings: BookingResult[]
 }
 
+/** Matches the backend BookingEventResponse DTO. */
+export interface BookingEventResponse {
+  id: string
+  eventType: string
+  fromValue: string | null
+  toValue: string | null
+  description: string | null
+  actorId: string | null
+  actorEmail: string | null
+  createdAt: string
+}
+
 // ─── Display configs ──────────────────────────────────────────────────────────
+
+/**
+ * Source labels shown on booking cards.
+ * `null` for Direct (the default — no extra label needed).
+ */
+export const BOOKING_SOURCE_CONFIG: Record<BookingSource, { label: string; icon: string } | null> = {
+  Direct:             null,
+  IncidentFollowUp:   { label: 'Incident follow-up',    icon: '🚨' },
+  AssessmentFollowUp: { label: 'Assessment follow-up',  icon: '📋' },
+  AdminCreated:       { label: 'Arranged by our team',  icon: '👥' },
+}
 
 export const CHANNEL_CONFIG: Record<BookingChannel, { label: string; icon: string; description: string }> = {
   Online:  { label: 'Online (video)',  icon: '💻', description: 'Google Meet or Zoom session' },
@@ -178,11 +214,12 @@ export const PAYMENT_STATUS_BADGE: Record<PaymentStatus, BadgeVariant> = {
 
 /** Short human message explaining what the booking's current state means to the user. */
 export const BOOKING_STATUS_CONTEXT: Partial<Record<BookingStatus, string>> = {
-  Paid:      'Payment received \u2014 our team is reviewing your booking.',
-  Confirmed: "Your booking is confirmed! We'll reach out with details.",
-  Scheduled: 'Your session is scheduled. See you soon!',
-  Completed: 'Your session is complete. Thank you for trusting SafeFamily.',
-  Cancelled: 'This booking has been cancelled.',
-  Expired:   'This booking expired before payment was completed.',
+  Paid:       'Payment received \u2014 our team is reviewing your booking.',
+  Confirmed:  "Your booking is confirmed! We'll reach out with details.",
+  Scheduled:  'Your session is scheduled. See you soon!',
+  InProgress: 'Your session is currently in progress.',
+  Completed:  'Your session is complete. Thank you for trusting SafeFamily.',
+  Cancelled:  'This booking has been cancelled.',
+  Expired:    'This booking expired before payment was completed.',
 }
 

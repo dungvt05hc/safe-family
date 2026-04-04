@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SafeFamily.Api.Domain.Bookings;
+using SafeFamily.Api.Domain.Reports;
 
 namespace SafeFamily.Api.Features.Bookings.Dtos;
 
@@ -9,6 +10,15 @@ public record ServicePackageResponse(
     string Description,
     string PriceDisplay,
     string DurationLabel);
+
+/// <summary>Slim report summary shown to the family on their booking detail.</summary>
+public record BookingReportInfo(
+    Guid ReportId,
+    ReportType ReportType,
+    string Title,
+    string Description,
+    string? FileUrl,
+    DateTimeOffset GeneratedAt);
 
 /// <summary>Full booking detail returned to the family user.</summary>
 public record BookingResponse(
@@ -23,23 +33,26 @@ public record BookingResponse(
     int PackageDurationMinutes,
     // ── Scheduling ──────────────────────────────────────────────────────────
     DateTimeOffset PreferredStartAt,
-    DateTimeOffset? ScheduledStartAt,
-    DateTimeOffset? ScheduledEndAt,
+    DateTimeOffset? ConfirmedStartAt,
+    DateTimeOffset? ConfirmedEndAt,
     // ── Channel & source ────────────────────────────────────────────────────
     BookingChannel Channel,
     BookingSource Source,
     Guid? SourceIncidentId,
     Guid? SourceAssessmentId,
     // ── Notes & status ──────────────────────────────────────────────────────
-    string? Notes,
+    string? CustomerNotes,
     BookingStatus Status,
     PaymentStatus PaymentStatus,
     DateTimeOffset? ExpiresAt,
+    DateTimeOffset? CompletedAt,
     // ── Admin ────────────────────────────────────────────────────────────────
-    Guid? AssignedAdminId,
+    Guid? AssignedAdminUserId,
     string? AssignedAdminEmail,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    // ── Linked report (null when none attached) ──────────────────────────────
+    BookingReportInfo? PrimaryReport);
 
 public record BookingSummaryResponse(
     int TotalBookings,
@@ -58,6 +71,8 @@ public record PaymentOrderResponse(
     string? GatewayOrderId,
     string? PaymentUrl,
     string? QrCodeUrl,
+    PaymentType PaymentType,
+    string? FailureReason,
     DateTimeOffset? PaidAt,
     DateTimeOffset? ExpiresAt,
     DateTimeOffset? RefundedAt,
@@ -93,7 +108,7 @@ public class CreateBookingRequest
     public BookingChannel Channel { get; set; }
 
     [MaxLength(1000)]
-    public string? Notes { get; set; }
+    public string? CustomerNotes { get; set; }
 
     /// <summary>How this booking originated. Defaults to Direct.</summary>
     public BookingSource Source { get; set; } = BookingSource.Direct;

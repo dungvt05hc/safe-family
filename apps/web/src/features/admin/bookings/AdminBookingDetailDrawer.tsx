@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { X, Plus, AlertCircle, ClipboardCheck, CreditCard } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { X, Plus, AlertCircle, ClipboardCheck, CreditCard, FileText, ExternalLink, Link2, Link2Off } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useAdminUsers } from '../users/adminUsers.hooks'
 import { BOOKING_STATUS_COLORS, PAYMENT_STATUS_COLORS, formatBookingStatus } from '../admin.badges'
 import { AdminSpinner, AdminError } from '../components/AdminStateViews'
 import { AdminNotesPanel } from '../notes/AdminNotesPanel'
-import { useAdminBookingDetail, useAddBookingNote } from './adminBookings.hooks'
+import { useAdminBookingDetail, useAddBookingNote, useLinkBookingReport } from './adminBookings.hooks'
+import { adminReportsApi } from '../reports/adminReports.api'
 import type { BookingStatus, BookingSource, PaymentStatus } from './adminBookings.types'
 
 const BOOKING_STATUSES: BookingStatus[] = [
@@ -61,6 +63,7 @@ export function AdminBookingDetailDrawer({
 
   const { data: booking, isLoading, isError, refetch } = useAdminBookingDetail(bookingId)
   const addNoteQuery = useAddBookingNote()
+  const linkReportMutation = useLinkBookingReport()
   const { data: currentUser } = useCurrentUser()
   const { data: adminUsers } = useAdminUsers({
     search: '',
@@ -72,6 +75,15 @@ export function AdminBookingDetailDrawer({
   })
 
   const [noteContent, setNoteContent] = useState('')
+  const [selectedReportId, setSelectedReportId] = useState('')
+
+  // Load family's reports for the link picker whenever the drawer is open
+  const { data: familyReports } = useQuery({
+    queryKey: ['admin', 'reports', 'family', booking?.familyId],
+    queryFn: () => adminReportsApi.getFamilyReports(booking!.familyId),
+    enabled: !!booking?.familyId,
+    staleTime: 60_000,
+  })
 
   // Open / close the native dialog
   useEffect(() => {
@@ -104,9 +116,9 @@ export function AdminBookingDetailDrawer({
   }
 
   const isAssignedToMe =
-    booking?.assignedAdminId != null &&
+    booking?.assignedAdminUserId != null &&
     currentUser != null &&
-    booking.assignedAdminId === currentUser.id
+    booking.assignedAdminUserId === currentUser.id
 
   return (
     <dialog
@@ -148,7 +160,12 @@ export function AdminBookingDetailDrawer({
               <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Family</span>
-                  <span className="font-medium text-gray-900">{booking.familyName}</span>
+                  <Link
+                    to={`/admin/customers/${booking.familyId}`}
+                    className="font-medium text-amber-600 hover:underline"
+                  >
+                    {booking.familyName}
+                  </Link>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Package</span>
@@ -164,26 +181,32 @@ export function AdminBookingDetailDrawer({
                   <span className="text-gray-500">Channel</span>
                   <span className="text-gray-800">{booking.channel}</span>
                 </div>
-                {booking.scheduledStartAt && (
+                {booking.confirmedStartAt && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Scheduled Start</span>
                     <span className="text-purple-700 font-medium">
-                      {new Date(booking.scheduledStartAt).toLocaleString()}
+                      {new Date(booking.confirmedStartAt).toLocaleString()}
                     </span>
                   </div>
                 )}
-                {booking.scheduledEndAt && (
+                {booking.confirmedEndAt && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Scheduled End</span>
                     <span className="text-gray-800">
-                      {new Date(booking.scheduledEndAt).toLocaleString()}
+                      {new Date(booking.confirmedEndAt).toLocaleString()}
                     </span>
                   </div>
                 )}
-                {booking.notes && (
+                {booking.internalNotes && (
+                  <div className="pt-1 border-t border-gray-200">
+                    <span className="text-gray-500 block mb-0.5">Internal notes (legacy)</span>
+                    <p className="text-gray-700 whitespace-pre-wrap">{booking.internalNotes}</p>
+                  </div>
+                )}
+                {booking.customerNotes && (
                   <div className="pt-1 border-t border-gray-200">
                     <span className="text-gray-500 block mb-0.5">Customer notes</span>
-                    <p className="text-gray-700">{booking.notes}</p>
+                    <p className="text-gray-700">{booking.customerNotes}</p>
                   </div>
                 )}
               </div>
@@ -214,12 +237,22 @@ export function AdminBookingDetailDrawer({
                       </div>
                     </div>
                   )}
-                  {booking.sourceAssessmentDate && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Assessment date</span>
-                      <span className="text-gray-800">
-                        {new Date(booking.sourceAssessmentDate).toLocaleDateString()}
-                      </span>
+                  {booking.sourceAssessmentId && (
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-gray-500 shrink-0">Assessment</span>
+                      <div className="text-right">
+                        {booking.sourceAssessmentDate && (
+                          <p className="text-gray-700 text-xs mb-0.5">
+                            {new Date(booking.sourceAssessmentDate).toLocaleDateString()}
+                          </p>
+                        )}
+                        <Link
+                          to={`/admin/assessments/${booking.sourceAssessmentId}`}
+                          className="text-amber-600 hover:underline text-xs"
+                        >
+                          View assessment &rarr;
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -309,6 +342,97 @@ export function AdminBookingDetailDrawer({
               </section>
             )}
 
+            {/* ── Related reports ──────────────────────────────────────────── */}
+            <section aria-labelledby="reports-heading" className="space-y-3">
+              <h3 id="reports-heading" className={labelClass}>Linked Report</h3>
+
+              {/* Currently linked reports */}
+              {booking.relatedReports && booking.relatedReports.length > 0 ? (
+                <ul className="space-y-2" aria-label="Linked reports">
+                  {booking.relatedReports.map((report) => (
+                    <li
+                      key={report.reportId}
+                      className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm flex items-start justify-between gap-2"
+                    >
+                      <div className="flex items-start gap-2 min-w-0">
+                        <FileText className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" aria-hidden="true" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-800 truncate">{report.title}</p>
+                          {report.description && (
+                            <p className="text-xs text-gray-500 line-clamp-2">{report.description}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {report.reportType} &middot; {new Date(report.generatedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {report.fileUrl && (
+                          <a
+                            href={report.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-amber-600 hover:underline"
+                            aria-label={`Open report: ${report.title}`}
+                          >
+                            <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                            Open
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          disabled={linkReportMutation.isPending}
+                          onClick={() => bookingId && linkReportMutation.mutate({ id: bookingId, req: { reportId: null } })}
+                          className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
+                          aria-label={`Unlink report: ${report.title}`}
+                        >
+                          <Link2Off className="w-3 h-3" aria-hidden="true" />
+                          Unlink
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-gray-400">No report linked.</p>
+              )}
+
+              {/* Link a new report */}
+              {familyReports && familyReports.items.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedReportId}
+                    onChange={(e) => setSelectedReportId(e.target.value)}
+                    className="flex-1 rounded border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700 focus:border-amber-400 focus:outline-none"
+                    aria-label="Select report to link"
+                  >
+                    <option value="">— select a report —</option>
+                    {familyReports.items.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.title} ({r.reportType}, {new Date(r.generatedAt).toLocaleDateString()})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={!selectedReportId || linkReportMutation.isPending}
+                    onClick={() => {
+                      if (bookingId && selectedReportId) {
+                        linkReportMutation.mutate(
+                          { id: bookingId, req: { reportId: selectedReportId } },
+                          { onSuccess: () => setSelectedReportId('') },
+                        )
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 rounded bg-amber-500 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Link2 className="w-3 h-3" aria-hidden="true" />
+                    Link
+                  </button>
+                </div>
+              )}
+            </section>
+
             {/* ── Status controls ──────────────────────────────────────────── */}
             <section aria-labelledby="status-heading" className="space-y-4">
               <h3 id="status-heading" className={labelClass}>Status</h3>
@@ -396,7 +520,7 @@ export function AdminBookingDetailDrawer({
                 <select
                   id="assign-select"
                   disabled={isMutating}
-                  value={booking.assignedAdminId ?? ''}
+                  value={booking.assignedAdminUserId?.toString() ?? ''}
                   onChange={(e) => {
                     const selected = adminUsers?.items.find((u) => u.id === e.target.value)
                     onAssign(

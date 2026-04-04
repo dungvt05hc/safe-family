@@ -35,11 +35,19 @@ public class PaymentOrderConfiguration : BaseEntityConfiguration<PaymentOrder>
         builder.Property(p => p.GatewayTransactionId)
             .HasMaxLength(200);
 
+        builder.Property(p => p.PaymentType)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         builder.Property(p => p.PaymentUrl)
             .HasMaxLength(2048);
 
         builder.Property(p => p.QrCodeUrl)
             .HasMaxLength(2048);
+
+        builder.Property(p => p.FailureReason)
+            .HasMaxLength(500);
 
         // Stored as raw JSONB for efficient Postgres storage and future querying.
         builder.Property(p => p.GatewayRawResponse)
@@ -60,6 +68,11 @@ public class PaymentOrderConfiguration : BaseEntityConfiguration<PaymentOrder>
 
         builder.Property(p => p.RefundedAmount)
             .HasPrecision(18, 2);
+
+        // ── Indexes ───────────────────────────────────────────────────────────
+        // PaymentWebhookService looks up orders by GatewayOrderId on every webhook call.
+        builder.HasIndex(p => p.GatewayOrderId)
+            .HasDatabaseName("IX_payment_orders_gateway_order_id");
 
         // ── Relationships ─────────────────────────────────────────────────────
         builder.HasOne(p => p.Booking)

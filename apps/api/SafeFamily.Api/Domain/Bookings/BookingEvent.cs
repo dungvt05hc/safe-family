@@ -12,8 +12,8 @@ namespace SafeFamily.Api.Domain.Bookings;
 ///   "PaymentFailed"    — PaymentOrder failed; Description may include gateway reason
 ///   "PaymentExpired"   — PaymentOrder expired without capture
 ///   "Refunded"         — Refund issued; Description holds amount and type (full/partial)
-///   "AdminAssigned"    — AssignedAdminId / AssignedAdminEmail changed
-///   "Scheduled"        — ScheduledStartAt set by admin; ToValue holds the ISO timestamp
+///   "AdminAssigned"    — AssignedAdminUserId / AssignedAdminEmail changed
+///   "Scheduled"        — ConfirmedStartAt set by admin; ToValue holds the ISO timestamp
 ///   "NoteAdded"        — A BookingNote was attached by admin
 ///   "Cancelled"        — Booking cancelled; Description holds the reason
 /// </summary>

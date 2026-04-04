@@ -90,7 +90,7 @@ public sealed class PaymentService : IPaymentService
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = booking.Id,
-            EventType   = "PaymentRetried",
+            EventType   = BookingEventTypes.PaymentRetried,
             FromValue   = latestOrder.Status.ToString(),
             ToValue     = PaymentStatus.Unpaid.ToString(),
             Description = $"Family initiated a payment retry. Previous order {latestOrder.Id} was {latestOrder.Status}.",
@@ -121,6 +121,7 @@ public sealed class PaymentService : IPaymentService
                 o.Id, o.BookingId, o.Amount, o.Currency, o.Status,
                 o.GatewayProvider, o.GatewayOrderId,
                 o.PaymentUrl, o.QrCodeUrl,
+                o.PaymentType, o.FailureReason,
                 o.PaidAt, o.ExpiresAt, o.RefundedAt, o.RefundedAmount,
                 o.CreatedAt))
             .ToListAsync(ct);
@@ -149,6 +150,7 @@ public sealed class PaymentService : IPaymentService
         order.ExpiresAt       = result.ExpiresAt;
         order.PaymentUrl      = result.PaymentUrl;
         order.QrCodeUrl       = result.QrCodeUrl;
+        order.PaymentType     = result.PaymentType;
 
         // Denormalise onto Booking
         booking.PaymentStatus = PaymentStatus.Pending;
@@ -157,7 +159,7 @@ public sealed class PaymentService : IPaymentService
         _db.BookingEvents.Add(new BookingEvent
         {
             BookingId   = booking.Id,
-            EventType   = "PaymentInitiated",
+            EventType   = BookingEventTypes.PaymentInitiated,
             FromValue   = PaymentStatus.Unpaid.ToString(),
             ToValue     = PaymentStatus.Pending.ToString(),
             Description = $"Payment session opened. Provider: {gateway.Provider}. " +

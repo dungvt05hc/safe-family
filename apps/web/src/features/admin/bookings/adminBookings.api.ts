@@ -5,8 +5,10 @@ import type {
   AdminBookingDetail,
   AdminBookingRow,
   AdminBookingNoteInfo,
+  AdminBookingReportInfo,
   AssignBookingRequest,
   AddBookingNoteRequest,
+  LinkBookingReportRequest,
   BookingStatus,
   PaymentStatus,
 } from './adminBookings.types'
@@ -47,4 +49,7 @@ export const adminBookingsApi = {
 
   addNote: (id: string, req: AddBookingNoteRequest): Promise<AdminBookingNoteInfo> =>
     apiClient.post<AdminBookingNoteInfo>(`/api/admin/bookings/${id}/notes`, req),
+
+  linkReport: (id: string, req: LinkBookingReportRequest): Promise<AdminBookingReportInfo | null> =>
+    apiClient.put<AdminBookingReportInfo | null>(`/api/admin/bookings/${id}/report`, req),
 }

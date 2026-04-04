@@ -1,6 +1,7 @@
 import { apiClient } from '@/lib/api-client'
 import type {
   BookingResult,
+  BookingEventResponse,
   BookingSummary,
   CreateBookingRequest,
   PaymentInitiateResponse,
@@ -43,5 +44,9 @@ export const bookingsService = {
   /** Full payment history for a booking. */
   getPaymentOrders: (bookingId: string): Promise<PaymentOrder[]> =>
     apiClient.get(`/api/bookings/${bookingId}/payments`),
+
+  /** Chronological activity log for a booking. */
+  getEvents: (bookingId: string): Promise<BookingEventResponse[]> =>
+    apiClient.get(`/api/bookings/${bookingId}/events`),
 }
 

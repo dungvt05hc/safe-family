@@ -38,10 +38,10 @@ public class Booking : AuditableEntity
     public DateTimeOffset PreferredStartAt { get; set; }
 
     /// <summary>Confirmed start time assigned by admin. Null until Scheduled state.</summary>
-    public DateTimeOffset? ScheduledStartAt { get; set; }
+    public DateTimeOffset? ConfirmedStartAt { get; set; }
 
     /// <summary>Confirmed end time assigned by admin. Null until Scheduled state.</summary>
-    public DateTimeOffset? ScheduledEndAt { get; set; }
+    public DateTimeOffset? ConfirmedEndAt { get; set; }
 
     // ── Channel & source ──────────────────────────────────────────────────────
     public BookingChannel Channel { get; set; }
@@ -57,7 +57,10 @@ public class Booking : AuditableEntity
 
     // ── Notes & status ────────────────────────────────────────────────────────
     /// <summary>Free-text notes from the family (max 1 000 chars).</summary>
-    public string? Notes { get; set; }
+    public string? CustomerNotes { get; set; }
+
+    /// <summary>Internal notes visible to admin staff only (max 2 000 chars). Never exposed to families.</summary>
+    public string? InternalNotes { get; set; }
 
     /// <summary>Current booking lifecycle state. See <see cref="BookingStatus"/> for transitions.</summary>
     public BookingStatus Status { get; set; } = BookingStatus.Draft;
@@ -71,9 +74,12 @@ public class Booking : AuditableEntity
     /// <summary>Deadline for payment or admin action. Null = no automatic expiry.</summary>
     public DateTimeOffset? ExpiresAt { get; set; }
 
+    /// <summary>Timestamp when the booking moved to Completed state.</summary>
+    public DateTimeOffset? CompletedAt { get; set; }
+
     // ── Admin assignment ──────────────────────────────────────────────────────
-    /// <summary>Admin currently responsible for this booking. Null = unassigned.</summary>
-    public Guid? AssignedAdminId { get; set; }
+    /// <summary>Admin user currently responsible for this booking. Null = unassigned.</summary>
+    public Guid? AssignedAdminUserId { get; set; }
 
     /// <summary>Denormalised admin email shown in the UI without a JOIN.</summary>
     public string? AssignedAdminEmail { get; set; }

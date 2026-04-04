@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SafeFamily.Api.Data;
@@ -11,9 +12,11 @@ using SafeFamily.Api.Data;
 namespace SafeFamily.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260404050503_RefactorBookingSchema")]
+    partial class RefactorBookingSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -515,10 +518,6 @@ namespace SafeFamily.Api.Migrations
                     b.Property<DateTimeOffset?>("FailedAt")
                         .HasColumnType("timestamptz");
 
-                    b.Property<string>("FailureReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<string>("GatewayOrderId")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -536,11 +535,6 @@ namespace SafeFamily.Api.Migrations
 
                     b.Property<DateTimeOffset?>("PaidAt")
                         .HasColumnType("timestamptz");
-
-                    b.Property<string>("PaymentType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("PaymentUrl")
                         .HasMaxLength(2048)
@@ -568,9 +562,6 @@ namespace SafeFamily.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
-
-                    b.HasIndex("GatewayOrderId")
-                        .HasDatabaseName("IX_payment_orders_gateway_order_id");
 
                     b.ToTable("payment_orders", (string)null);
                 });

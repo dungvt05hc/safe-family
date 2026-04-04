@@ -17,7 +17,7 @@ const schema = z.object({
   channel: z.enum(['Online', 'Phone', 'Email', 'Onsite'] as const, {
     errorMap: () => ({ message: 'Please select how you would like to connect' }),
   }),
-  notes: z.string().max(1000, 'Notes must be 1000 characters or fewer').optional(),
+  customerNotes: z.string().max(1000, 'Notes must be 1000 characters or fewer').optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -52,7 +52,7 @@ export function BookingFormPage() {
       {
         ...values,
         preferredStartAt: toUtcIsoString(values.preferredStartAt),
-        notes: values.notes || undefined,
+        customerNotes: values.customerNotes || undefined,
       },
       { onSuccess: (booking) => navigate(`/bookings/${booking.id}`) },
     )
@@ -150,11 +150,11 @@ export function BookingFormPage() {
             id="notes"
             rows={3}
             placeholder="e.g. We recently received a suspicious email and want advice…"
-            {...register('notes')}
+            {...register('customerNotes')}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
-          {errors.notes && (
-            <p className="text-sm text-red-600">{errors.notes.message}</p>
+          {errors.customerNotes && (
+            <p className="text-sm text-red-600">{errors.customerNotes.message}</p>
           )}
         </section>
 

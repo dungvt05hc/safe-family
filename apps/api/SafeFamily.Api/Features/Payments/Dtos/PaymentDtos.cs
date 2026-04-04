@@ -37,7 +37,9 @@ public record GatewayInitiateResult(
     /// <summary>QR code URL or data URI. Null for redirect-only flows.</summary>
     string? QrCodeUrl,
     /// <summary>UTC timestamp when this payment session expires.</summary>
-    DateTimeOffset ExpiresAt);
+    DateTimeOffset ExpiresAt,
+    /// <summary>Payment method / flow type used. Defaults to Redirect for gateways that don't specify.</summary>
+    PaymentType PaymentType = PaymentType.Redirect);
 
 /// <summary>
 /// Normalized payment event extracted from a gateway webhook payload.
