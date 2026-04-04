@@ -9,6 +9,9 @@ using SafeFamily.Api.Features.Auth;
 using SafeFamily.Api.Features.Assessments;
 using SafeFamily.Api.Features.Checklists;
 using SafeFamily.Api.Features.Bookings;
+using SafeFamily.Api.Features.Payments;
+using SafeFamily.Api.Features.Payments.Gateways;
+using SafeFamily.Api.Infrastructure.BackgroundServices;
 using SafeFamily.Api.Features.Dashboard;
 using SafeFamily.Api.Features.DeviceCatalog;
 using SafeFamily.Api.Features.Devices;
@@ -65,6 +68,13 @@ builder.Services.AddScoped<IIncidentService, IncidentService>();
 
 // Bookings feature
 builder.Services.AddScoped<IBookingService, BookingService>();
+
+// Payment feature
+builder.Services.Configure<PaymentSettings>(builder.Configuration.GetSection(PaymentSettings.SectionName));
+builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>(); // swap for real gateway in production
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
+builder.Services.AddHostedService<PaymentExpiryService>();
 
 // Dashboard feature
 builder.Services.AddScoped<IDashboardService, DashboardService>();

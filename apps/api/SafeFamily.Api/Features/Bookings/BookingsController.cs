@@ -29,7 +29,7 @@ public class BookingsController : ControllerBase
         return Ok(packages);
     }
 
-    // POST /api/bookings
+    // POST /api/bookings  — creates a Draft booking
     [HttpPost("api/bookings")]
     [EnableRateLimiting("mutations")]
     [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status201Created)]
@@ -42,6 +42,22 @@ public class BookingsController : ControllerBase
         await _audit.LogAsync("BookingCreated", userId, entityType: "Booking", entityId: booking.Id,
             details: $"Package={booking.PackageName}", ct: ct);
         return CreatedAtAction(nameof(GetMyBookings), booking);
+    }
+
+    // POST /api/bookings/{id}/submit  — Draft → Submitted (or Confirmed for free packages)
+    [HttpPost("api/bookings/{id:guid}/submit")]
+    [EnableRateLimiting("mutations")]
+    [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SubmitBooking(Guid id, CancellationToken ct)
+    {
+        var userId = GetUserId();
+        var booking = await _bookingService.SubmitBookingAsync(userId, id, ct);
+        await _audit.LogAsync("BookingSubmitted", userId, entityType: "Booking", entityId: booking.Id,
+            details: $"Status={booking.Status}", ct: ct);
+        return Ok(booking);
     }
 
     // GET /api/bookings/my
@@ -75,6 +91,18 @@ public class BookingsController : ControllerBase
         return booking is null ? NotFound() : Ok(booking);
     }
 
+    // GET /api/bookings/{id}/events
+    [HttpGet("api/bookings/{id:guid}/events")]
+    [ProducesResponseType(typeof(IReadOnlyList<BookingEventResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBookingEvents(Guid id, CancellationToken ct)
+    {
+        var events = await _bookingService.GetBookingEventsAsync(GetUserId(), id, ct);
+        return Ok(events);
+    }
+
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }
+

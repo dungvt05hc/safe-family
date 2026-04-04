@@ -4,19 +4,28 @@ import { ArrowLeft, CalendarDays, FileText, CheckCircle2 } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Badge, Button, LoadingState, Alert, Card, CardContent } from '@/components/ui'
 import { fadeUpVariants } from '@/lib/motion'
-import { useBooking } from '../hooks/useBookingQueries'
+import { useBooking, usePaymentOrders } from '../hooks/useBookingQueries'
 import {
   BOOKING_STATUS_BADGE,
   BOOKING_STATUS_LABEL,
+  BOOKING_STATUS_CONTEXT,
   CHANNEL_CONFIG,
   PAYMENT_STATUS_BADGE,
   PAYMENT_STATUS_LABEL,
 } from '../bookings.types'
+import { BookingPaymentPanel } from '../components/BookingPaymentPanel'
 
 export function BookingDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { data: booking, isLoading, isError } = useBooking(id)
+
+  const isPendingPayment = true // resolved after data loads — see usage below
+  const { data: booking, isLoading, isError } = useBooking(id, isPendingPayment)
+  const pollPayments = booking?.paymentStatus === 'Pending'
+  const { data: paymentOrders = [] } = usePaymentOrders(
+    booking?.packagePrice !== 0 ? id : undefined,
+    pollPayments,
+  )
 
   const backAction = (
     <Button variant="ghost" size="sm" onClick={() => navigate('/bookings/my')}>
@@ -60,7 +69,7 @@ export function BookingDetailsPage() {
 
   const isCompleted = booking.status === 'Completed'
   const isCancelled = booking.status === 'Cancelled'
-  const isPending = booking.status === 'Pending'
+  const statusContext = BOOKING_STATUS_CONTEXT[booking.status]
 
   return (
     <PageLayout
@@ -71,22 +80,31 @@ export function BookingDetailsPage() {
       <div className="max-w-xl space-y-6">
 
         {/* ── Status banner ──────────────────────────────────────────── */}
-        {isCompleted && (
+        {booking.status === 'Completed' && (
           <Alert variant="success">
             <span className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
-              This session is complete. We hope it was helpful!
+              {statusContext}
             </span>
           </Alert>
         )}
-        {isPending && (
-          <Alert variant="info">
-            Your booking is awaiting confirmation. We'll reach out to you shortly.
-          </Alert>
+        {booking.status === 'Paid' && (
+          <Alert variant="info">{statusContext}</Alert>
+        )}
+        {(booking.status === 'Confirmed' || booking.status === 'Scheduled') && (
+          <Alert variant="success">{statusContext}</Alert>
+        )}
+        {(booking.status === 'Cancelled' || booking.status === 'Expired') && (
+          <Alert variant="warning">{statusContext}</Alert>
         )}
 
-        {/* ── Summary card ───────────────────────────────────────────── */}
+        {/* ── Payment panel ──────────────────────────────────────────── */}
         <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" custom={0}>
+          <BookingPaymentPanel booking={booking} paymentOrders={paymentOrders} />
+        </motion.div>
+
+        {/* ── Summary card ───────────────────────────────────────────── */}
+        <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" custom={1}>
           <Card>
             <CardContent className="space-y-4">
               {/* Channel + badges row */}
@@ -139,7 +157,7 @@ export function BookingDetailsPage() {
             variants={fadeUpVariants}
             initial="hidden"
             animate="visible"
-            custom={1}
+            custom={2}
             className="flex gap-3"
           >
             <Button variant="outline" onClick={() => navigate('/bookings')}>
@@ -153,7 +171,7 @@ export function BookingDetailsPage() {
             variants={fadeUpVariants}
             initial="hidden"
             animate="visible"
-            custom={1}
+            custom={2}
             className="flex gap-3"
           >
             <Button onClick={() => navigate('/bookings')}>Book a follow-up</Button>

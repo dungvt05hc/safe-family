@@ -6,9 +6,33 @@ export function useCreateBooking() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: bookingsService.create,
+    mutationFn: bookingsService.createAndSubmit,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookingKeys.myBookings })
+    },
+  })
+}
+
+export function useInitiatePayment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (bookingId: string) => bookingsService.initiatePayment(bookingId),
+    onSuccess: (_, bookingId) => {
+      queryClient.invalidateQueries({ queryKey: bookingKeys.detail(bookingId) })
+      queryClient.invalidateQueries({ queryKey: bookingKeys.paymentOrders(bookingId) })
+    },
+  })
+}
+
+export function useRetryPayment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (bookingId: string) => bookingsService.retryPayment(bookingId),
+    onSuccess: (_, bookingId) => {
+      queryClient.invalidateQueries({ queryKey: bookingKeys.detail(bookingId) })
+      queryClient.invalidateQueries({ queryKey: bookingKeys.paymentOrders(bookingId) })
     },
   })
 }

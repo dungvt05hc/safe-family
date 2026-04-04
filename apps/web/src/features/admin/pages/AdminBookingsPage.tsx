@@ -14,8 +14,11 @@ import type { AdminBookingFilters, BookingStatus, PaymentStatus } from '../booki
 
 const DEFAULT_FILTERS: AdminBookingFilters = {
   search: '',
+  quickFilter: '',
   status: '',
+  paymentStatus: '',
   channel: '',
+  source: '',
   packageId: '',
   from: '',
   to: '',
@@ -56,8 +59,11 @@ export function AdminBookingsPage() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / filters.pageSize)) : 1
   const hasActiveFilters =
     filters.search !== '' ||
+    filters.quickFilter !== '' ||
     filters.status !== '' ||
+    filters.paymentStatus !== '' ||
     filters.channel !== '' ||
+    filters.source !== '' ||
     filters.packageId !== '' ||
     filters.from !== '' ||
     filters.to !== ''

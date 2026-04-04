@@ -81,9 +81,65 @@ public record AdminCustomerListResponse(
 // ── Bookings ─────────────────────────────────────────────────────────────────
 
 /// <summary>
-/// Slim booking row returned by the paged list and status-mutation endpoints.
-/// Includes the denormalised assigned-admin fields so the table requires no
-/// secondary lookup.
+/// Combined filter for common admin booking workflow stages.
+/// Each value maps to a predefined combination of BookingStatus + PaymentStatus predicates.
+/// </summary>
+public enum BookingQuickFilter
+{
+    PendingPayment,       // Status == Submitted AND PaymentStatus is Unpaid or Pending
+    PaidNotConfirmed,     // Status == Paid (awaiting admin confirmation)
+    Confirmed,            // Status == Confirmed (awaiting time-slot)
+    Scheduled,            // Status == Scheduled
+    InProgress,           // Status == InProgress
+    Completed,            // Status == Completed
+    Cancelled,            // Status == Cancelled
+    Expired,              // Status == Expired
+}
+
+/// <summary>Summary of the most recent payment order on a booking (for list rows).</summary>
+public record AdminBookingPaymentSummary(
+    Guid OrderId,
+    decimal Amount,
+    string Currency,
+    PaymentStatus Status,
+    string? GatewayProvider,
+    DateTimeOffset? PaidAt,
+    DateTimeOffset? ExpiresAt,
+    DateTimeOffset CreatedAt);
+
+/// <summary>Full payment order detail shown in the booking detail view.</summary>
+public record AdminBookingPaymentOrderInfo(
+    Guid OrderId,
+    decimal Amount,
+    string Currency,
+    PaymentStatus Status,
+    string? GatewayProvider,
+    string? GatewayOrderId,
+    string? GatewayTransactionId,
+    string? PaymentUrl,
+    string? QrCodeUrl,
+    DateTimeOffset? PaidAt,
+    DateTimeOffset? ExpiresAt,
+    DateTimeOffset? FailedAt,
+    DateTimeOffset? RefundedAt,
+    decimal? RefundedAmount,
+    DateTimeOffset CreatedAt);
+
+/// <summary>Audit event entry shown in the booking detail view.</summary>
+public record AdminBookingEventInfo(
+    Guid EventId,
+    string EventType,
+    string? FromValue,
+    string? ToValue,
+    string? Description,
+    Guid? ActorId,
+    string? ActorEmail,
+    DateTimeOffset CreatedAt);
+
+/// <summary>
+/// Booking row returned by the paged list and status-mutation endpoints.
+/// Includes snapshot, scheduling, source, payment summary, and assigned-admin
+/// fields so the table requires no secondary lookup.
 /// </summary>
 public record AdminBookingResponse(
     Guid Id,
@@ -91,13 +147,31 @@ public record AdminBookingResponse(
     string FamilyName,
     Guid PackageId,
     string PackageName,
+    // Snapshot — terms agreed at booking time
+    string SnapshotPackageCode,
+    decimal SnapshotPrice,
+    string SnapshotCurrency,
+    int SnapshotDurationMinutes,
+    // Scheduling
     DateTimeOffset PreferredStartAt,
+    DateTimeOffset? ScheduledStartAt,
+    DateTimeOffset? ScheduledEndAt,
+    // Channel & origin
     BookingChannel Channel,
+    BookingSource Source,
+    Guid? SourceIncidentId,
+    Guid? SourceAssessmentId,
+    // Notes & status
     string? Notes,
     BookingStatus Status,
     PaymentStatus PaymentStatus,
+    DateTimeOffset? ExpiresAt,
+    // Assignment
     Guid? AssignedAdminId,
     string? AssignedAdminEmail,
+    // Payment summary (latest order — null if no order created yet)
+    AdminBookingPaymentSummary? LatestPayment,
+    // Timestamps
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt);
 
@@ -118,7 +192,8 @@ public record AdminBookingNoteInfo(
 
 /// <summary>
 /// Full booking detail returned by GET /api/admin/bookings/{id}.
-/// Extends the slim row with lifecycle timestamps and internal admin notes.
+/// Extends the list row with full payment orders, audit events, resolved source
+/// entity summaries, and internal admin notes.
 /// </summary>
 public record AdminBookingDetailResponse(
     Guid Id,
@@ -126,15 +201,39 @@ public record AdminBookingDetailResponse(
     string FamilyName,
     Guid PackageId,
     string PackageName,
+    // Snapshot
+    string SnapshotPackageCode,
+    decimal SnapshotPrice,
+    string SnapshotCurrency,
+    int SnapshotDurationMinutes,
+    // Scheduling
     DateTimeOffset PreferredStartAt,
+    DateTimeOffset? ScheduledStartAt,
+    DateTimeOffset? ScheduledEndAt,
+    // Channel & origin
     BookingChannel Channel,
+    BookingSource Source,
+    Guid? SourceIncidentId,
+    Guid? SourceAssessmentId,
+    // Resolved source names (null when source IDs are null)
+    string? SourceIncidentSummary,
+    DateTimeOffset? SourceAssessmentDate,
+    // Notes & status
     string? Notes,
     BookingStatus Status,
     PaymentStatus PaymentStatus,
+    DateTimeOffset? ExpiresAt,
+    // Assignment
     Guid? AssignedAdminId,
     string? AssignedAdminEmail,
+    // Payment summary (latest order)
+    AdminBookingPaymentSummary? LatestPayment,
+    // Timestamps
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
+    // Collections
+    IReadOnlyList<AdminBookingPaymentOrderInfo> PaymentOrders,
+    IReadOnlyList<AdminBookingEventInfo> Events,
     IReadOnlyList<AdminBookingNoteInfo> BookingNotes);
 
 /// <summary>Admin-only: update the payment status of a booking.</summary>

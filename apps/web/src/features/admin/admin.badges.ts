@@ -7,13 +7,17 @@ import type {
   ReportType,
 } from './admin.types'
 
-/** Human-readable labels for each booking status (handles `InProgress` → `In Progress`). */
+/** Human-readable labels for each booking status. */
 export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
-  Pending:    'Pending',
+  Draft:      'Draft',
+  Submitted:  'Awaiting Payment',
+  Paid:       'Paid — Unconfirmed',
   Confirmed:  'Confirmed',
+  Scheduled:  'Scheduled',
   InProgress: 'In Progress',
   Completed:  'Completed',
   Cancelled:  'Cancelled',
+  Expired:    'Expired',
 }
 
 /** Returns the display label for a booking status. */
@@ -23,19 +27,26 @@ export function formatBookingStatus(status: BookingStatus): string {
 
 /** Pill colour classes for each booking status. */
 export const BOOKING_STATUS_COLORS: Record<BookingStatus, string> = {
-  Pending:    'bg-gray-100 text-gray-600',
-  Confirmed:  'bg-blue-100 text-blue-700',
-  InProgress: 'bg-amber-100 text-amber-700',
-  Cancelled:  'bg-red-100 text-red-700',
+  Draft:      'bg-gray-100 text-gray-500',
+  Submitted:  'bg-amber-100 text-amber-700',
+  Paid:       'bg-blue-100 text-blue-700',
+  Confirmed:  'bg-indigo-100 text-indigo-700',
+  Scheduled:  'bg-purple-100 text-purple-700',
+  InProgress: 'bg-orange-100 text-orange-700',
   Completed:  'bg-green-100 text-green-700',
+  Cancelled:  'bg-red-100 text-red-700',
+  Expired:    'bg-gray-100 text-gray-600',
 }
 
 /** Pill colour classes for each payment status. */
 export const PAYMENT_STATUS_COLORS: Record<PaymentStatus, string> = {
-  Pending:  'bg-yellow-100 text-yellow-700',
-  Paid:     'bg-green-100 text-green-700',
-  Refunded: 'bg-blue-100 text-blue-700',
-  Waived:   'bg-gray-100 text-gray-600',
+  Unpaid:           'bg-gray-100 text-gray-500',
+  Pending:          'bg-yellow-100 text-yellow-700',
+  Paid:             'bg-green-100 text-green-700',
+  Failed:           'bg-red-100 text-red-700',
+  Expired:          'bg-gray-100 text-gray-600',
+  Refunded:         'bg-sky-100 text-sky-700',
+  PartiallyRefunded:'bg-sky-100 text-sky-600',
 }
 
 /** Human-readable labels for each incident status (handles `InProgress` → `In Progress`). */

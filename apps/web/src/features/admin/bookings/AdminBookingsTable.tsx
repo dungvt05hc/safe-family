@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom'
-import { FileText } from 'lucide-react'
+import { FileText, AlertCircle, ClipboardCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { BOOKING_STATUS_COLORS, PAYMENT_STATUS_COLORS, formatBookingStatus } from '../admin.badges'
-import type { AdminBookingRow, BookingStatus } from './adminBookings.types'
+import {
+  BOOKING_STATUS_COLORS,
+  PAYMENT_STATUS_COLORS,
+  formatBookingStatus,
+} from '../admin.badges'
+import type { AdminBookingRow, BookingStatus, BookingSource } from './adminBookings.types'
 
 interface Props {
   bookings: AdminBookingRow[]
@@ -15,6 +19,20 @@ function Dash() {
   return <span className="text-gray-400" aria-label="Not available">—</span>
 }
 
+const SOURCE_ICON: Record<BookingSource, React.ReactNode> = {
+  Direct:             null,
+  IncidentFollowUp:   <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0" aria-hidden="true" />,
+  AssessmentFollowUp: <ClipboardCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" aria-hidden="true" />,
+  AdminCreated:       null,
+}
+
+const SOURCE_LABEL: Record<BookingSource, string> = {
+  Direct:             'Direct',
+  IncidentFollowUp:   'Incident',
+  AssessmentFollowUp: 'Assessment',
+  AdminCreated:       'Admin',
+}
+
 export function AdminBookingsTable({ bookings, onOpen, onStatusChange, isMutating }: Props) {
   return (
     <table className="w-full text-sm" aria-label="Bookings">
@@ -22,17 +40,17 @@ export function AdminBookingsTable({ bookings, onOpen, onStatusChange, isMutatin
         <tr>
           <th scope="col" className="px-4 py-3 font-medium text-gray-600">Customer</th>
           <th scope="col" className="px-4 py-3 font-medium text-gray-600">Package</th>
-          <th scope="col" className="px-4 py-3 font-medium text-gray-600">Preferred Date</th>
-          <th scope="col" className="px-4 py-3 font-medium text-gray-600">Channel</th>
+          <th scope="col" className="px-4 py-3 font-medium text-gray-600">Source</th>
+          <th scope="col" className="px-4 py-3 font-medium text-gray-600">Date</th>
           <th scope="col" className="px-4 py-3 font-medium text-gray-600">Payment</th>
           <th scope="col" className="px-4 py-3 font-medium text-gray-600">Status</th>
-          <th scope="col" className="px-4 py-3 font-medium text-gray-600">Assigned To</th>
+          <th scope="col" className="px-4 py-3 font-medium text-gray-600">Assigned</th>
           <th scope="col" className="px-4 py-3 font-medium text-gray-600 sr-only">Actions</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100">
         {bookings.map((b) => (
-          <tr key={b.id} className="hover:bg-gray-50">
+          <tr key={b.id} className="hover:bg-gray-50 align-top">
             {/* Customer */}
             <td className="px-4 py-3">
               <Link
@@ -44,17 +62,39 @@ export function AdminBookingsTable({ bookings, onOpen, onStatusChange, isMutatin
             </td>
 
             {/* Package */}
-            <td className="px-4 py-3 text-gray-700">{b.packageName}</td>
-
-            {/* Preferred Date */}
-            <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-              {new Date(b.preferredStartAt).toLocaleDateString()}
+            <td className="px-4 py-3">
+              <p className="text-gray-800">{b.packageName}</p>
+              <p className="text-xs text-gray-400">{b.snapshotPackageCode}</p>
             </td>
 
-            {/* Channel */}
-            <td className="px-4 py-3 text-gray-500">{b.channel}</td>
+            {/* Source */}
+            <td className="px-4 py-3">
+              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                {SOURCE_ICON[b.source]}
+                {SOURCE_LABEL[b.source]}
+              </span>
+              {b.sourceIncidentId && (
+                <Link
+                  to={`/admin/incidents/${b.sourceIncidentId}`}
+                  className="block text-xs text-amber-600 hover:underline mt-0.5"
+                  aria-label="View linked incident"
+                >
+                  View incident &rarr;
+                </Link>
+              )}
+            </td>
 
-            {/* Payment Status */}
+            {/* Preferred Date */}
+            <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+              <p>{new Date(b.preferredStartAt).toLocaleDateString()}</p>
+              {b.scheduledStartAt && (
+                <p className="text-purple-600 font-medium mt-0.5">
+                  Sched: {new Date(b.scheduledStartAt).toLocaleDateString()}
+                </p>
+              )}
+            </td>
+
+            {/* Payment */}
             <td className="px-4 py-3">
               <span
                 className={cn(
@@ -64,6 +104,14 @@ export function AdminBookingsTable({ bookings, onOpen, onStatusChange, isMutatin
               >
                 {b.paymentStatus}
               </span>
+              {b.latestPayment && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {b.latestPayment.currency} {b.latestPayment.amount.toLocaleString()}
+                  {b.latestPayment.gatewayProvider && (
+                    <span className="ml-1 text-gray-300">· {b.latestPayment.gatewayProvider}</span>
+                  )}
+                </p>
+              )}
             </td>
 
             {/* Booking Status */}
@@ -79,26 +127,39 @@ export function AdminBookingsTable({ bookings, onOpen, onStatusChange, isMutatin
             </td>
 
             {/* Assigned To */}
-            <td className="px-4 py-3 text-gray-500 text-xs">
+            <td className="px-4 py-3 text-gray-500 text-xs max-w-[120px] truncate">
               {b.assignedAdminEmail ?? <Dash />}
             </td>
 
             {/* Actions */}
             <td className="px-4 py-3">
-              <div className="flex items-center gap-2">
-                {/* Quick status transitions */}
-                {b.status === 'Pending' && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Quick confirm: Paid → Confirmed */}
+                {b.status === 'Paid' && (
                   <button
                     type="button"
                     disabled={isMutating}
                     onClick={() => onStatusChange(b.id, 'Confirmed')}
                     aria-label={`Confirm booking for ${b.familyName}`}
-                    className="rounded px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+                    className="rounded px-2 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:opacity-40"
                   >
                     Confirm
                   </button>
                 )}
-                {(b.status === 'Confirmed' || b.status === 'InProgress') && (
+                {/* Schedule: Confirmed → Scheduled */}
+                {b.status === 'Confirmed' && (
+                  <button
+                    type="button"
+                    disabled={isMutating}
+                    onClick={() => onStatusChange(b.id, 'Scheduled')}
+                    aria-label={`Schedule booking for ${b.familyName}`}
+                    className="rounded px-2 py-1 text-xs font-medium bg-purple-50 text-purple-700 hover:bg-purple-100 disabled:opacity-40"
+                  >
+                    Schedule
+                  </button>
+                )}
+                {/* Complete: Scheduled or InProgress */}
+                {(b.status === 'Scheduled' || b.status === 'InProgress') && (
                   <button
                     type="button"
                     disabled={isMutating}
@@ -128,3 +189,4 @@ export function AdminBookingsTable({ bookings, onOpen, onStatusChange, isMutatin
     </table>
   )
 }
+

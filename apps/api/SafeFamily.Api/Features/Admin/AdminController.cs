@@ -82,14 +82,18 @@ public class AdminController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, note);
     }
 
-    // GET /api/admin/bookings?search=&status=&channel=&packageId=&from=&to=&page=1&pageSize=25
+    // GET /api/admin/bookings?search=&quickFilter=&status=&paymentStatus=&channel=&source=&assignedAdminId=&packageId=&from=&to=&page=1&pageSize=25
     [HttpGet("bookings")]
     [ProducesResponseType(typeof(AdminBookingListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetBookings(
         [FromQuery] string? search = null,
+        [FromQuery] BookingQuickFilter? quickFilter = null,
         [FromQuery] BookingStatus? status = null,
+        [FromQuery] PaymentStatus? paymentStatus = null,
         [FromQuery] BookingChannel? channel = null,
+        [FromQuery] BookingSource? source = null,
+        [FromQuery] Guid? assignedAdminId = null,
         [FromQuery] Guid? packageId = null,
         [FromQuery] DateTimeOffset? from = null,
         [FromQuery] DateTimeOffset? to = null,
@@ -98,7 +102,8 @@ public class AdminController : ControllerBase
         CancellationToken ct = default)
     {
         var result = await _adminService.GetBookingsPagedAsync(
-            search, status, channel, packageId, from, to, page, pageSize, ct);
+            search, quickFilter, status, paymentStatus, channel, source, assignedAdminId,
+            packageId, from, to, page, pageSize, ct);
         return Ok(result);
     }
 
@@ -119,8 +124,9 @@ public class AdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateBookingStatus(Guid id, [FromBody] UpdateAdminBookingStatusRequest request, CancellationToken ct)
     {
-        var booking = await _adminService.UpdateAdminBookingStatusAsync(id, request.Status, ct);
-        var adminId = GetUserId();
+        var adminId    = GetUserId();
+        var adminEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        var booking = await _adminService.UpdateAdminBookingStatusAsync(id, request.Status, adminId, adminEmail, ct);
         await _audit.LogAsync("AdminBookingStatusChanged", adminId,
             entityType: "Booking", entityId: id,
             details: $"Status changed to {request.Status}",
@@ -135,8 +141,9 @@ public class AdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateBookingPaymentStatus(Guid id, [FromBody] UpdateBookingPaymentStatusRequest request, CancellationToken ct)
     {
-        var booking = await _adminService.UpdatePaymentStatusAsync(id, request.Status, ct);
-        var adminId = GetUserId();
+        var adminId    = GetUserId();
+        var adminEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        var booking = await _adminService.UpdatePaymentStatusAsync(id, request.Status, adminId, adminEmail, ct);
         await _audit.LogAsync("AdminBookingPaymentStatusChanged", adminId,
             entityType: "Booking", entityId: id,
             details: $"PaymentStatus changed to {request.Status}",
@@ -151,8 +158,9 @@ public class AdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssignBooking(Guid id, [FromBody] AssignBookingRequest request, CancellationToken ct)
     {
-        var booking = await _adminService.AssignBookingAsync(id, request.AssignedAdminId, request.AssignedAdminEmail, ct);
-        var adminId = GetUserId();
+        var adminId    = GetUserId();
+        var adminEmail = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        var booking = await _adminService.AssignBookingAsync(id, request.AssignedAdminId, request.AssignedAdminEmail, adminId, adminEmail, ct);
         var detail  = request.AssignedAdminEmail is null ? "Unassigned" : $"Assigned to {request.AssignedAdminEmail}";
         await _audit.LogAsync("AdminBookingAssigned", adminId,
             entityType: "Booking", entityId: id,

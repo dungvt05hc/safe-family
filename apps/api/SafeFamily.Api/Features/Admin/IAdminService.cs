@@ -25,17 +25,25 @@ public interface IAdminService
 
     // Bookings
     Task<AdminBookingListResponse> GetBookingsPagedAsync(
-        string? search, BookingStatus? status, BookingChannel? channel,
-        Guid? packageId, DateTimeOffset? from, DateTimeOffset? to,
+        string? search,
+        BookingQuickFilter? quickFilter,
+        BookingStatus? status,
+        PaymentStatus? paymentStatus,
+        BookingChannel? channel,
+        BookingSource? source,
+        Guid? assignedAdminId,
+        Guid? packageId,
+        DateTimeOffset? from,
+        DateTimeOffset? to,
         int page, int pageSize, CancellationToken ct = default);
 
     Task<AdminBookingDetailResponse> GetBookingByIdAsync(Guid id, CancellationToken ct = default);
 
-    Task<AdminBookingResponse> UpdatePaymentStatusAsync(Guid bookingId, PaymentStatus newStatus, CancellationToken ct = default);
-    Task<AdminBookingResponse> UpdateAdminBookingStatusAsync(Guid bookingId, BookingStatus newStatus, CancellationToken ct = default);
+    Task<AdminBookingResponse> UpdatePaymentStatusAsync(Guid bookingId, PaymentStatus newStatus, Guid actorId, string actorEmail, CancellationToken ct = default);
+    Task<AdminBookingResponse> UpdateAdminBookingStatusAsync(Guid bookingId, BookingStatus newStatus, Guid actorId, string actorEmail, CancellationToken ct = default);
 
     Task<AdminBookingResponse> AssignBookingAsync(
-        Guid id, Guid? adminId, string? adminEmail, CancellationToken ct = default);
+        Guid id, Guid? adminId, string? adminEmail, Guid actorId, string actorEmail, CancellationToken ct = default);
 
     Task<AdminBookingNoteInfo> AddBookingNoteAsync(
         Guid id, string content, Guid authorId, string authorEmail, CancellationToken ct = default);

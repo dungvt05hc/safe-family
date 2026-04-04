@@ -1,8 +1,70 @@
 // Re-export shared types from the canonical admin.types module.
-import type { PagedResult, BookingStatus, BookingChannel, PaymentStatus } from '../admin.types'
-export type { BookingStatus, BookingChannel, PaymentStatus }
+import type { PagedResult, BookingStatus, BookingChannel, PaymentStatus, BookingSource } from '../admin.types'
+export type { BookingStatus, BookingChannel, PaymentStatus, BookingSource }
 
-// ── List row (index) ──────────────────────────────────────────────────────────
+// ── Quick filter ──────────────────────────────────────────────────────────────
+
+/**
+ * Maps to predefined (BookingStatus × PaymentStatus) combinations on the server.
+ * Matches the backend BookingQuickFilter enum.
+ */
+export type BookingQuickFilter =
+  | 'PendingPayment'
+  | 'PaidNotConfirmed'
+  | 'Confirmed'
+  | 'Scheduled'
+  | 'InProgress'
+  | 'Completed'
+  | 'Cancelled'
+  | 'Expired'
+
+// ── Payment summary (embedded in list row) ────────────────────────────────────
+
+export interface AdminBookingPaymentSummary {
+  orderId: string
+  amount: number
+  currency: string
+  status: PaymentStatus
+  gatewayProvider: string | null
+  paidAt: string | null
+  expiresAt: string | null
+  createdAt: string
+}
+
+// ── Payment order detail (full; included in detail response) ──────────────────
+
+export interface AdminBookingPaymentOrderInfo {
+  orderId: string
+  amount: number
+  currency: string
+  status: PaymentStatus
+  gatewayProvider: string | null
+  gatewayOrderId: string | null
+  gatewayTransactionId: string | null
+  paymentUrl: string | null
+  qrCodeUrl: string | null
+  paidAt: string | null
+  expiresAt: string | null
+  failedAt: string | null
+  refundedAt: string | null
+  refundedAmount: number | null
+  createdAt: string
+}
+
+// ── Booking event (audit trail) ───────────────────────────────────────────────
+
+export interface AdminBookingEventInfo {
+  eventId: string
+  eventType: string
+  fromValue: string | null
+  toValue: string | null
+  description: string | null
+  actorId: string | null
+  actorEmail: string | null
+  createdAt: string
+}
+
+// ── List row (returned by GET /api/admin/bookings) ────────────────────────────
 
 export interface AdminBookingRow {
   id: string
@@ -10,13 +72,31 @@ export interface AdminBookingRow {
   familyName: string
   packageId: string
   packageName: string
+  // Snapshot
+  snapshotPackageCode: string
+  snapshotPrice: number
+  snapshotCurrency: string
+  snapshotDurationMinutes: number
+  // Scheduling
   preferredStartAt: string
+  scheduledStartAt: string | null
+  scheduledEndAt: string | null
+  // Channel & origin
   channel: BookingChannel
+  source: BookingSource
+  sourceIncidentId: string | null
+  sourceAssessmentId: string | null
+  // Notes & status
   notes: string | null
   status: BookingStatus
   paymentStatus: PaymentStatus
+  expiresAt: string | null
+  // Assignment
   assignedAdminId: string | null
   assignedAdminEmail: string | null
+  // Payment summary (latest order)
+  latestPayment: AdminBookingPaymentSummary | null
+  // Timestamps
   createdAt: string
   updatedAt: string
 }
@@ -24,7 +104,7 @@ export interface AdminBookingRow {
 // Relies on the generic PagedResult shape from admin.types.
 export type AdminBookingListResponse = PagedResult<AdminBookingRow>
 
-// ── Detail (single booking with notes) ───────────────────────────────────────
+// ── Detail (GET /api/admin/bookings/{id}) ─────────────────────────────────────
 
 export interface AdminBookingNoteInfo {
   noteId: string
@@ -35,6 +115,12 @@ export interface AdminBookingNoteInfo {
 }
 
 export interface AdminBookingDetail extends AdminBookingRow {
+  // Resolved source entity names
+  sourceIncidentSummary: string | null
+  sourceAssessmentDate: string | null
+  // Collections
+  paymentOrders: AdminBookingPaymentOrderInfo[]
+  events: AdminBookingEventInfo[]
   bookingNotes: AdminBookingNoteInfo[]
 }
 
@@ -42,8 +128,11 @@ export interface AdminBookingDetail extends AdminBookingRow {
 
 export interface AdminBookingFilters {
   search: string
+  quickFilter: BookingQuickFilter | ''
   status: BookingStatus | ''
+  paymentStatus: PaymentStatus | ''
   channel: BookingChannel | ''
+  source: BookingSource | ''
   packageId: string
   from: string
   to: string

@@ -9,9 +9,10 @@ export interface PagedResult<T> {
 export type IncidentStatus   = 'Open' | 'InProgress' | 'Resolved' | 'Dismissed'
 export type IncidentType     = 'PhishingAttempt' | 'PasswordCompromise' | 'DeviceLostOrStolen' | 'UnauthorisedAccess' | 'DataBreach' | 'MalwareInfection' | 'ScamOrFraud' | 'IdentityTheft' | 'SocialEngineering' | 'Other'
 export type IncidentSeverity = 'Low' | 'Medium' | 'High' | 'Critical'
-export type PaymentStatus    = 'Pending' | 'Paid' | 'Refunded' | 'Waived'
-export type BookingStatus    = 'Pending' | 'Confirmed' | 'InProgress' | 'Cancelled' | 'Completed'
+export type PaymentStatus    = 'Unpaid' | 'Pending' | 'Paid' | 'Failed' | 'Expired' | 'Refunded' | 'PartiallyRefunded'
+export type BookingStatus    = 'Draft' | 'Submitted' | 'Paid' | 'Confirmed' | 'Scheduled' | 'InProgress' | 'Completed' | 'Cancelled' | 'Expired'
 export type BookingChannel   = 'Online' | 'Phone' | 'Email' | 'Onsite'
+export type BookingSource    = 'Direct' | 'IncidentFollowUp' | 'AssessmentFollowUp' | 'AdminCreated'
 export type RiskLevel        = 'Low' | 'Medium' | 'High' | 'Critical'
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────

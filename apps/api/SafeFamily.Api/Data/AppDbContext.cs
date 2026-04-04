@@ -37,6 +37,9 @@ public class AppDbContext : DbContext
     public DbSet<ServicePackage> ServicePackages => Set<ServicePackage>();
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<BookingNote> BookingNotes => Set<BookingNote>();
+    public DbSet<PaymentOrder> PaymentOrders => Set<PaymentOrder>();
+    public DbSet<BookingEvent> BookingEvents => Set<BookingEvent>();
+    public DbSet<WebhookLog> WebhookLogs => Set<WebhookLog>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<AdminNote> AdminNotes => Set<AdminNote>();
     public DbSet<FamilyNote> FamilyNotes => Set<FamilyNote>();

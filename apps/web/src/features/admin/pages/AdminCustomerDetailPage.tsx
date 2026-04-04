@@ -793,9 +793,9 @@ export function AdminCustomerDetailPage() {
             />
             <StatCard
               label="Pending Bookings"
-              value={data.bookings.filter((b) => b.status === 'Pending').length}
+              value={data.bookings.filter((b) => b.status === 'Submitted' || b.status === 'Paid').length}
               icon={CalendarDays}
-              highlight={data.bookings.some((b) => b.status === 'Pending')}
+              highlight={data.bookings.some((b) => b.status === 'Submitted' || b.status === 'Paid')}
             />
           </div>
 

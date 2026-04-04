@@ -15,6 +15,8 @@ public class BookingService : IBookingService
         _db = db;
     }
 
+    // ── Service-package catalogue ─────────────────────────────────────────────
+
     public async Task<IReadOnlyList<ServicePackageResponse>> GetServicePackagesAsync(CancellationToken ct = default)
     {
         return await _db.ServicePackages
@@ -24,36 +26,161 @@ public class BookingService : IBookingService
             .ToListAsync(ct);
     }
 
+    // ── Create (Draft) ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Creates a booking in <see cref="BookingStatus.Draft"/> state.
+    /// Package details are snapshotted at this point so future edits to the
+    /// catalogue do not retroactively change the booking terms.
+    /// Call <see cref="SubmitBookingAsync"/> when the family is ready to pay.
+    /// </summary>
     public async Task<BookingResponse> CreateBookingAsync(Guid userId, CreateBookingRequest request, CancellationToken ct = default)
     {
         var familyId = await RequireFamilyIdAsync(userId, ct);
-        var preferredStartAtUtc = request.PreferredStartAt.ToUniversalTime();
 
-        var packageExists = await _db.ServicePackages
-            .AnyAsync(p => p.Id == request.PackageId && p.IsVisible && p.IsActive, ct);
-        if (!packageExists)
+        var package = await _db.ServicePackages
+            .FirstOrDefaultAsync(p => p.Id == request.PackageId && p.IsVisible && p.IsActive, ct);
+        if (package is null)
             throw new NotFoundException("ServicePackage", request.PackageId);
+
+        // Validate source links belong to the same family
+        if (request.SourceIncidentId.HasValue)
+        {
+            var incidentExists = await _db.Incidents
+                .AnyAsync(i => i.Id == request.SourceIncidentId && i.FamilyId == familyId, ct);
+            if (!incidentExists)
+                throw new NotFoundException("Incident", request.SourceIncidentId.Value);
+        }
+
+        if (request.SourceAssessmentId.HasValue)
+        {
+            var assessmentExists = await _db.Assessments
+                .AnyAsync(a => a.Id == request.SourceAssessmentId && a.FamilyId == familyId, ct);
+            if (!assessmentExists)
+                throw new NotFoundException("Assessment", request.SourceAssessmentId.Value);
+        }
 
         var booking = new Booking
         {
-            FamilyId         = familyId,
-            PackageId        = request.PackageId,
-            PreferredStartAt = preferredStartAtUtc,
-            Channel          = request.Channel,
-            Notes            = request.Notes?.Trim(),
-            PaymentStatus    = PaymentStatus.Pending,
-            CreatedById      = userId,
-            UpdatedById      = userId,
+            FamilyId                = familyId,
+            PackageId               = package.Id,
+            // Snapshot — frozen at creation time
+            SnapshotPackageName     = package.Name,
+            SnapshotPackageCode     = package.Code,
+            SnapshotPrice           = package.Price,
+            SnapshotCurrency        = package.Currency,
+            SnapshotDurationMinutes = package.DurationMinutes,
+            // Scheduling
+            PreferredStartAt        = request.PreferredStartAt.ToUniversalTime(),
+            // Channel & source
+            Channel                 = request.Channel,
+            Source                  = request.Source,
+            SourceIncidentId        = request.SourceIncidentId,
+            SourceAssessmentId      = request.SourceAssessmentId,
+            // Notes & status
+            Notes                   = request.Notes?.Trim(),
+            Status                  = BookingStatus.Draft,
+            PaymentStatus           = PaymentStatus.Unpaid,
+            // Audit
+            CreatedById             = userId,
+            UpdatedById             = userId,
         };
 
         _db.Bookings.Add(booking);
+
+        // Initial event
+        _db.BookingEvents.Add(new BookingEvent
+        {
+            BookingId   = booking.Id,
+            EventType   = "StatusChanged",
+            FromValue   = null,
+            ToValue     = BookingStatus.Draft.ToString(),
+            Description = "Booking created in Draft state.",
+            ActorId     = userId,
+        });
+
         await _db.SaveChangesAsync(ct);
 
-        // Reload with navigation so PackageName is available
         await _db.Entry(booking).Reference(b => b.Package).LoadAsync(ct);
+        return ToResponse(booking);
+    }
+
+    // ── Submit (Draft → Submitted / Confirmed for free packages) ─────────────
+
+    /// <summary>
+    /// Submits a Draft booking for processing.
+    ///
+    /// Paid packages:  Draft → Submitted  +  creates a PaymentOrder (Unpaid).
+    ///                 The family must then complete payment via the payment gateway.
+    ///
+    /// Free packages:  Draft → Confirmed  (payment step is skipped entirely).
+    ///                 No PaymentOrder is created; PaymentStatus stays Unpaid.
+    /// </summary>
+    public async Task<BookingResponse> SubmitBookingAsync(Guid userId, Guid bookingId, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        var booking = await _db.Bookings
+            .Include(b => b.Package)
+            .FirstOrDefaultAsync(b => b.Id == bookingId && b.FamilyId == familyId, ct);
+
+        if (booking is null)
+            throw new NotFoundException("Booking", bookingId);
+
+        if (booking.Status != BookingStatus.Draft)
+            throw new BadRequestException($"Only Draft bookings can be submitted. Current status: {booking.Status}.");
+
+        var previousStatus = booking.Status;
+
+        if (booking.SnapshotPrice == 0m)
+        {
+            // Free package — skip payment and confirm immediately
+            booking.Status        = BookingStatus.Confirmed;
+            booking.PaymentStatus = PaymentStatus.Unpaid; // no payment required
+
+            _db.BookingEvents.Add(new BookingEvent
+            {
+                BookingId   = booking.Id,
+                EventType   = "StatusChanged",
+                FromValue   = previousStatus.ToString(),
+                ToValue     = BookingStatus.Confirmed.ToString(),
+                Description = "Free package — booking auto-confirmed on submission.",
+                ActorId     = userId,
+            });
+        }
+        else
+        {
+            // Paid package — move to Submitted and create a pending PaymentOrder
+            booking.Status        = BookingStatus.Submitted;
+            booking.PaymentStatus = PaymentStatus.Unpaid;
+
+            var paymentOrder = new PaymentOrder
+            {
+                BookingId = booking.Id,
+                Amount    = booking.SnapshotPrice,
+                Currency  = booking.SnapshotCurrency,
+                Status    = PaymentStatus.Unpaid,
+            };
+            _db.PaymentOrders.Add(paymentOrder);
+
+            _db.BookingEvents.Add(new BookingEvent
+            {
+                BookingId   = booking.Id,
+                EventType   = "StatusChanged",
+                FromValue   = previousStatus.ToString(),
+                ToValue     = BookingStatus.Submitted.ToString(),
+                Description = "Booking submitted by family. Awaiting payment.",
+                ActorId     = userId,
+            });
+        }
+
+        booking.UpdatedById = userId;
+        await _db.SaveChangesAsync(ct);
 
         return ToResponse(booking);
     }
+
+    // ── Queries ───────────────────────────────────────────────────────────────
 
     public async Task<IReadOnlyList<BookingResponse>> GetMyBookingsAsync(Guid userId, CancellationToken ct = default)
     {
@@ -81,18 +208,21 @@ public class BookingService : IBookingService
     public async Task<BookingSummaryResponse> GetBookingSummaryAsync(Guid userId, CancellationToken ct = default)
     {
         var familyId = await RequireFamilyIdAsync(userId, ct);
-
         var now = DateTimeOffset.UtcNow;
 
         var total = await _db.Bookings.CountAsync(b => b.FamilyId == familyId, ct);
 
+        // Active upcoming bookings (not cancelled, not expired)
         var upcoming = await _db.Bookings
             .CountAsync(b => b.FamilyId == familyId
                 && b.PreferredStartAt > now
-                && b.Status != BookingStatus.Cancelled, ct);
+                && b.Status != BookingStatus.Cancelled
+                && b.Status != BookingStatus.Expired, ct);
 
-        var pendingConfirmations = await _db.Bookings
-            .CountAsync(b => b.FamilyId == familyId && b.Status == BookingStatus.Pending, ct);
+        // Bookings submitted but not yet confirmed — awaiting admin action
+        var awaitingConfirmation = await _db.Bookings
+            .CountAsync(b => b.FamilyId == familyId
+                && (b.Status == BookingStatus.Submitted || b.Status == BookingStatus.Paid), ct);
 
         var recent = await _db.Bookings
             .Include(b => b.Package)
@@ -102,7 +232,27 @@ public class BookingService : IBookingService
             .Select(b => ToResponse(b))
             .ToListAsync(ct);
 
-        return new BookingSummaryResponse(total, upcoming, pendingConfirmations, recent);
+        return new BookingSummaryResponse(total, upcoming, awaitingConfirmation, recent);
+    }
+
+    public async Task<IReadOnlyList<BookingEventResponse>> GetBookingEventsAsync(
+        Guid userId, Guid bookingId, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+
+        // Verify the booking belongs to this family before exposing its events
+        var bookingExists = await _db.Bookings
+            .AnyAsync(b => b.Id == bookingId && b.FamilyId == familyId, ct);
+        if (!bookingExists)
+            throw new NotFoundException("Booking", bookingId);
+
+        return await _db.BookingEvents
+            .Where(e => e.BookingId == bookingId)
+            .OrderBy(e => e.CreatedAt)
+            .Select(e => new BookingEventResponse(
+                e.Id, e.EventType, e.FromValue, e.ToValue,
+                e.Description, e.ActorId, e.ActorEmail, e.CreatedAt))
+            .ToListAsync(ct);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -121,6 +271,33 @@ public class BookingService : IBookingService
     }
 
     private static BookingResponse ToResponse(Booking b) =>
-        new(b.Id, b.FamilyId, b.PackageId, b.Package.Name, b.PreferredStartAt,
-            b.Channel, b.Notes, b.Status, b.PaymentStatus, b.CreatedAt, b.UpdatedAt);
+        new(b.Id,
+            b.FamilyId,
+            b.PackageId,
+            // Package snapshot
+            b.SnapshotPackageName,
+            b.SnapshotPackageCode,
+            b.SnapshotPrice,
+            b.SnapshotCurrency,
+            b.SnapshotDurationMinutes,
+            // Scheduling
+            b.PreferredStartAt,
+            b.ScheduledStartAt,
+            b.ScheduledEndAt,
+            // Channel & source
+            b.Channel,
+            b.Source,
+            b.SourceIncidentId,
+            b.SourceAssessmentId,
+            // Notes & status
+            b.Notes,
+            b.Status,
+            b.PaymentStatus,
+            b.ExpiresAt,
+            // Admin
+            b.AssignedAdminId,
+            b.AssignedAdminEmail,
+            b.CreatedAt,
+            b.UpdatedAt);
 }
+

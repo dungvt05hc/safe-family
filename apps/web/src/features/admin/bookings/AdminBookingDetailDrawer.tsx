@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { X, Plus, AlertCircle, ClipboardCheck, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useAdminUsers } from '../users/adminUsers.hooks'
@@ -7,13 +8,29 @@ import { BOOKING_STATUS_COLORS, PAYMENT_STATUS_COLORS, formatBookingStatus } fro
 import { AdminSpinner, AdminError } from '../components/AdminStateViews'
 import { AdminNotesPanel } from '../notes/AdminNotesPanel'
 import { useAdminBookingDetail, useAddBookingNote } from './adminBookings.hooks'
-import type { BookingStatus, PaymentStatus } from './adminBookings.types'
+import type { BookingStatus, BookingSource, PaymentStatus } from './adminBookings.types'
 
 const BOOKING_STATUSES: BookingStatus[] = [
-  'Pending', 'Confirmed', 'InProgress', 'Cancelled', 'Completed',
+  'Draft', 'Submitted', 'Paid', 'Confirmed', 'Scheduled', 'InProgress', 'Completed', 'Cancelled', 'Expired',
 ]
 
-const PAYMENT_STATUSES: PaymentStatus[] = ['Pending', 'Paid', 'Refunded', 'Waived']
+const PAYMENT_STATUSES: PaymentStatus[] = [
+  'Unpaid', 'Pending', 'Paid', 'Failed', 'Expired', 'Refunded', 'PartiallyRefunded',
+]
+
+const SOURCE_ICON: Record<BookingSource, React.ReactNode> = {
+  Direct:             null,
+  IncidentFollowUp:   <AlertCircle className="w-4 h-4 text-red-400 shrink-0" aria-hidden="true" />,
+  AssessmentFollowUp: <ClipboardCheck className="w-4 h-4 text-indigo-400 shrink-0" aria-hidden="true" />,
+  AdminCreated:       null,
+}
+
+const SOURCE_LABEL: Record<BookingSource, string> = {
+  Direct:             'Direct booking',
+  IncidentFollowUp:   'Follow-up from incident',
+  AssessmentFollowUp: 'Follow-up from assessment',
+  AdminCreated:       'Created by admin',
+}
 
 interface Props {
   bookingId: string | null
@@ -23,7 +40,6 @@ interface Props {
   onAssign: (id: string, adminId: string | null, adminEmail: string | null) => void
   isMutating: boolean
 }
-
 const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1'
 const selectClass =
   'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400'
@@ -148,6 +164,22 @@ export function AdminBookingDetailDrawer({
                   <span className="text-gray-500">Channel</span>
                   <span className="text-gray-800">{booking.channel}</span>
                 </div>
+                {booking.scheduledStartAt && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Scheduled Start</span>
+                    <span className="text-purple-700 font-medium">
+                      {new Date(booking.scheduledStartAt).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {booking.scheduledEndAt && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Scheduled End</span>
+                    <span className="text-gray-800">
+                      {new Date(booking.scheduledEndAt).toLocaleString()}
+                    </span>
+                  </div>
+                )}
                 {booking.notes && (
                   <div className="pt-1 border-t border-gray-200">
                     <span className="text-gray-500 block mb-0.5">Customer notes</span>
@@ -156,6 +188,126 @@ export function AdminBookingDetailDrawer({
                 )}
               </div>
             </section>
+
+            {/* ── Source context ───────────────────────────────────────────── */}
+            {booking.source !== 'Direct' && (
+              <section aria-labelledby="source-heading" className="space-y-2">
+                <h3 id="source-heading" className={labelClass}>Source</h3>
+                <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    {SOURCE_ICON[booking.source]}
+                    <span className="text-gray-700">{SOURCE_LABEL[booking.source]}</span>
+                  </div>
+                  {booking.sourceIncidentId && (
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-gray-500 shrink-0">Incident</span>
+                      <div className="text-right">
+                        {booking.sourceIncidentSummary && (
+                          <p className="text-gray-700 text-xs mb-0.5">{booking.sourceIncidentSummary}</p>
+                        )}
+                        <Link
+                          to={`/admin/incidents/${booking.sourceIncidentId}`}
+                          className="text-amber-600 hover:underline text-xs"
+                        >
+                          View incident &rarr;
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                  {booking.sourceAssessmentDate && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Assessment date</span>
+                      <span className="text-gray-800">
+                        {new Date(booking.sourceAssessmentDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* ── Payment details ──────────────────────────────────────────── */}
+            {(booking.latestPayment || booking.paymentOrders?.length > 0) && (
+              <section aria-labelledby="payment-heading" className="space-y-2">
+                <h3 id="payment-heading" className={labelClass}>Payment</h3>
+
+                {booking.latestPayment && (
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Latest</span>
+                      <span
+                        className={cn(
+                          'inline-block rounded-full px-2 py-0.5 text-xs font-semibold',
+                          PAYMENT_STATUS_COLORS[booking.latestPayment.status],
+                        )}
+                      >
+                        {booking.latestPayment.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Amount</span>
+                      <span className="font-medium text-gray-800">
+                        {booking.latestPayment.currency} {booking.latestPayment.amount.toLocaleString()}
+                      </span>
+                    </div>
+                    {booking.latestPayment.gatewayProvider && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Provider</span>
+                        <span className="text-gray-700">{booking.latestPayment.gatewayProvider}</span>
+                      </div>
+                    )}
+                    {booking.latestPayment.paidAt && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Paid at</span>
+                        <span className="text-green-700">{new Date(booking.latestPayment.paidAt).toLocaleString()}</span>
+                      </div>
+                    )}
+                    {booking.latestPayment.expiresAt && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Expires at</span>
+                        <span className="text-gray-600">{new Date(booking.latestPayment.expiresAt).toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Full payment order history */}
+                {booking.paymentOrders && booking.paymentOrders.length > 1 && (
+                  <details className="group">
+                    <summary className="text-xs text-gray-500 cursor-pointer select-none hover:text-gray-700 flex items-center gap-1 py-1">
+                      <CreditCard className="w-3.5 h-3.5" aria-hidden="true" />
+                      {booking.paymentOrders.length} payment orders
+                    </summary>
+                    <ul className="mt-2 space-y-2" aria-label="Payment order history">
+                      {booking.paymentOrders.map((order) => (
+                        <li
+                          key={order.orderId}
+                          className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs space-y-1"
+                        >
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700">
+                              {order.currency} {order.amount.toLocaleString()}
+                            </span>
+                            <span className={cn(
+                              'inline-block rounded-full px-2 py-0.5 font-semibold',
+                              PAYMENT_STATUS_COLORS[order.status],
+                            )}>
+                              {order.status}
+                            </span>
+                          </div>
+                          {order.gatewayProvider && (
+                            <p className="text-gray-400">{order.gatewayProvider}</p>
+                          )}
+                          <p className="text-gray-400">
+                            {new Date(order.createdAt).toLocaleString()}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </section>
+            )}
 
             {/* ── Status controls ──────────────────────────────────────────── */}
             <section aria-labelledby="status-heading" className="space-y-4">
@@ -333,6 +485,34 @@ export function AdminBookingDetailDrawer({
             <section className="space-y-3">
               <AdminNotesPanel bookingId={booking.id} title="Admin Notes" limit={10} />
             </section>
+
+            {/* ── Event timeline ───────────────────────────────────────────── */}
+            {booking.events && booking.events.length > 0 && (
+              <section aria-labelledby="events-heading" className="space-y-2">
+                <h3 id="events-heading" className={labelClass}>Activity</h3>
+                <ol className="space-y-2 text-xs text-gray-500" aria-label="Booking event history">
+                  {booking.events.map((ev) => (
+                    <li key={ev.eventId} className="flex gap-3">
+                      <span
+                        className="mt-1 w-2 h-2 rounded-full bg-amber-400 shrink-0"
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-700">{ev.eventType}</p>
+                        {ev.fromValue && ev.toValue && (
+                          <p>{ev.fromValue} &rarr; {ev.toValue}</p>
+                        )}
+                        <p className="text-gray-400">
+                          {ev.actorEmail ?? 'System'}
+                          &nbsp;&middot;&nbsp;
+                          {new Date(ev.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
 
             {/* ── Timestamps ───────────────────────────────────────────────── */}
             <footer className="text-xs text-gray-400 space-y-0.5">
