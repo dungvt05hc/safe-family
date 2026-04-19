@@ -2,7 +2,17 @@ import type { BadgeVariant } from '@/components/ui'
 
 // ── Core types ────────────────────────────────────────────────────────────────
 
-export type ReportType = 'Assessment' | 'Incident' | 'FamilyReset'
+export type ReportType = 'Assessment' | 'Incident' | 'FamilyReset' | 'SafetyPlan' | 'IncidentRecovery'
+
+/** Report types that require PremiumReportAccess entitlement to view/download. */
+export const PREMIUM_REPORT_TYPES: ReadonlySet<ReportType> = new Set([
+  'SafetyPlan',
+  'IncidentRecovery',
+])
+
+export function isPremiumReport(type: ReportType): boolean {
+  return PREMIUM_REPORT_TYPES.has(type)
+}
 
 export interface Report {
   id:          string
@@ -53,20 +63,26 @@ export const DEFAULT_REPORT_FILTERS: ReportFilters = {
 // ── Display helpers ───────────────────────────────────────────────────────────
 
 export const REPORT_TYPE_LABEL: Record<ReportType, string> = {
-  Assessment:  'Assessment',
-  Incident:    'Incident',
-  FamilyReset: 'Family Reset',
+  Assessment:       'Assessment',
+  Incident:         'Incident',
+  FamilyReset:      'Family Reset',
+  SafetyPlan:       'Safety Plan',
+  IncidentRecovery: 'Recovery Pack',
 }
 
 export const REPORT_TYPE_BADGE: Record<ReportType, BadgeVariant> = {
-  Assessment:  'info',
-  Incident:    'danger',
-  FamilyReset: 'success',
+  Assessment:       'info',
+  Incident:         'danger',
+  FamilyReset:      'success',
+  SafetyPlan:       'info',
+  IncidentRecovery: 'warning',
 }
 
 export const REPORT_TYPE_FILTER_OPTIONS: { value: ReportTypeFilter; label: string }[] = [
-  { value: 'All',         label: 'All types' },
-  { value: 'Assessment',  label: 'Assessment' },
-  { value: 'Incident',    label: 'Incident' },
-  { value: 'FamilyReset', label: 'Family Reset' },
+  { value: 'All',              label: 'All types' },
+  { value: 'Assessment',       label: 'Assessment' },
+  { value: 'Incident',         label: 'Incident' },
+  { value: 'FamilyReset',      label: 'Family Reset' },
+  { value: 'SafetyPlan',       label: 'Safety Plan' },
+  { value: 'IncidentRecovery', label: 'Recovery Pack' },
 ]

@@ -24,7 +24,16 @@ public class ExceptionHandlingMiddleware
         catch (AppException ex)
         {
             _logger.LogWarning(ex, "Application exception: {Message}", ex.Message);
-            await WriteErrorResponse(context, ex.StatusCode, ex.Message);
+
+            if (ex is EntitlementRequiredException entEx)
+            {
+                await WriteErrorResponse(context, ex.StatusCode, ex.Message,
+                    extras: new { requiredEntitlement = entEx.RequiredEntitlement });
+            }
+            else
+            {
+                await WriteErrorResponse(context, ex.StatusCode, ex.Message);
+            }
         }
         catch (Exception ex)
         {
@@ -33,12 +42,15 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private static async Task WriteErrorResponse(HttpContext context, int statusCode, string message)
+    private static async Task WriteErrorResponse(HttpContext context, int statusCode, string message, object? extras = null)
     {
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
-        var body = JsonSerializer.Serialize(new { error = message });
-        await context.Response.WriteAsync(body);
+        object body = extras is null
+            ? new { error = message }
+            : new { error = message, extras };
+
+        await context.Response.WriteAsync(JsonSerializer.Serialize(body));
     }
 }

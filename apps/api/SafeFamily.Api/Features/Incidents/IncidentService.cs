@@ -3,16 +3,19 @@ using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Incidents;
 using SafeFamily.Api.Features.Incidents.Dtos;
+using SafeFamily.Api.Features.Tasks;
 
 namespace SafeFamily.Api.Features.Incidents;
 
 public class IncidentService : IIncidentService
 {
     private readonly AppDbContext _db;
+    private readonly ISafetyTaskLifecycleService _lifecycle;
 
-    public IncidentService(AppDbContext db)
+    public IncidentService(AppDbContext db, ISafetyTaskLifecycleService lifecycle)
     {
-        _db = db;
+        _db       = db;
+        _lifecycle = lifecycle;
     }
 
     public async Task<IReadOnlyList<IncidentResponse>> GetIncidentsAsync(Guid userId, CancellationToken ct = default)
@@ -71,6 +74,12 @@ public class IncidentService : IIncidentService
         incident.UpdatedById = userId;
 
         await _db.SaveChangesAsync(ct);
+
+        // Lifecycle: when incident becomes active again (InProgress) refresh IRP task
+        // content; when resolved/dismissed, outstanding IRP tasks are auto-dismissed.
+        try   { await _lifecycle.RegenerateForIncidentAsync(incident.Id, userId, ct); }
+        catch (OperationCanceledException) { throw; }
+        catch { /* lifecycle failure is non-fatal; status update was saved */ }
 
         return ToResponse(incident);
     }

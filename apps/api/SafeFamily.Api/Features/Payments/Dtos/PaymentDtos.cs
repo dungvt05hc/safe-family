@@ -59,3 +59,15 @@ public record WebhookPaymentEvent(
     string? FailureReason,
     /// <summary>Original raw body — stored in <see cref="Domain.Bookings.PaymentOrder.GatewayRawResponse"/> for auditing.</summary>
     string RawBody);
+
+/// <summary>
+/// Result returned by <see cref="IPaymentGateway.QueryStatusAsync"/>.
+/// Contains the normalized payment status queried directly from the gateway.
+/// </summary>
+public record GatewayStatusResult(
+    /// <summary>Normalized status: "paid" | "failed" | "pending".</summary>
+    string NormalizedStatus,
+    /// <summary>Gateway transaction ID if the payment was captured.</summary>
+    string? TransactionId = null,
+    /// <summary>Amount confirmed by the gateway.</summary>
+    decimal? Amount = null);

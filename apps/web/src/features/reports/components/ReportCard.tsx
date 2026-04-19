@@ -1,11 +1,14 @@
 import { motion } from 'framer-motion'
-import { Download, Eye, FileText, Tag } from 'lucide-react'
+import { Download, Eye, FileText, Lock, Tag } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge, Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { useEntitlements } from '@/features/entitlements/EntitlementProvider'
 import {
   REPORT_TYPE_BADGE,
   REPORT_TYPE_LABEL,
+  isPremiumReport,
   type Report,
 } from '../reports.types'
 import { useDownloadReport } from '../reports.hooks'
@@ -24,9 +27,16 @@ interface ReportCardProps {
 /**
  * ReportCard — a single row/card in the report list.
  * Highlights when selected (master-detail). Two actions: View and Download.
+ * Premium reports (SafetyPlan, IncidentRecovery) are locked unless the family
+ * holds an active PremiumReportAccess entitlement.
  */
 export function ReportCard({ report, isSelected, index, onSelect }: ReportCardProps) {
   const { mutate: download, isPending: isDownloading } = useDownloadReport()
+  const { hasEntitlement } = useEntitlements()
+  const navigate = useNavigate()
+
+  const isPremium = isPremiumReport(report.type)
+  const isLocked  = isPremium && !hasEntitlement('PremiumReportAccess')
 
   const date = new Date(report.generatedAt).toLocaleDateString('en-AU', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -39,17 +49,23 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
       initial="hidden"
       animate="visible"
       whileHover={{ y: -1 }}
-      onClick={() => onSelect(report)}
+      onClick={() => isLocked ? navigate('/bookings') : onSelect(report)}
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect(report)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          isLocked ? navigate('/bookings') : onSelect(report)
+        }
+      }}
       className={cn(
-        'group relative rounded-2xl border bg-white px-5 py-4 shadow-sm cursor-pointer',
+        'group relative rounded-2xl border bg-white px-5 py-4 shadow-sm',
         'transition-all duration-150 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300',
-        isSelected
-          ? 'border-blue-300 ring-2 ring-blue-100 shadow-md'
-          : 'border-gray-100 hover:border-gray-200',
+        isLocked
+          ? 'cursor-default border-gray-100 opacity-90'
+          : isSelected
+          ? 'cursor-pointer border-blue-300 ring-2 ring-blue-100 shadow-md'
+          : 'cursor-pointer border-gray-100 hover:border-gray-200',
       )}
     >
       {/* Top row */}
@@ -59,27 +75,41 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
           <div
             className={cn(
               'mt-0.5 flex items-center justify-center w-9 h-9 rounded-xl shrink-0',
-              report.type === 'Assessment'  && 'bg-blue-50   text-blue-500',
-              report.type === 'Incident'    && 'bg-red-50    text-red-500',
-              report.type === 'FamilyReset' && 'bg-green-50  text-green-600',
+              !isLocked && report.type === 'Assessment'       && 'bg-blue-50   text-blue-500',
+              !isLocked && report.type === 'Incident'         && 'bg-red-50    text-red-500',
+              !isLocked && report.type === 'FamilyReset'      && 'bg-green-50  text-green-600',
+              !isLocked && report.type === 'SafetyPlan'       && 'bg-blue-50   text-blue-500',
+              !isLocked && report.type === 'IncidentRecovery' && 'bg-orange-50 text-orange-500',
+              isLocked && 'bg-gray-100 text-gray-300',
             )}
           >
-            <FileText className="w-4 h-4" aria-hidden="true" />
+            {isLocked
+              ? <Lock className="w-4 h-4" aria-hidden="true" />
+              : <FileText className="w-4 h-4" aria-hidden="true" />}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-sm text-gray-900 leading-snug truncate">
+            <p className={cn(
+              'font-semibold text-sm leading-snug truncate',
+              isLocked ? 'text-gray-400' : 'text-gray-900',
+            )}>
               {report.title}
             </p>
             <p className="mt-0.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">
-              {report.description}
+              {isLocked ? 'Purchase a qualifying package to unlock this report.' : report.description}
             </p>
           </div>
         </div>
 
-        {/* Type badge */}
-        <div className="shrink-0">
-          <Badge variant={REPORT_TYPE_BADGE[report.type]}>
-            {REPORT_TYPE_LABEL[report.type]}
+        {/* Type badge + lock badge */}
+        <div className="shrink-0 flex items-center gap-1.5">
+          {isLocked && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+              <Lock className="w-2.5 h-2.5" aria-hidden="true" />
+              Premium
+            </span>
+          )}
+          <Badge variant={REPORT_TYPE_BADGE[report.type] ?? 'default'}>
+            {REPORT_TYPE_LABEL[report.type] ?? report.type}
           </Badge>
         </div>
       </div>
@@ -101,27 +131,40 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
         {/* Actions */}
         <div
           className="flex items-center gap-1.5"
-          onClick={(e) => e.stopPropagation()} // prevent card click when using buttons
+          onClick={(e) => e.stopPropagation()}
         >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onSelect(report)}
-            aria-label={`View ${report.title}`}
-          >
-            <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-            View
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            loading={isDownloading}
-            onClick={() => download(report)}
-            aria-label={`Download ${report.title}`}
-          >
-            <Download className="w-3.5 h-3.5" aria-hidden="true" />
-            Download
-          </Button>
+          {isLocked ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/bookings')}
+            >
+              <Lock className="w-3.5 h-3.5" aria-hidden="true" />
+              Unlock
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onSelect(report)}
+                aria-label={`View ${report.title}`}
+              >
+                <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+                View
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                loading={isDownloading}
+                onClick={() => download(report)}
+                aria-label={`Download ${report.title}`}
+              >
+                <Download className="w-3.5 h-3.5" aria-hidden="true" />
+                Download
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </motion.div>

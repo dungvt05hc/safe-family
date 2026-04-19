@@ -13,18 +13,21 @@ using SafeFamily.Api.Domain.Incidents;
 using SafeFamily.Api.Domain.Reports;
 using SafeFamily.Api.Domain.Users;
 using SafeFamily.Api.Features.Admin.Dtos;
+using SafeFamily.Api.Features.Bookings;
 
 namespace SafeFamily.Api.Features.Admin;
 
 public class AdminService : IAdminService
 {
     private readonly AppDbContext _db;
+    private readonly IFulfillmentService _fulfillmentService;
     private static readonly Regex ServicePackageCodeRegex = new("^[A-Za-z0-9-]+$", RegexOptions.Compiled);
     private static readonly Regex ServicePackageCurrencyRegex = new("^[A-Za-z]{3}$", RegexOptions.Compiled);
 
-    public AdminService(AppDbContext db)
+    public AdminService(AppDbContext db, IFulfillmentService fulfillmentService)
     {
-        _db = db;
+        _db                 = db;
+        _fulfillmentService = fulfillmentService;
     }
 
     public async Task<AdminDashboardResponse> GetDashboardAsync(CancellationToken ct = default)
@@ -540,6 +543,12 @@ public class AdminService : IAdminService
 
         await _db.SaveChangesAsync(ct);
 
+        // Trigger digital fulfillment when admin manually advances a booking to Paid —
+        // mirrors the path taken by the payment webhook and sync-status paths.
+        // TriggerAsync is idempotent: it skips if DeliveryStatus is already beyond Pending.
+        if (booking.Status == BookingStatus.Paid)
+            await _fulfillmentService.TriggerAsync(booking, ct);
+
         var latestPayment = await GetLatestPaymentSummaryAsync(bookingId, ct);
         return ToBookingResponse(booking, latestPayment);
     }
@@ -564,6 +573,8 @@ public class AdminService : IAdminService
             (BookingStatus.Confirmed,   BookingStatus.Scheduled)  => true,
             // Admin starts a scheduled session
             (BookingStatus.Scheduled,   BookingStatus.InProgress) => true,
+            // Admin completes a scheduled session directly (skipping InProgress)
+            (BookingStatus.Scheduled,   BookingStatus.Completed)  => true,
             // Admin completes an in-progress session
             (BookingStatus.InProgress,  BookingStatus.Completed)  => true,
             // Cancellation is allowed from most non-terminal states

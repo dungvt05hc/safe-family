@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Bookings;
+using SafeFamily.Api.Features.Bookings;
 using SafeFamily.Api.Features.Bookings.Dtos;
 using SafeFamily.Api.Features.Payments.Dtos;
 
@@ -13,15 +14,18 @@ public sealed class PaymentService : IPaymentService
     private readonly AppDbContext _db;
     private readonly IEnumerable<IPaymentGateway> _gateways;
     private readonly PaymentSettings _settings;
+    private readonly IFulfillmentService _fulfillmentService;
 
     public PaymentService(
         AppDbContext db,
         IEnumerable<IPaymentGateway> gateways,
-        IOptions<PaymentSettings> settings)
+        IOptions<PaymentSettings> settings,
+        IFulfillmentService fulfillmentService)
     {
-        _db       = db;
-        _gateways = gateways;
-        _settings = settings.Value;
+        _db                 = db;
+        _gateways           = gateways;
+        _settings           = settings.Value;
+        _fulfillmentService = fulfillmentService;
     }
 
     // ── Initiate ──────────────────────────────────────────────────────────────
@@ -125,6 +129,90 @@ public sealed class PaymentService : IPaymentService
                 o.PaidAt, o.ExpiresAt, o.RefundedAt, o.RefundedAmount,
                 o.CreatedAt))
             .ToListAsync(ct);
+    }
+
+    // ── Sync ──────────────────────────────────────────────────────────────────
+
+    /// <inheritdoc />
+    public async Task<string> SyncPaymentStatusAsync(
+        Guid userId, Guid bookingId, CancellationToken ct = default)
+    {
+        var familyId = await RequireFamilyIdAsync(userId, ct);
+        var booking  = await LoadBookingWithOrdersAsync(bookingId, familyId, ct);
+
+        // Find the most-recent Pending order — nothing to sync if already resolved.
+        var order = booking.PaymentOrders
+            .OrderByDescending(o => o.CreatedAt)
+            .FirstOrDefault(o => o.Status == PaymentStatus.Pending);
+
+        if (order is null)
+            return booking.PaymentStatus.ToString();
+
+        // Resolve the gateway that created this order.
+        var gateway = ResolveGateway(order.GatewayProvider);
+
+        var result = await gateway.QueryStatusAsync(order, ct);
+
+        if (result is null)
+            return booking.PaymentStatus.ToString(); // Gateway does not support polling.
+
+        switch (result.NormalizedStatus)
+        {
+            case "paid":
+            case "success":
+                order.Status               = PaymentStatus.Paid;
+                order.PaidAt               = DateTimeOffset.UtcNow;
+                order.GatewayTransactionId = result.TransactionId;
+
+                booking.PaymentStatus = PaymentStatus.Paid;
+                booking.Status        = BookingStatus.Paid;
+
+                _db.BookingEvents.Add(new BookingEvent
+                {
+                    BookingId   = booking.Id,
+                    EventType   = BookingEventTypes.PaymentReceived,
+                    FromValue   = PaymentStatus.Pending.ToString(),
+                    ToValue     = PaymentStatus.Paid.ToString(),
+                    Description = $"Payment confirmed via status sync with {order.GatewayProvider}. " +
+                                  $"Transaction: {result.TransactionId}. Amount: {result.Amount} {order.Currency}.",
+                });
+
+                _db.BookingEvents.Add(new BookingEvent
+                {
+                    BookingId   = booking.Id,
+                    EventType   = BookingEventTypes.Paid,
+                    FromValue   = booking.Status.ToString(),
+                    ToValue     = BookingStatus.Paid.ToString(),
+                    Description = "Booking advanced to Paid after gateway status sync.",
+                });
+
+                await _db.SaveChangesAsync(ct);
+
+                // Trigger digital fulfillment after a confirmed payment via sync.
+                // FulfillmentService is idempotent if the webhook already ran first.
+                await _fulfillmentService.TriggerAsync(booking, ct);
+                break;
+
+            case "failed":
+            case "cancelled":
+                order.Status          = PaymentStatus.Failed;
+                order.FailedAt        = DateTimeOffset.UtcNow;
+                booking.PaymentStatus = PaymentStatus.Failed;
+
+                _db.BookingEvents.Add(new BookingEvent
+                {
+                    BookingId   = booking.Id,
+                    EventType   = BookingEventTypes.PaymentFailed,
+                    FromValue   = PaymentStatus.Pending.ToString(),
+                    ToValue     = PaymentStatus.Failed.ToString(),
+                    Description = $"Payment failure confirmed via status sync with {order.GatewayProvider}.",
+                });
+
+                await _db.SaveChangesAsync(ct);
+                break;
+        }
+
+        return booking.PaymentStatus.ToString();
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

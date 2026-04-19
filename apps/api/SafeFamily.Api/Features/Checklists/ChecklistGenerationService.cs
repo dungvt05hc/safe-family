@@ -31,6 +31,7 @@ public class ChecklistGenerationService
                     Description: "Two-factor authentication (2FA) adds a critical second layer of security. Enable it now to protect this account from unauthorised access.",
                     Category:    ChecklistCategory.AccountSecurity,
                     Priority:    1,
+                    Phase:       SafeTaskPhase.Immediate,
                     SourceType:  ChecklistSourceType.Account,
                     SourceId:    $"acc-2fa:{acc.Id}"));
 
@@ -40,6 +41,7 @@ public class ChecklistGenerationService
                     Description: "A recovery email lets you regain access if you're ever locked out. Add one to keep this account recoverable.",
                     Category:    ChecklistCategory.AccountSecurity,
                     Priority:    2,
+                    Phase:       SafeTaskPhase.Next30Days,
                     SourceType:  ChecklistSourceType.Account,
                     SourceId:    $"acc-recovery-email:{acc.Id}"));
 
@@ -49,6 +51,7 @@ public class ChecklistGenerationService
                     Description: "A recovery phone number provides an additional avenue to regain account access. Add one for better account resilience.",
                     Category:    ChecklistCategory.AccountSecurity,
                     Priority:    2,
+                    Phase:       SafeTaskPhase.Next30Days,
                     SourceType:  ChecklistSourceType.Account,
                     SourceId:    $"acc-recovery-phone:{acc.Id}"));
 
@@ -58,6 +61,7 @@ public class ChecklistGenerationService
                     Description: "This account has been flagged for suspicious activity. Review recent logins, change your password, and enable 2FA immediately.",
                     Category:    ChecklistCategory.AccountSecurity,
                     Priority:    1,
+                    Phase:       SafeTaskPhase.Immediate,
                     SourceType:  ChecklistSourceType.Account,
                     SourceId:    $"acc-suspicious:{acc.Id}"));
         }
@@ -72,6 +76,7 @@ public class ChecklistGenerationService
                     Description: $"This device ({dev.OsName} {dev.OsVersion}) is no longer receiving security updates. Replace it to eliminate critical vulnerabilities.",
                     Category:    ChecklistCategory.DeviceHygiene,
                     Priority:    1,
+                    Phase:       SafeTaskPhase.Next30Days,
                     SourceType:  ChecklistSourceType.Device,
                     SourceId:    $"dev-eol:{dev.Id}"));
 
@@ -81,6 +86,7 @@ public class ChecklistGenerationService
                     Description: $"This device ({dev.OsName} {dev.OsVersion}) has stopped receiving security patches. Upgrade the OS or replace the device.",
                     Category:    ChecklistCategory.DeviceHygiene,
                     Priority:    1,
+                    Phase:       SafeTaskPhase.Next30Days,
                     SourceType:  ChecklistSourceType.Device,
                     SourceId:    $"dev-no-updates:{dev.Id}"));
 
@@ -90,6 +96,7 @@ public class ChecklistGenerationService
                     Description: "A screen lock (PIN, password, or biometric) prevents unauthorised access if your device is lost or stolen.",
                     Category:    ChecklistCategory.DeviceHygiene,
                     Priority:    1,
+                    Phase:       SafeTaskPhase.Immediate,
                     SourceType:  ChecklistSourceType.Device,
                     SourceId:    $"dev-screenlock:{dev.Id}"));
 
@@ -99,6 +106,7 @@ public class ChecklistGenerationService
                     Description: "Regular backups ensure your data can be recovered after loss, theft, or hardware failure. Enable automatic cloud backup now.",
                     Category:    ChecklistCategory.BackupRecovery,
                     Priority:    1,
+                    Phase:       SafeTaskPhase.Next7Days,
                     SourceType:  ChecklistSourceType.Device,
                     SourceId:    $"dev-backup:{dev.Id}"));
 
@@ -108,6 +116,7 @@ public class ChecklistGenerationService
                     Description: "Find My Device lets you locate, lock, or remotely wipe a lost or stolen device. Enable it to protect your data.",
                     Category:    ChecklistCategory.DeviceHygiene,
                     Priority:    2,
+                    Phase:       SafeTaskPhase.Next7Days,
                     SourceType:  ChecklistSourceType.Device,
                     SourceId:    $"dev-findmy:{dev.Id}"));
 
@@ -117,6 +126,7 @@ public class ChecklistGenerationService
                     Description: "Biometric authentication (fingerprint or face recognition) provides quick and secure access to your device.",
                     Category:    ChecklistCategory.DeviceHygiene,
                     Priority:    3,
+                    Phase:       SafeTaskPhase.Ongoing,
                     SourceType:  ChecklistSourceType.Device,
                     SourceId:    $"dev-biometric:{dev.Id}"));
         }

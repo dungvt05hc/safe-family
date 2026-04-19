@@ -3,16 +3,19 @@ using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Accounts;
 using SafeFamily.Api.Features.Accounts.Dtos;
+using SafeFamily.Api.Features.Tasks;
 
 namespace SafeFamily.Api.Features.Accounts;
 
 public class AccountService : IAccountService
 {
     private readonly AppDbContext _db;
+    private readonly ISafetyTaskLifecycleService _lifecycle;
 
-    public AccountService(AppDbContext db)
+    public AccountService(AppDbContext db, ISafetyTaskLifecycleService lifecycle)
     {
-        _db = db;
+        _db       = db;
+        _lifecycle = lifecycle;
     }
 
     public async Task<IReadOnlyList<AccountResponse>> GetAccountsAsync(Guid userId, AccountQuery query, CancellationToken ct = default)
@@ -123,6 +126,12 @@ public class AccountService : IAccountService
         account.UpdatedById = userId;
 
         await _db.SaveChangesAsync(ct);
+
+        // Lifecycle: dismiss tasks targeting this account (e.g. "Enable 2FA on ...")
+        // now that the account no longer exists in the family's active account list.
+        try   { await _lifecycle.ArchiveObsoleteTasksAsync(familyId, ct); }
+        catch (OperationCanceledException) { throw; }
+        catch { /* lifecycle failure is non-fatal; archive was saved */ }
 
         return true;
     }

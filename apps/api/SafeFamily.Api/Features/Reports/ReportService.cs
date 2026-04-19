@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
+using SafeFamily.Api.Domain.Entitlements;
 using SafeFamily.Api.Domain.Reports;
+using SafeFamily.Api.Features.Entitlements;
 using SafeFamily.Api.Features.Reports.Dtos;
 
 namespace SafeFamily.Api.Features.Reports;
@@ -9,11 +11,17 @@ namespace SafeFamily.Api.Features.Reports;
 public class ReportService : IReportService
 {
     private readonly AppDbContext _db;
+    private readonly IEntitlementService _entitlements;
 
-    public ReportService(AppDbContext db)
+    public ReportService(AppDbContext db, IEntitlementService entitlements)
     {
-        _db = db;
+        _db           = db;
+        _entitlements = entitlements;
     }
+
+    /// <summary>Report types whose detail and download require <c>PremiumReportAccess</c>.</summary>
+    private static bool IsPremiumReportType(ReportType type) =>
+        type is ReportType.SafetyPlan or ReportType.IncidentRecovery;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<ReportListItemDto>> GetReportsAsync(
@@ -75,6 +83,9 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync(r => r.Id == reportId && r.FamilyId == familyId, ct)
             ?? throw new NotFoundException("Report", reportId);
 
+        if (IsPremiumReportType(report.ReportType))
+            await RequirePremiumReportAccessAsync(familyId, ct);
+
         return ToDetailDto(report);
     }
 
@@ -87,6 +98,9 @@ public class ReportService : IReportService
         var report = await _db.Reports
             .FirstOrDefaultAsync(r => r.Id == reportId && r.FamilyId == familyId, ct)
             ?? throw new NotFoundException("Report", reportId);
+
+        if (IsPremiumReportType(report.ReportType))
+            await RequirePremiumReportAccessAsync(familyId, ct);
 
         if (string.IsNullOrWhiteSpace(report.FileUrl))
             throw new AppException("This report has no associated file.", 404);
@@ -113,6 +127,16 @@ public class ReportService : IReportService
             throw new ForbiddenException("You must be part of a family to access reports.");
 
         return familyId.Value;
+    }
+
+    private async Task RequirePremiumReportAccessAsync(Guid familyId, CancellationToken ct)
+    {
+        var hasAccess = await _entitlements.HasEntitlementAsync(
+            familyId, EntitlementType.PremiumReportAccess, ct);
+
+        if (!hasAccess)
+            throw new EntitlementRequiredException(
+                "Premium Reports", EntitlementType.PremiumReportAccess.ToString());
     }
 
     private static string ResolveContentType(string fileName) =>

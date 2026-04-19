@@ -55,6 +55,35 @@ public class Booking : AuditableEntity
     /// <summary>Optional link to an assessment whose results prompted this booking (AssessmentFollowUp source).</summary>
     public Guid? SourceAssessmentId { get; set; }
 
+    // ── Digital-product fields ─────────────────────────────────────────────────
+    /// <summary>What the family needs help with (e.g. "Account security & passwords").</summary>
+    public string? HelpTopic { get; set; }
+
+    /// <summary>How urgently the family needs assistance. Null for legacy bookings.</summary>
+    public BookingUrgency? Urgency { get; set; }
+
+    /// <summary>Specific account, device, or platform the issue relates to (optional).</summary>
+    public string? AffectedTarget { get; set; }
+
+    /// <summary>Which family member is primarily affected by this issue (optional).</summary>
+    public string? AffectedMember { get; set; }
+
+    /// <summary>The outcome the family is hoping to achieve (e.g. "Secure all accounts").</summary>
+    public string? DesiredOutcome { get; set; }
+
+    /// <summary>FK to a specific account the issue relates to (optional).</summary>
+    public Guid? AffectedAccountId { get; set; }
+
+    /// <summary>FK to a specific device the issue relates to (optional).</summary>
+    public Guid? AffectedDeviceId { get; set; }
+
+    // ── Digital fulfillment ────────────────────────────────────────────────────
+    /// <summary>Tracks whether the digital deliverables (report + checklist) have been prepared.</summary>
+    public DeliveryStatus DeliveryStatus { get; set; } = DeliveryStatus.Pending;
+
+    /// <summary>When the advisor marked materials as delivered (FileUrl set on the report).</summary>
+    public DateTimeOffset? DeliveredAt { get; set; }
+
     // ── Notes & status ────────────────────────────────────────────────────────
     /// <summary>Free-text notes from the family (max 1 000 chars).</summary>
     public string? CustomerNotes { get; set; }

@@ -215,6 +215,11 @@ public sealed class MoMoGateway : IPaymentGateway
         return new WebhookPaymentEvent(orderId, eventType, transId, amount, failureReason, rawBody);
     }
 
+    /// <inheritdoc />
+    /// <remarks>MoMo status polling is not yet implemented; webhook is the primary notification channel.</remarks>
+    public Task<GatewayStatusResult?> QueryStatusAsync(PaymentOrder order, CancellationToken ct = default)
+        => Task.FromResult<GatewayStatusResult?>(null);
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string ComputeHmacSha256Hex(string data, string key)

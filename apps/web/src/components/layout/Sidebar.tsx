@@ -12,7 +12,7 @@ export function Sidebar({ className, navGroups }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'flex flex-col w-64 bg-slate-900 text-slate-100 min-h-screen',
+        'flex flex-col w-64 bg-slate-900 text-slate-100 h-full',
         className,
       )}
     >

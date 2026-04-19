@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Bookings;
+using SafeFamily.Api.Features.Bookings;
 using SafeFamily.Api.Features.Payments.Dtos;
 
 namespace SafeFamily.Api.Features.Payments;
@@ -27,16 +28,19 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
 {
     private readonly AppDbContext _db;
     private readonly IEnumerable<IPaymentGateway> _gateways;
+    private readonly IFulfillmentService _fulfillmentService;
     private readonly ILogger<PaymentWebhookService> _logger;
 
     public PaymentWebhookService(
         AppDbContext db,
         IEnumerable<IPaymentGateway> gateways,
+        IFulfillmentService fulfillmentService,
         ILogger<PaymentWebhookService> logger)
     {
-        _db       = db;
-        _gateways = gateways;
-        _logger   = logger;
+        _db                 = db;
+        _gateways           = gateways;
+        _fulfillmentService = fulfillmentService;
+        _logger             = logger;
     }
 
     public async Task<bool> HandleAsync(
@@ -169,6 +173,11 @@ public sealed class PaymentWebhookService : IPaymentWebhookService
             _logger.LogInformation(
                 "Webhook processed. Provider={Provider} Event={Event} OrderId={OrderId} NewStatus={Status}.",
                 provider, evt.EventType, order.Id, order.Status);
+
+            // Trigger digital fulfillment immediately after a confirmed payment
+            // (placeholder report + checklist). FulfillmentService is idempotent.
+            if (order.Booking.Status == BookingStatus.Paid)
+                await _fulfillmentService.TriggerAsync(order.Booking, ct);
         }
         return saved;
     }

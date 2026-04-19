@@ -34,4 +34,14 @@ public interface IPaymentService
     /// <summary>Returns all PaymentOrders for a booking, ordered newest-first.</summary>
     Task<IReadOnlyList<PaymentOrderResponse>> GetPaymentOrdersAsync(
         Guid userId, Guid bookingId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Queries the active payment gateway directly for the current payment status
+    /// of the most-recent Pending order and applies any state transitions.
+    /// Used as a fallback when webhooks cannot reach the server (e.g. local development)
+    /// and when the frontend returns from a payment redirect.
+    /// Returns the current <see cref="Domain.Bookings.PaymentStatus"/> of the booking.
+    /// </summary>
+    Task<string> SyncPaymentStatusAsync(
+        Guid userId, Guid bookingId, CancellationToken ct = default);
 }

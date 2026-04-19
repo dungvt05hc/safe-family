@@ -3,16 +3,19 @@ using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Devices;
 using SafeFamily.Api.Features.Devices.Dtos;
+using SafeFamily.Api.Features.Tasks;
 
 namespace SafeFamily.Api.Features.Devices;
 
 public class DeviceService : IDeviceService
 {
     private readonly AppDbContext _db;
+    private readonly ISafetyTaskLifecycleService _lifecycle;
 
-    public DeviceService(AppDbContext db)
+    public DeviceService(AppDbContext db, ISafetyTaskLifecycleService lifecycle)
     {
-        _db = db;
+        _db       = db;
+        _lifecycle = lifecycle;
     }
 
     public async Task<IReadOnlyList<DeviceResponse>> GetDevicesAsync(Guid userId, DeviceQuery query, CancellationToken ct = default)
@@ -195,6 +198,11 @@ public class DeviceService : IDeviceService
         device.ArchivedAt = DateTimeOffset.UtcNow;
         device.UpdatedById = userId;
         await _db.SaveChangesAsync(ct);
+
+        // Lifecycle: dismiss tasks targeting this device (e.g. "Enable screen lock on ...").
+        try   { await _lifecycle.ArchiveObsoleteTasksAsync(familyId, ct); }
+        catch (OperationCanceledException) { throw; }
+        catch { /* lifecycle failure is non-fatal; archive was saved */ }
 
         return true;
     }

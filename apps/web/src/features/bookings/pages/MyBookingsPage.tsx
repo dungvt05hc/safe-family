@@ -72,7 +72,7 @@ function PaymentActionStrip({ booking }: { booking: BookingResult }) {
           size="sm"
           variant="danger"
           loading={retry.isPending}
-          onClick={(e) => { e.stopPropagation(); retry.mutate(booking.id) }}
+          onClick={(e) => { e.stopPropagation(); sessionStorage.setItem('payment_package_code', booking.packageCode); retry.mutate(booking.id) }}
         >
           Retry
         </Button>

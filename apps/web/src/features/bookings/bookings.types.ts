@@ -6,6 +6,8 @@ export type BookingChannel = 'Online' | 'Phone' | 'Email' | 'Onsite'
 
 export type BookingSource = 'Direct' | 'IncidentFollowUp' | 'AssessmentFollowUp' | 'AdminCreated'
 
+export type BookingUrgency = 'Routine' | 'Urgent' | 'Critical'
+
 /**
  * Mirrors the backend BookingStatus enum (string-serialised).
  * Draft → Submitted → Paid → Confirmed → Scheduled → InProgress → Completed
@@ -40,6 +42,7 @@ export type PaymentStatus =
 
 export interface ServicePackage {
   id: string
+  code: string
   name: string
   description: string
   priceDisplay: string
@@ -48,8 +51,13 @@ export interface ServicePackage {
 
 export interface CreateBookingRequest {
   packageId: string
-  preferredStartAt: string
-  channel: BookingChannel
+  helpTopic: string
+  urgency?: BookingUrgency
+  affectedMember?: string
+  affectedTarget?: string
+  desiredOutcome?: string
+  affectedAccountId?: string
+  affectedDeviceId?: string
   customerNotes?: string
   source?: BookingSource
   sourceIncidentId?: string
@@ -84,11 +92,20 @@ export interface BookingResult {
   createdAt: string
   updatedAt: string
   primaryReport: BookingReportInfo | null
+  helpTopic: string | null
+  urgency: BookingUrgency | null
+  affectedTarget: string | null
+  affectedMember: string | null
+  desiredOutcome: string | null
+  affectedAccountId: string | null
+  affectedDeviceId: string | null
+  deliveryStatus: 'Pending' | 'Processing' | 'Delivered' | 'Failed'
+  deliveredAt: string | null
 }
 
 export interface BookingReportInfo {
   reportId: string
-  reportType: 'Assessment' | 'Incident' | 'FamilyReset' | 'General'
+  reportType: 'Assessment' | 'Incident' | 'FamilyReset' | 'SafetyPlan' | 'IncidentRecovery' | 'General'
   title: string
   description: string
   fileUrl: string | null
@@ -161,11 +178,49 @@ export const BOOKING_SOURCE_CONFIG: Record<BookingSource, { label: string; icon:
   AdminCreated:       { label: 'Arranged by our team',  icon: '👥' },
 }
 
-export const CHANNEL_CONFIG: Record<BookingChannel, { label: string; icon: string; description: string }> = {
-  Online:  { label: 'Online (video)',  icon: '💻', description: 'Google Meet or Zoom session' },
-  Phone:   { label: 'Phone call',     icon: '📞', description: 'We call you at your preferred number' },
-  Email:   { label: 'Email',          icon: '✉️', description: 'Async communication via email' },
-  Onsite:  { label: 'Onsite visit',   icon: '🏠', description: 'In-person session at your location' },
+export interface ChannelConfig {
+  label: string
+  sublabel: string
+  icon: string
+  description: string
+  helperText: string
+  /** Shown as a small badge on the card. */
+  badge?: { text: string; className: string }
+  /** Card is visually de-emphasised and shows an availability note. */
+  secondary?: boolean
+}
+
+export const CHANNEL_CONFIG: Record<BookingChannel, ChannelConfig> = {
+  Online: {
+    label:       'Online (video)',
+    sublabel:    'Google Meet or Zoom',
+    icon:        '💻',
+    description: 'Join from anywhere — no travel required.',
+    helperText:  'We send a calendar invite with a meeting link after confirming your booking.',
+    badge:       { text: 'Recommended', className: 'bg-blue-100 text-blue-700' },
+  },
+  Phone: {
+    label:       'Phone call',
+    sublabel:    'We call you',
+    icon:        '📞',
+    description: 'No app or sign-in needed — just answer your phone.',
+    helperText:  "Add your preferred number in the notes field below and we'll call at your chosen time.",
+  },
+  Email: {
+    label:       'Email follow-up',
+    sublabel:    'Written advice',
+    icon:        '✉️',
+    description: 'Prefer writing things down? Great for ongoing or low-urgency questions.',
+    helperText:  "We'll email you a personalised written safety plan — no live session required.",
+  },
+  Onsite: {
+    label:       'Onsite visit',
+    sublabel:    'Advisor comes to you',
+    icon:        '🏠',
+    description: 'Hands-on help with devices in your home.',
+    helperText:  'Subject to advisor availability in your area. We\'ll confirm feasibility after you book.',
+    secondary:   true,
+  },
 }
 
 export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
@@ -214,12 +269,12 @@ export const PAYMENT_STATUS_BADGE: Record<PaymentStatus, BadgeVariant> = {
 
 /** Short human message explaining what the booking's current state means to the user. */
 export const BOOKING_STATUS_CONTEXT: Partial<Record<BookingStatus, string>> = {
-  Paid:       'Payment received \u2014 our team is reviewing your booking.',
-  Confirmed:  "Your booking is confirmed! We'll reach out with details.",
-  Scheduled:  'Your session is scheduled. See you soon!',
-  InProgress: 'Your session is currently in progress.',
-  Completed:  'Your session is complete. Thank you for trusting SafeFamily.',
-  Cancelled:  'This booking has been cancelled.',
-  Expired:    'This booking expired before payment was completed.',
+  Paid:       'Payment received — our advisors are personalising your safety materials.',
+  Confirmed:  'Your order is confirmed. Your materials will be ready soon.',
+  Scheduled:  'Your safety materials are scheduled for delivery.',
+  InProgress: 'Your safety materials are being prepared.',
+  Completed:  'Your safety materials are ready. Check your reports below.',
+  Cancelled:  'This order has been cancelled.',
+  Expired:    'This order expired before payment was completed.',
 }
 

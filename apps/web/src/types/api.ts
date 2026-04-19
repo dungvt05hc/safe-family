@@ -22,12 +22,13 @@ export class ApiError extends Error {
     Object.setPrototypeOf(this, new.target.prototype)
   }
 
-  get isNetworkError() { return this.status === 0 }
-  get isUnauthorized() { return this.status === 401 }
-  get isForbidden()    { return this.status === 403 }
-  get isNotFound()     { return this.status === 404 }
-  get isConflict()     { return this.status === 409 }
-  get isServerError()  { return this.status >= 500 }
+  get isNetworkError()    { return this.status === 0 }
+  get isUnauthorized()    { return this.status === 401 }
+  get isForbidden()       { return this.status === 403 }
+  get isNotFound()        { return this.status === 404 }
+  get isPaymentRequired() { return this.status === 402 }
+  get isConflict()        { return this.status === 409 }
+  get isServerError()     { return this.status >= 500 }
 }
 
 /** Shape of error response bodies from the SafeFamily API */

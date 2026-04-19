@@ -54,6 +54,37 @@ public class BookingConfiguration : AuditableEntityConfiguration<Booking>
             .HasConversion<string>()
             .HasMaxLength(30);
 
+        // ── Digital-product fields ─────────────────────────────────────────────
+        builder.Property(b => b.HelpTopic)
+            .HasMaxLength(200);
+
+        builder.Property(b => b.Urgency)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        builder.Property(b => b.AffectedTarget)
+            .HasMaxLength(200);
+
+        builder.Property(b => b.AffectedMember)
+            .HasMaxLength(100);
+
+        builder.Property(b => b.DesiredOutcome)
+            .HasMaxLength(500);
+
+        // AffectedAccountId / AffectedDeviceId are nullable foreign keys maintained by
+        // convention only — no cascade rule needed beyond SetNull on delete.
+        builder.Property(b => b.AffectedAccountId);
+        builder.Property(b => b.AffectedDeviceId);
+
+        // ── Digital fulfillment ───────────────────────────────────────────────
+        builder.Property(b => b.DeliveryStatus)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        builder.Property(b => b.DeliveredAt)
+            .HasColumnType("timestamptz");
+
         // ── Notes ─────────────────────────────────────────────────────────────
         builder.Property(b => b.CustomerNotes)
             .HasMaxLength(1000);

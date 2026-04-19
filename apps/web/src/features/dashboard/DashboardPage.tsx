@@ -16,6 +16,7 @@ import { RiskScoreCard }    from './components/RiskScoreCard'
 import { QuickActions }     from './components/QuickActions'
 import { ImmediateActions } from './components/ImmediateActions'
 import { RecentActivity }   from './components/RecentActivity'
+import { AnnualPlanCard }   from './components/AnnualPlanCard'
 
 // ── Welcome banner ────────────────────────────────────────────────────────────
 
@@ -196,6 +197,9 @@ export function DashboardPage() {
         />
         <RecentActivity incidents={recentIncidents} bookings={recentBookings} />
       </div>
+
+      {/* Annual plan section */}
+      <AnnualPlanCard />
 
     </div>
   )

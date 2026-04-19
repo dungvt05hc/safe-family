@@ -48,5 +48,13 @@ export const bookingsService = {
   /** Chronological activity log for a booking. */
   getEvents: (bookingId: string): Promise<BookingEventResponse[]> =>
     apiClient.get(`/api/bookings/${bookingId}/events`),
+
+  /**
+   * Actively syncs payment status with the gateway.
+   * Call this when the user returns from the payment redirect (ReturnUrl/CancelUrl)
+   * or as a manual fallback when webhooks are unavailable.
+   */
+  syncPaymentStatus: (bookingId: string): Promise<{ bookingId: string; paymentStatus: string }> =>
+    apiClient.post(`/api/bookings/${bookingId}/payment/sync`),
 }
 

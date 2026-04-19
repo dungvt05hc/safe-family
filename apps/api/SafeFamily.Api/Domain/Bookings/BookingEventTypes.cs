@@ -74,4 +74,15 @@ public static class BookingEventTypes
 
     /// <summary>A report was linked to or unlinked from the booking by admin.</summary>
     public const string ReportLinked  = "report.linked";
+
+    // ── Fulfillment ───────────────────────────────────────────────────────────
+
+    /// <summary>Fulfillment triggered: placeholder report and checklist items created (→ Processing).</summary>
+    public const string FulfillmentTriggered = "fulfillment.triggered";
+
+    /// <summary>Advisor marked the safety materials as delivered (→ Delivered).</summary>
+    public const string FulfillmentDelivered = "fulfillment.delivered";
+
+    /// <summary>Fulfillment handler threw an unhandled exception; DeliveryStatus set to Failed.</summary>
+    public const string FulfillmentFailed    = "fulfillment.failed";
 }

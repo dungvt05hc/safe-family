@@ -10,10 +10,12 @@ namespace SafeFamily.Api.Features.Bookings;
 public class BookingService : IBookingService
 {
     private readonly AppDbContext _db;
+    private readonly IFulfillmentService _fulfillmentService;
 
-    public BookingService(AppDbContext db)
+    public BookingService(AppDbContext db, IFulfillmentService fulfillmentService)
     {
         _db = db;
+        _fulfillmentService = fulfillmentService;
     }
 
     // ── Service-package catalogue ─────────────────────────────────────────────
@@ -23,7 +25,7 @@ public class BookingService : IBookingService
         return await _db.ServicePackages
             .Where(p => p.IsVisible && p.IsActive)
             .OrderBy(p => p.CreatedAt)
-            .Select(p => new ServicePackageResponse(p.Id, p.Name, p.Description, p.PriceDisplay, p.DurationLabel))
+            .Select(p => new ServicePackageResponse(p.Id, p.Code, p.Name, p.Description, p.PriceDisplay, p.DurationLabel))
             .ToListAsync(ct);
     }
 
@@ -71,13 +73,21 @@ public class BookingService : IBookingService
             SnapshotPrice           = package.Price,
             SnapshotCurrency        = package.Currency,
             SnapshotDurationMinutes = package.DurationMinutes,
-            // Scheduling
-            PreferredStartAt        = request.PreferredStartAt.ToUniversalTime(),
-            // Channel & source
-            Channel                 = request.Channel,
+            // Scheduling — default to UtcNow for digital products that have no fixed time
+            PreferredStartAt        = (request.PreferredStartAt ?? DateTimeOffset.UtcNow).ToUniversalTime(),
+            // Channel — default to Online for digital products
+            Channel                 = request.Channel ?? BookingChannel.Online,
             Source                  = request.Source,
             SourceIncidentId        = request.SourceIncidentId,
             SourceAssessmentId      = request.SourceAssessmentId,
+            // Digital-product fields
+            HelpTopic               = request.HelpTopic?.Trim(),
+            Urgency                 = request.Urgency,
+            AffectedTarget          = request.AffectedTarget?.Trim(),
+            AffectedMember          = request.AffectedMember?.Trim(),
+            DesiredOutcome          = request.DesiredOutcome?.Trim(),
+            AffectedAccountId       = request.AffectedAccountId,
+            AffectedDeviceId        = request.AffectedDeviceId,
             // Notes & status
             CustomerNotes           = request.CustomerNotes?.Trim(),
             Status                  = BookingStatus.Draft,
@@ -177,6 +187,11 @@ public class BookingService : IBookingService
 
         booking.UpdatedById = userId;
         await _db.SaveChangesAsync(ct);
+
+        // Trigger fulfilment immediately for free packages (paid packages are triggered
+        // by the payment webhook / sync path in PaymentWebhookService / PaymentService).
+        if (booking.Status == BookingStatus.Confirmed)
+            await _fulfillmentService.TriggerAsync(booking, ct);
 
         return ToResponse(booking);
     }
@@ -310,6 +325,17 @@ public class BookingService : IBookingService
             b.AssignedAdminEmail,
             b.CreatedAt,
             b.UpdatedAt,
-            primaryReport);
+            primaryReport,
+            // Digital-product fields
+            b.HelpTopic,
+            b.Urgency,
+            b.AffectedTarget,
+            b.AffectedMember,
+            b.DesiredOutcome,
+            b.AffectedAccountId,
+            b.AffectedDeviceId,
+            // Fulfillment
+            b.DeliveryStatus,
+            b.DeliveredAt);
 }
 

@@ -37,6 +37,16 @@ export type { ThProps, TrProps, TdProps } from './Table'
 export { EmptyState }       from './EmptyState'
 export type { EmptyStateProps } from './EmptyState'
 
+export { LockedFeature }    from './LockedFeature'
+export type { LockedFeatureProps } from './LockedFeature'
+
+export { PremiumLockedState }  from './PremiumLockedState'
+export type { PremiumLockedStateProps, PremiumProduct } from './PremiumLockedState'
+export { PRODUCT_CONFIGS }     from './PremiumLockedState'
+
+export { UpgradeCTACard }      from './UpgradeCTACard'
+export type { UpgradeCTACardProps } from './UpgradeCTACard'
+
 export {
   NoFamilyMembersEmpty,
   NoAccountsEmpty,

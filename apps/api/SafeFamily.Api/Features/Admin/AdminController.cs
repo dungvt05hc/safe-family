@@ -18,12 +18,14 @@ namespace SafeFamily.Api.Features.Admin;
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
+    private readonly IAdminTaskService _adminTasks;
     private readonly IAuditLogService _audit;
 
-    public AdminController(IAdminService adminService, IAuditLogService audit)
+    public AdminController(IAdminService adminService, IAdminTaskService adminTasks, IAuditLogService audit)
     {
         _adminService = adminService;
-        _audit = audit;
+        _adminTasks   = adminTasks;
+        _audit        = audit;
     }
 
     // GET /api/admin/dashboard
@@ -537,6 +539,43 @@ public class AdminController : ControllerBase
             details: $"Admin note created for {note.EntityType}",
             ipAddress: GetIp(), ct: ct);
         return StatusCode(StatusCodes.Status201Created, note);
+    }
+
+    // ── Task Generation (admin debug) ────────────────────────────────────────
+
+    // GET /api/admin/families/{familyId}/tasks/summary
+    [HttpGet("families/{familyId:guid}/tasks/summary")]
+    [ProducesResponseType(typeof(AdminFamilyTaskSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetFamilyTaskSummary(Guid familyId, CancellationToken ct)
+    {
+        var summary = await _adminTasks.GetFamilyTaskSummaryAsync(familyId, ct);
+        return Ok(summary);
+    }
+
+    // GET /api/admin/families/{familyId}/tasks/generation-log
+    [HttpGet("families/{familyId:guid}/tasks/generation-log")]
+    [ProducesResponseType(typeof(AdminTaskGenerationLogDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetTaskGenerationLog(Guid familyId, CancellationToken ct)
+    {
+        var log = await _adminTasks.GetGenerationLogAsync(familyId, ct);
+        return Ok(log);
+    }
+
+    // POST /api/admin/families/{familyId}/tasks/regenerate
+    [HttpPost("families/{familyId:guid}/tasks/regenerate")]
+    [ProducesResponseType(typeof(AdminTaskGenerationResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RegenerateFamilyTasks(Guid familyId, CancellationToken ct)
+    {
+        var adminId = GetUserId();
+        var result  = await _adminTasks.TriggerRegenerationAsync(familyId, adminId, ct);
+        await _audit.LogAsync("AdminTaskRegenerationTriggered", adminId,
+            entityType: "Family", entityId: familyId,
+            details: result.Message,
+            ipAddress: GetIp(), ct: ct);
+        return Ok(result);
     }
 
     private Guid GetUserId() =>

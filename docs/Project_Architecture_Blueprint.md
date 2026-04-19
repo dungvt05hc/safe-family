@@ -1,6 +1,6 @@
 # SafeFamily — Project Architecture Blueprint
 
-> Generated: 23 March 2026 — Last updated: 4 April 2026  
+> Generated: 23 March 2026 — Last updated: 19 April 2026  
 > Stack: .NET 9 (ASP.NET Core) · React 18 · TypeScript · PostgreSQL · Docker
 
 ---
@@ -94,9 +94,13 @@ SafeFamily.Api
 │   ├── Assessments/          ← Assessment, AssessmentAnswer, AssessmentQuestionBank…
 │   ├── Bookings/             ← Booking, BookingChannel, PaymentStatus
 │   ├── Checklists/           ← ChecklistItem, ChecklistCategory, ChecklistSourceType
-│   ├── Devices/              ← Device
+│   ├── Devices/              ← Device, SupportStatus
+│   ├── Entitlements/         ← Entitlement, EntitlementType
 │   ├── Families/             ← Family, FamilyMember, FamilyPerson
 │   ├── Incidents/            ← Incident, IncidentType, IncidentSeverity, IncidentStatus
+│   ├── Plans/                ← FamilySafetyPlan, IncidentRecoveryPack, PlanStatus
+│   ├── Tasks/                ← SafetyTask, TaskEvent, TaskStatus, TaskPhase,
+│   │                             TaskCategory, TaskPriority, TaskSourceType, TaskTargetType
 │   └── Users/                ← User, UserRole
 ├── Features/                 ← One sub-folder per vertical slice
 │   ├── Accounts/             
@@ -108,13 +112,19 @@ SafeFamily.Api
 │   ├── Dashboard/            
 │   ├── DeviceCatalog/        ← Static reference data (types, brands, models, OS families/versions)
 │   ├── Devices/              
+│   ├── Entitlements/         ← Entitlement grants per family (read-only for family; admin-managed)
 │   ├── Families/             
+│   ├── Fulfillment/          ← Package fulfilment orchestration (handlers per product type)
 │   ├── Health/               
 │   ├── Incidents/            
 │   ├── Payments/             ← Payment initiation, retry, orders, webhook receiver
+│   ├── Plans/                ← FamilySafetyPlan / IncidentRecoveryPack lifecycle
 │   ├── Reports/              
-│   └── Settings/             
+│   ├── Settings/             
+│   └── Tasks/                ← SafetyTask CRUD + status transitions + generation engine
+│       └── Generation/       ← Rule classes, ISafetyTaskGenerationService, GenerationKeyStrategy
 ├── Infrastructure/
+│   ├── BackgroundServices/   ← AnnualPlanRefreshService, PaymentExpiryService (IHostedService)
 │   └── Repositories/         ← Generic IRepository<T> / Repository<T> base class
 └── Migrations/               ← EF Core migration history
 ```
@@ -215,6 +225,18 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 // Domain-specific helper services (pure, no I/O) registered as Scoped for consistency
 builder.Services.AddScoped<RiskScoringService>();
 builder.Services.AddScoped<ChecklistGenerationService>();
+// Task generation engine
+builder.Services.AddScoped<ISafetyTaskGenerationService, SafetyTaskGenerationService>();
+builder.Services.AddScoped<ISafetyTaskService, SafetyTaskService>();
+builder.Services.AddScoped<ISafetyTaskLifecycleService, SafetyTaskLifecycleService>();
+// Fulfilment handlers (one per product type)
+builder.Services.AddScoped<IPackageFulfillmentHandler, FreeCheckHandler>();
+builder.Services.AddScoped<IPackageFulfillmentHandler, FamilySafetyPlanHandler>();
+builder.Services.AddScoped<IPackageFulfillmentHandler, IncidentRecoveryPackHandler>();
+builder.Services.AddScoped<IPackageFulfillmentHandler, AnnualSafetyPlanHandler>();
+// Background services
+builder.Services.AddHostedService<AnnualPlanRefreshService>();
+builder.Services.AddHostedService<PaymentExpiryService>();
 ```
 
 ---
@@ -358,6 +380,10 @@ User ─────────────── FamilyMember ─────�
                            │           └── BookingEvent
                            └── ServicePackage
                            └── PaymentOrder ─── WebhookLog
+                           └── Entitlement        (granted on fulfillment)
+                           └── FamilySafetyPlan   (created on fulfillment)
+                           └── IncidentRecoveryPack
+                           └── SafetyTask ─── TaskEvent
 
 AuditLog (standalone — no FK to User for resilience)
 
@@ -386,6 +412,12 @@ AuditLog (standalone — no FK to User for resilience)
 | Booking → PaymentOrder | 1:many | PaymentOrder.BookingId |
 | PaymentOrder → WebhookLog | 1:many | WebhookLog.PaymentOrderId |
 | Device → DeviceCatalogModel | many:1 | Device.CatalogModelId (nullable) |
+| Family → Entitlement | 1:many | Entitlement.FamilyId |
+| Family → FamilySafetyPlan | 1:many | FamilySafetyPlan.FamilyId |
+| Family → IncidentRecoveryPack | 1:many | IncidentRecoveryPack.FamilyId |
+| Family → SafetyTask | 1:many | SafetyTask.FamilyId |
+| SafetyTask → TaskEvent | 1:many | TaskEvent.TaskId |
+| SafetyTask → SafetyTask (supersession) | 1:0..1 | SafetyTask.SupersededByTaskId (self-ref) |
 | AuditLog | standalone | UserId? (no FK constraint — intentional) |
 
 ### EF Core Configuration
@@ -424,7 +456,15 @@ modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 | `PaymentStatus` | `Pending`, `Paid`, `Refunded`, `Waived` | string |
 | `PaymentType` | `Redirect`, `QrCode`, `DirectCharge` | string |
 | `ReportType` | `Assessment`, `Incident`, `FamilyReset` | string |
-| `SupportStatus` | `Active`, `EndOfLife`, `Unknown` | string |
+| `SupportStatus` | `Unknown`, `Supported`, `EndOfLife`, `NoLongerReceivingUpdates` | string |
+| `EntitlementType` | `FamilySafetyPlanAccess`, `IncidentRecoveryPackAccess`, `PremiumChecklistAccess`, `PremiumReportAccess`, `AnnualPlanSubscription`, `PremiumTasksAccess` | string |
+| `PlanStatus` | `Generated`, `Reviewed`, `Published` | string |
+| `TaskStatus` | `Pending`, `InProgress`, `Completed`, `Dismissed`, `Superseded` | string |
+| `TaskPhase` | `Immediate`, `Next7Days`, `Next30Days`, `Ongoing`, `Recurring` | string |
+| `TaskPriority` | `High`, `Medium`, `Low` | string |
+| `TaskCategory` | `AccountSecurity`, `DeviceHygiene`, `PrivacySharing`, `BackupRecovery`, `ScamReadiness`, `NetworkSecurity`, `FamilySafety` | string |
+| `TaskSourceType` | `AccountRule`, `DeviceRule`, `FreeCheck`, `FamilySafetyPlan`, `IncidentRecoveryPack`, `AnnualPlan`, `Manual` | string |
+| `TaskTargetType` | `Family`, `FamilyMember`, `Account`, `Device` | string |
 
 ### Migration History
 
@@ -454,6 +494,16 @@ modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 | `AddWebhookLogs` | 2026-04-03 | WebhookLogs table for payment gateway event persistence |
 | `RefactorBookingSchema` | 2026-04-04 | Booking schema cleanup post-payment refactor |
 | `AddPaymentTypeAndFailureReason` | 2026-04-04 | `payment_type`, `failure_reason` on payment_orders |
+| `UpdateServicePackagePricesToVND` | 2026-04-12 | Prices converted to VND on service_packages |
+| `UpdateFamilyCorePackagePrice` | 2026-04-12 | Family core package price adjustment |
+| `AddBookingDigitalFields` | 2026-04-15 | Digital delivery fields on bookings |
+| `RefactorPackagesToDigitalProducts` | 2026-04-15 | service_packages refactored to digital product model |
+| `AddAffectedMemberToBookings` | 2026-04-15 | `affected_member_id` column on bookings |
+| `AddBookingFulfillmentFields` | 2026-04-15 | Fulfillment tracking columns on bookings |
+| `AddEntitlements` | 2026-04-15 | `entitlements` table — digital access grants per family |
+| `AddFulfillmentPlans` | 2026-04-15 | `family_safety_plans`, `incident_recovery_packs` tables |
+| `AddSafetyTasks` | 2026-04-15 | `safety_tasks`, `task_events` tables; GenerationKey unique index |
+| `AddAnnualRecurringDueIndex` | 2026-04-19 | Index on `safety_tasks(phase, due_at)` for Annual Plan refresh query |
 
 ---
 
@@ -699,6 +749,28 @@ Configured in `CorsExtensions`:
 | `POST` | `/api/settings/request-data-export` | Required | Request personal data export |
 | `POST` | `/api/settings/request-account-deletion` | Required | Request account deletion |
 
+#### Safety Tasks
+
+| Method | Path | Auth | Rate Limit | Description |
+|--------|------|------|-----------|-------------|
+| `GET` | `/api/tasks` | Required | — | List safety tasks (filter by `status`, `phase`, `category`) |
+| `GET` | `/api/tasks/summary` | Required | — | Task counts by status and phase |
+| `GET` | `/api/tasks/{id}` | Required | — | Get task detail (with event history) |
+| `PATCH` | `/api/tasks/{id}/status` | Required | `mutations` | Update task status (enforces state machine) |
+
+#### Plans
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/plans/safety-plan` | Required | Get the family's current FamilySafetyPlan |
+| `GET` | `/api/plans/incident-recovery/{incidentId}` | Required | Get IncidentRecoveryPack for an incident |
+
+#### Entitlements
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/entitlements` | Required | List digital product entitlements for the authenticated family |
+
 #### Dashboard
 
 | Method | Path | Auth | Description |
@@ -890,14 +962,22 @@ dotnet ef database update
 Test project: `apps/api/SafeFamily.Tests/SafeFamily.Tests.csproj`
 
 Current coverage:
-- `Features/Assessments/` — unit tests for `RiskScoringService` (pure logic) and `AssessmentService` patterns
+- `Features/Assessments/` — unit tests for `RiskScoringService` (pure logic)
 - `Features/Checklists/` — unit tests for `ChecklistGenerationService` (pure logic)
+- `Features/Tasks/` — unit tests for the task generation engine:
+  - `FreeCheckTaskRulesTests` — top-3 selection, weight ordering, generationKey format, assessment boost, FamilyId propagation
+  - `FamilySafetyPlanTaskRulesTests` — assessment-driven tasks, lowest-score promotion, account rules, phase assignment
+  - `IncidentRecoveryPackTaskRulesTests` — 4-phase structure, severity escalation, generic fallback, supplementary tasks
+  - `SafetyTaskGenerationServiceTests` — duplicate skipping, content refresh, re-creation after Completed/Dismissed, supersession (EF InMemory)
+  - `StatusTransitionTests` — all valid and invalid state machine transitions for `TaskStatus`
 
 > **Coverage gap:** Payments, Reports, Settings, DeviceCatalog, and Admin features have no automated tests yet. The `IPaymentGateway` abstraction is well-suited to unit testing with a `MockPaymentGateway`.
 
 **Testing strategy:**
+- **Pure rule classes** (`FreeCheckTaskRules`, `FamilySafetyPlanTaskRules`, `IncidentRecoveryPackTaskRules`) — unit-tested directly with no infrastructure needed (they take a `FulfillmentContext` in, return specs out).
 - **Pure services** (`RiskScoringService`, `ChecklistGenerationService`) — unit-tested directly with no mocks needed (they take data in, return data out).
-- **EF Core services** — tested using an in-memory or SQLite provider (recommended) or with Moq on the DbContext for simpler cases.
+- **EF Core services** (`SafetyTaskGenerationService`) — tested with `Microsoft.EntityFrameworkCore.InMemory` 9.0.4; each test creates a unique named database for isolation.
+- **`InternalsVisibleTo`**: `SafeFamily.Api/AssemblyInfo.cs` exposes `internal` rule classes to `SafeFamily.Tests`. `SafetyTaskService.IsValidTransition` is `internal static` so state-machine tests can call it directly.
 - **Controllers** — use `WebApplicationFactory<Program>` integration testing for end-to-end HTTP tests.
 
 ### Frontend Testing

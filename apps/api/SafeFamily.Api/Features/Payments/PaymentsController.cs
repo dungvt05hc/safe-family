@@ -82,6 +82,25 @@ public class PaymentsController : ControllerBase
         return Ok(orders);
     }
 
+    // ── Sync payment status ───────────────────────────────────────────────────
+    // POST /api/bookings/{bookingId}/payment/sync
+    //
+    // Called by the frontend when it returns from the payment gateway redirect
+    // (ReturnUrl / CancelUrl) or as a manual status-check fallback. Queries
+    // the payment gateway directly for the latest order status and applies
+    // any pending state transitions (Pending → Paid / Failed).
+    [HttpPost("api/bookings/{bookingId:guid}/payment/sync")]
+    [Authorize]
+    [EnableRateLimiting("mutations")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SyncPaymentStatus(Guid bookingId, CancellationToken ct)
+    {
+        var status = await _paymentService.SyncPaymentStatusAsync(GetUserId(), bookingId, ct);
+        return Ok(new { bookingId, paymentStatus = status });
+    }
+
     // ── Webhook receiver ──────────────────────────────────────────────────────
     // POST /api/webhooks/payment/{provider}
     //

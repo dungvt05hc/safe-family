@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useCurrentUser } from '../hooks/useCurrentUser'
+import { EntitlementProvider } from '@/features/entitlements/EntitlementProvider'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -26,7 +27,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  return <>{children}</>
+  return (
+    <EntitlementProvider>
+      {children}
+    </EntitlementProvider>
+  )
 }
 
 /** Inline spinner — avoids creating a separate file for a 3-line component. */

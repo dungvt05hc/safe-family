@@ -215,6 +215,19 @@ export function AdminBookingsTable({ bookings, onOpen, onStatusChange, onAssign,
                     </button>
                   )}
 
+                  {/* Start: Scheduled → InProgress */}
+                  {b.status === 'Scheduled' && (
+                    <button
+                      type="button"
+                      disabled={isMutating}
+                      onClick={() => onStatusChange(b.id, 'InProgress')}
+                      aria-label={`Start session for ${b.familyName}`}
+                      className="rounded px-2 py-1 text-xs font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 disabled:opacity-40"
+                    >
+                      Start
+                    </button>
+                  )}
+
                   {/* Complete: Scheduled or InProgress */}
                   {(b.status === 'Scheduled' || b.status === 'InProgress') && (
                     <button

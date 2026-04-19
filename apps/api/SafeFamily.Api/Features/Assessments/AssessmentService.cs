@@ -3,6 +3,7 @@ using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Assessments;
 using SafeFamily.Api.Features.Assessments.Dtos;
+using SafeFamily.Api.Features.Tasks;
 
 namespace SafeFamily.Api.Features.Assessments;
 
@@ -10,11 +11,16 @@ public class AssessmentService : IAssessmentService
 {
     private readonly AppDbContext _db;
     private readonly RiskScoringService _scorer;
+    private readonly ISafetyTaskLifecycleService _lifecycle;
 
-    public AssessmentService(AppDbContext db, RiskScoringService scorer)
+    public AssessmentService(
+        AppDbContext db,
+        RiskScoringService scorer,
+        ISafetyTaskLifecycleService lifecycle)
     {
-        _db = db;
-        _scorer = scorer;
+        _db       = db;
+        _scorer   = scorer;
+        _lifecycle = lifecycle;
     }
 
     /// <inheritdoc />
@@ -64,6 +70,13 @@ public class AssessmentService : IAssessmentService
 
         _db.Assessments.Add(assessment);
         await _db.SaveChangesAsync(ct);
+
+        // Lifecycle: refresh assessment-driven tasks for all delivered product bookings
+        // (FAMILY-CORE and ANNUAL-PLAN). Non-fatal — assessment submission succeeds
+        // even if task regeneration encounters a transient error.
+        try   { await _lifecycle.RegenerateForAssessmentAsync(familyId, assessment.Id, userId, ct); }
+        catch (OperationCanceledException) { throw; }
+        catch { /* lifecycle failure is non-fatal; assessment was saved successfully */ }
 
         return ToResponse(assessment, result.ImmediateActions);
     }

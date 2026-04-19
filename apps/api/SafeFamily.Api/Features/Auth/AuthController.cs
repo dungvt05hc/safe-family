@@ -76,11 +76,14 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Me(CancellationToken ct)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (nameId is null || !Guid.TryParse(nameId, out var userId))
+            return Unauthorized();
+
         var user = await _authService.GetCurrentUserAsync(userId, ct);
 
         if (user is null)
-            throw new NotFoundException("User", userId);
+            return Unauthorized();
 
         await RefreshSessionClaimsIfNeededAsync(user);
 

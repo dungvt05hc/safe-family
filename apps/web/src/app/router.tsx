@@ -24,6 +24,8 @@ import { BookingFormPage } from '@/features/bookings/pages/BookingFormPage'
 import { MyBookingsPage } from '@/features/bookings/pages/MyBookingsPage'
 import { BookingDetailsPage } from '@/features/bookings/pages/BookingDetailsPage'
 import { ChecklistPage } from '@/features/checklists/ChecklistPage'
+import { SafetyTasksPage } from '@/features/tasks/SafetyTasksPage'
+import { PremiumChecklistPage } from '@/features/tasks/PremiumChecklistPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { AdminProtectedRoute } from '@/features/admin/components/AdminProtectedRoute'
@@ -40,6 +42,10 @@ import { AdminUsersPage } from '@/features/admin/users/AdminUsersPage'
 import { AdminUserDetailPage } from '@/features/admin/users/AdminUserDetailPage'
 import { AdminCustomerDetailPage } from '@/features/admin/pages/AdminCustomerDetailPage'
 import { AdminNotesPage } from '@/features/admin/notes/AdminNotesPage'
+import { PaymentCallbackPage } from '@/features/bookings/pages/PaymentCallbackPage'
+import { PaymentUnlockPage } from '@/features/bookings/pages/PaymentUnlockPage'
+import { FamilySafetyPlanPage } from '@/features/plans/pages/FamilySafetyPlanPage'
+import { IncidentRecoveryPackPage } from '@/features/plans/pages/IncidentRecoveryPackPage'
 
 export const router = createBrowserRouter([
   // ── Guest-only routes (redirect to /dashboard when already signed in) ──────
@@ -92,10 +98,19 @@ export const router = createBrowserRouter([
       { path: 'incidents/result/:id', element: <IncidentResultPage /> },
       { path: 'incidents/:id',        element: <IncidentDetailsPage /> },
       { path: 'checklists',         element: <ChecklistPage /> },
+      { path: 'tasks',              element: <SafetyTasksPage /> },
+      { path: 'checklist',          element: <PremiumChecklistPage /> },
       { path: 'reports',            element: <ReportsPage /> },
-      { path: 'bookings',          element: <BookingFormPage /> },
-      { path: 'bookings/my',       element: <MyBookingsPage /> },
-      { path: 'bookings/:id',      element: <BookingDetailsPage /> },
+      { path: 'bookings',                element: <BookingFormPage /> },
+      { path: 'bookings/my',             element: <MyBookingsPage /> },
+      { path: 'bookings/:id',            element: <BookingDetailsPage /> },
+      { path: 'bookings/:id/unlocked',   element: <PaymentUnlockPage /> },
+      { path: 'plans/safety',            element: <FamilySafetyPlanPage /> },
+      { path: 'plans/incident-recovery', element: <IncidentRecoveryPackPage /> },
+      // Payment gateway redirect callbacks — must be inside ProtectedRoute so
+      // the user session is available when the sync API call is made.
+      { path: 'bookings/payment/success', element: <PaymentCallbackPage /> },
+      { path: 'bookings/payment/cancel',  element: <PaymentCallbackPage /> },
       { path: 'settings',           element: <SettingsPage /> },
     ],
   },

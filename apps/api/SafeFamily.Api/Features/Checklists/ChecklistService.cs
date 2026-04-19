@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using SafeFamily.Api.Common.Exceptions;
 using SafeFamily.Api.Data;
 using SafeFamily.Api.Domain.Checklists;
+using SafeFamily.Api.Domain.Entitlements;
 using SafeFamily.Api.Features.Checklists.Dtos;
+using SafeFamily.Api.Features.Entitlements;
 
 namespace SafeFamily.Api.Features.Checklists;
 
@@ -10,11 +12,14 @@ public class ChecklistService : IChecklistService
 {
     private readonly AppDbContext _db;
     private readonly ChecklistGenerationService _generator;
+    private readonly IEntitlementService _entitlements;
 
-    public ChecklistService(AppDbContext db, ChecklistGenerationService generator)
+    public ChecklistService(AppDbContext db, ChecklistGenerationService generator,
+        IEntitlementService entitlements)
     {
-        _db = db;
-        _generator = generator;
+        _db           = db;
+        _generator    = generator;
+        _entitlements = entitlements;
     }
 
     /// <inheritdoc />
@@ -25,7 +30,13 @@ public class ChecklistService : IChecklistService
 
         await ReconcileAsync(familyId, ct);
 
+        var hasPremiumChecklist = await _entitlements.HasEntitlementAsync(
+            familyId, EntitlementType.PremiumChecklistAccess, ct);
+
         var q = _db.ChecklistItems.Where(i => i.FamilyId == familyId);
+
+        if (!hasPremiumChecklist)
+            q = q.Where(i => !i.IsPremium);
 
         if (!string.IsNullOrWhiteSpace(query.Severity))
         {
@@ -131,14 +142,21 @@ public class ChecklistService : IChecklistService
             {
                 _db.ChecklistItems.Add(new ChecklistItem
                 {
-                    FamilyId    = familyId,
-                    Title       = gen.Title,
-                    Description = gen.Description,
-                    Category    = gen.Category,
-                    Status      = ChecklistItemStatus.Pending,
-                    Priority    = gen.Priority,
-                    SourceType  = gen.SourceType,
-                    SourceId    = gen.SourceId,
+                    FamilyId     = familyId,
+                    Title        = gen.Title,
+                    Description  = gen.Description,
+                    Category     = gen.Category,
+                    Status       = ChecklistItemStatus.Pending,
+                    Priority     = gen.Priority,
+                    Phase        = gen.Phase,
+                    SourceType   = gen.SourceType,
+                    SourceId     = gen.SourceId,
+                    TargetType   = gen.TargetType,
+                    TargetId     = gen.TargetId,
+                    TargetLabel  = gen.TargetLabel,
+                    IsPremium    = gen.IsPremium,
+                    HelpUrl      = gen.HelpUrl,
+                    Guidance     = gen.Guidance,
                 });
             }
         }

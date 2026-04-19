@@ -12,7 +12,7 @@ public sealed class PaymentSettings
     /// Must match the <see cref="IPaymentGateway.Provider"/> value of a registered gateway.
     /// Examples: "mock", "payos", "momo", "zalopay".
     /// </summary>
-    public string DefaultProvider { get; set; } = "mock";
+    public string DefaultProvider { get; set; } = "payos";
 
     /// <summary>ISO-4217 currency code sent to the gateway when not overridden by the booking.</summary>
     public string DefaultCurrency { get; set; } = "VND";
@@ -37,7 +37,7 @@ public sealed class PaymentSettings
     public MoMoSettings MoMo { get; set; } = new();
 
     /// <summary>ZaloPay credentials (https://zalopay.vn/developer).</summary>
-    public ZalaPaySettings ZalaPay { get; set; } = new();
+    public ZaloPaySettings ZaloPay { get; set; } = new();
 }
 
 // ─── payOS ───────────────────────────────────────────────────────────────────
@@ -68,6 +68,14 @@ public sealed class PayOsSettings
 
     /// <summary>Full URL the payer is sent to when they click Cancel on the payOS checkout page.</summary>
     public string CancelUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional webhook URL sent to payOS when creating each payment request.
+    /// If empty, payOS will use the webhook URL configured in the merchant dashboard.
+    /// Set this to your ngrok/tunnel URL during local development, e.g.
+    /// "https://xxxx.ngrok.io/api/webhooks/payment/payos".
+    /// </summary>
+    public string WebhookUrl { get; set; } = string.Empty;
 
     public string BaseUrl { get; set; } = "https://api-merchant.payos.vn";
 }
@@ -106,7 +114,7 @@ public sealed class MoMoSettings
 /// ZaloPay merchant credentials.
 /// Obtain from https://developers.zalopay.vn → Applications.
 /// </summary>
-public sealed class ZalaPaySettings
+public sealed class ZaloPaySettings
 {
     public string AppId { get; set; } = string.Empty;
 

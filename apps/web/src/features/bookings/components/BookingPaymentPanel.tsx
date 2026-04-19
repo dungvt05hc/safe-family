@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
 import { Alert, Button, Card, CardContent, CardHeader, CardTitle, Spinner } from '@/components/ui'
-import { useInitiatePayment, useRetryPayment } from '../hooks/useBookingMutations'
+import { useInitiatePayment, useRetryPayment, useSyncPaymentStatus } from '../hooks/useBookingMutations'
 import type { BookingResult, PaymentOrder } from '../bookings.types'
 
 // ─── Countdown helper ─────────────────────────────────────────────────────────
@@ -99,7 +100,12 @@ function UnpaidPanel({ booking }: { booking: BookingResult }) {
           variant="primary"
           size="md"
           loading={initiate.isPending}
-          onClick={() => initiate.mutate(booking.id)}
+          onClick={() => {
+            // Store the package code so PaymentCallbackPage can route to the
+            // correct unlocked content page (e.g. /plans/safety vs /plans/incident-recovery).
+            sessionStorage.setItem('payment_package_code', booking.packageCode)
+            initiate.mutate(booking.id)
+          }}
         >
           Pay now
         </Button>
@@ -116,7 +122,19 @@ function PendingPanel({
   latestOrder: PaymentOrder | null
 }) {
   const retry = useRetryPayment()
+  const sync = useSyncPaymentStatus()
   const countdown = useCountdown(latestOrder?.expiresAt ?? null)
+
+  // Automatically sync payment status with payOS every 8 seconds.
+  // This is needed because webhooks cannot reach localhost and the DB won't
+  // update on its own. Each sync call queries payOS and updates the DB so the
+  // booking refetch interval (10 s) can pick up the new status.
+  useEffect(() => {
+    const id = setInterval(() => {
+      sync.mutate(booking.id)
+    }, 8_000)
+    return () => clearInterval(id)
+  }, [booking.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card className="border-blue-200 bg-blue-50">
@@ -133,32 +151,40 @@ function PendingPanel({
           </p>
         )}
 
-        {/* QR code (MoMo / VNPay style) */}
+        {/* QR code — payOS returns a VietQR/EMVCo data string, render it with qrcode.react */}
         {latestOrder?.qrCodeUrl && (
           <div className="flex flex-col items-center gap-2">
             <p className="text-sm text-blue-700">Scan the QR code with your banking app:</p>
-            <img
-              src={latestOrder.qrCodeUrl}
-              alt="Payment QR code"
-              className="w-48 h-48 rounded-lg border border-blue-200"
-            />
+            <div className="p-3 bg-white rounded-lg border border-blue-200 inline-block">
+              <QRCodeSVG value={latestOrder.qrCodeUrl} size={192} />
+            </div>
           </div>
         )}
 
-        {/* Redirect link */}
-        {latestOrder?.paymentUrl && (
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => window.open(latestOrder.paymentUrl!, '_blank', 'noopener,noreferrer')}
+        {/* Fallback redirect link when no QR code is available */}
+        {latestOrder?.paymentUrl && !latestOrder.qrCodeUrl && (
+          <a
+            href={latestOrder.paymentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 underline"
           >
             Open payment page ↗
-          </Button>
+          </a>
         )}
 
         <p className="text-xs text-blue-600">
-          This page refreshes automatically. Once payment is confirmed you'll see an update here.
+          This page checks automatically. Once payment is confirmed you'll see an update here.
         </p>
+
+        <Button
+          variant="primary"
+          size="sm"
+          loading={sync.isPending}
+          onClick={() => sync.mutate(booking.id)}
+        >
+          I've paid — check status now
+        </Button>
 
         <hr className="border-blue-200" />
 
@@ -168,7 +194,7 @@ function PendingPanel({
             variant="ghost"
             size="sm"
             loading={retry.isPending}
-            onClick={() => retry.mutate(booking.id)}
+            onClick={() => { sessionStorage.setItem('payment_package_code', booking.packageCode); retry.mutate(booking.id) }}
           >
             Retry with a new link
           </Button>
@@ -204,7 +230,7 @@ function FailedPanel({ booking }: { booking: BookingResult }) {
           variant="danger"
           size="md"
           loading={retry.isPending}
-          onClick={() => retry.mutate(booking.id)}
+          onClick={() => { sessionStorage.setItem('payment_package_code', booking.packageCode); retry.mutate(booking.id) }}
         >
           Try again
         </Button>
@@ -234,7 +260,7 @@ function ExpiredPanel({ booking }: { booking: BookingResult }) {
           variant="primary"
           size="md"
           loading={retry.isPending}
-          onClick={() => retry.mutate(booking.id)}
+          onClick={() => { sessionStorage.setItem('payment_package_code', booking.packageCode); retry.mutate(booking.id) }}
         >
           Retry payment
         </Button>

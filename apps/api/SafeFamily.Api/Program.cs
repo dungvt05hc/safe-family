@@ -17,6 +17,11 @@ using SafeFamily.Api.Features.DeviceCatalog;
 using SafeFamily.Api.Features.Devices;
 using SafeFamily.Api.Features.Families;
 using SafeFamily.Api.Features.Incidents;
+using SafeFamily.Api.Features.Entitlements;
+using SafeFamily.Api.Features.Tasks;
+using SafeFamily.Api.Features.Tasks.Generation;
+using SafeFamily.Api.Features.Fulfillment.Handlers;
+using SafeFamily.Api.Features.Plans;
 using SafeFamily.Api.Features.Reports;
 using SafeFamily.Api.Features.Settings;
 
@@ -66,8 +71,25 @@ builder.Services.AddScoped<IChecklistService, ChecklistService>();
 // Incidents feature
 builder.Services.AddScoped<IIncidentService, IncidentService>();
 
+// Safety Tasks feature
+builder.Services.AddScoped<ISafetyTaskService, SafetyTaskService>();
+builder.Services.AddScoped<ISafetyTaskGenerationService, SafetyTaskGenerationService>();
+builder.Services.AddScoped<ISafetyTaskLifecycleService, SafetyTaskLifecycleService>();
+
 // Bookings feature
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IFulfillmentService, FulfillmentService>();
+builder.Services.AddScoped<FreeCheckHandler>();
+builder.Services.AddScoped<FamilySafetyPlanHandler>();
+builder.Services.AddScoped<IncidentRecoveryPackHandler>();
+builder.Services.AddScoped<AnnualSafetyPlanHandler>();
+builder.Services.AddScoped<GenericPackageHandler>();
+
+// Entitlements feature
+builder.Services.AddScoped<IEntitlementService, EntitlementService>();
+
+// Plans feature
+builder.Services.AddScoped<IPlansService, PlansService>();
 
 // Payment feature
 builder.Services.Configure<PaymentSettings>(builder.Configuration.GetSection(PaymentSettings.SectionName));
@@ -77,20 +99,26 @@ var paymentCfg = builder.Configuration
     .Get<PaymentSettings>() ?? new PaymentSettings();
 
 // Named HttpClients — base addresses come from config so they can be overridden per environment.
-builder.Services.AddHttpClient("payos",   c => c.BaseAddress = new Uri(paymentCfg.PayOs.BaseUrl));
+builder.Services.AddHttpClient("payos", c =>
+{
+    c.BaseAddress = new Uri(paymentCfg.PayOs.BaseUrl);
+    c.DefaultRequestHeaders.Add("x-client-id", paymentCfg.PayOs.ClientId);
+    c.DefaultRequestHeaders.Add("x-api-key",   paymentCfg.PayOs.ApiKey);
+});
 builder.Services.AddHttpClient("momo",    c => c.BaseAddress = new Uri(paymentCfg.MoMo.BaseUrl));
-builder.Services.AddHttpClient("zalapay", c => c.BaseAddress = new Uri(paymentCfg.ZalaPay.BaseUrl));
+builder.Services.AddHttpClient("zalopay", c => c.BaseAddress = new Uri(paymentCfg.ZaloPay.BaseUrl));
 
 // All gateway implementations are registered so PaymentService / PaymentWebhookService can
 // resolve the correct one at runtime via IEnumerable<IPaymentGateway>.
 builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>();
 builder.Services.AddScoped<IPaymentGateway, PayOsGateway>();
 builder.Services.AddScoped<IPaymentGateway, MoMoGateway>();
-builder.Services.AddScoped<IPaymentGateway, ZalaPayGateway>();
+builder.Services.AddScoped<IPaymentGateway, ZaloPayGateway>();
 
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentWebhookService, PaymentWebhookService>();
 builder.Services.AddHostedService<PaymentExpiryService>();
+builder.Services.AddHostedService<AnnualPlanRefreshService>();
 
 // Dashboard feature
 builder.Services.AddScoped<IDashboardService, DashboardService>();
@@ -104,6 +132,7 @@ builder.Services.AddScoped<ISettingsService, SettingsService>();
 // Admin feature
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAdminTaskService, AdminTaskService>();
 
 var app = builder.Build();
 

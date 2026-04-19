@@ -9,6 +9,9 @@ import {
   CalendarDays,
   BarChart2,
   Settings,
+  ShieldCheck,
+  Package,
+  ShieldAlert,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -43,9 +46,18 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Safety',
     items: [
-      { label: 'Assessments', href: '/assessment', icon: ClipboardCheck },
-      { label: 'Checklist',   href: '/checklists', icon: ListChecks },
-      { label: 'Incidents',   href: '/incidents',  icon: AlertTriangle },
+      { label: 'Assessments',   href: '/assessment', icon: ClipboardCheck },
+      { label: 'Safety Tasks',  href: '/tasks',        icon: ShieldAlert },
+      { label: 'Checklist',     href: '/checklists',   icon: ListChecks },
+      { label: 'Premium Checklist', href: '/checklist', icon: ShieldCheck },
+      { label: 'Incidents',     href: '/incidents',   icon: AlertTriangle },
+    ],
+  },
+  {
+    label: 'Plans',
+    items: [
+      { label: 'Safety Plans',   href: '/plans/safety',            icon: ShieldCheck },
+      { label: 'Recovery Packs', href: '/plans/incident-recovery', icon: Package },
     ],
   },
   {

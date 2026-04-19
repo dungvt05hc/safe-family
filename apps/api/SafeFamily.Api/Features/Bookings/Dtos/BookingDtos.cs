@@ -6,6 +6,7 @@ namespace SafeFamily.Api.Features.Bookings.Dtos;
 
 public record ServicePackageResponse(
     Guid Id,
+    string Code,
     string Name,
     string Description,
     string PriceDisplay,
@@ -52,7 +53,18 @@ public record BookingResponse(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     // ── Linked report (null when none attached) ──────────────────────────────
-    BookingReportInfo? PrimaryReport);
+    BookingReportInfo? PrimaryReport,
+    // ── Digital-product fields (null for legacy bookings) ────────────────────
+    string? HelpTopic,
+    BookingUrgency? Urgency,
+    string? AffectedTarget,
+    string? AffectedMember,
+    string? DesiredOutcome,
+    Guid? AffectedAccountId,
+    Guid? AffectedDeviceId,
+    // ── Fulfillment ──────────────────────────────────────────────────────────
+    DeliveryStatus DeliveryStatus,
+    DateTimeOffset? DeliveredAt);
 
 public record BookingSummaryResponse(
     int TotalBookings,
@@ -101,11 +113,30 @@ public class CreateBookingRequest
     [Required]
     public Guid PackageId { get; set; }
 
-    [Required]
-    public DateTimeOffset PreferredStartAt { get; set; }
+    /// <summary>What the family needs help with. Required for new bookings.</summary>
+    [Required, MaxLength(200)]
+    public string HelpTopic { get; set; } = string.Empty;
 
-    [Required]
-    public BookingChannel Channel { get; set; }
+    /// <summary>How urgently the family needs assistance. Defaults to Routine.</summary>
+    public BookingUrgency Urgency { get; set; } = BookingUrgency.Routine;
+
+    /// <summary>Specific account, device, or platform affected (optional).</summary>
+    [MaxLength(200)]
+    public string? AffectedTarget { get; set; }
+
+    /// <summary>Which family member is primarily affected (optional).</summary>
+    [MaxLength(100)]
+    public string? AffectedMember { get; set; }
+
+    /// <summary>The outcome the family is hoping to achieve (optional).</summary>
+    [MaxLength(500)]
+    public string? DesiredOutcome { get; set; }
+
+    /// <summary>FK to a specific Account the issue relates to (optional).</summary>
+    public Guid? AffectedAccountId { get; set; }
+
+    /// <summary>FK to a specific Device the issue relates to (optional).</summary>
+    public Guid? AffectedDeviceId { get; set; }
 
     [MaxLength(1000)]
     public string? CustomerNotes { get; set; }
@@ -124,5 +155,17 @@ public class CreateBookingRequest
     /// Must belong to the same family as the requesting user.
     /// </summary>
     public Guid? SourceAssessmentId { get; set; }
+
+    /// <summary>
+    /// Optional preferred start time. Defaults to UtcNow when omitted.
+    /// Kept for admin-created bookings and backward compatibility.
+    /// </summary>
+    public DateTimeOffset? PreferredStartAt { get; set; }
+
+    /// <summary>
+    /// Delivery channel. Defaults to Online when omitted.
+    /// Kept for admin-created bookings and backward compatibility.
+    /// </summary>
+    public BookingChannel? Channel { get; set; }
 }
 

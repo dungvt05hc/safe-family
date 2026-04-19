@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { X, Plus, AlertCircle, ClipboardCheck, CreditCard, FileText, ExternalLink, Link2, Link2Off } from 'lucide-react'
+import {
+  X, Plus, AlertCircle, ClipboardCheck, CreditCard, FileText, ExternalLink,
+  Link2, Link2Off, CalendarDays, User, StickyNote, Activity, Settings2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useAdminUsers } from '../users/adminUsers.hooks'
@@ -42,7 +45,7 @@ interface Props {
   onAssign: (id: string, adminId: string | null, adminEmail: string | null) => void
   isMutating: boolean
 }
-const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1'
+const labelClass = 'flex items-center gap-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2'
 const selectClass =
   'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400'
 const btnSecondary =
@@ -154,6 +157,32 @@ export function AdminBookingDetailDrawer({
           <AdminError message="Failed to load booking." onRetry={() => refetch()} />
         ) : !booking ? null : (
           <>
+            {/* ── Status strip ─────────────────────────────────────────────── */}
+            <div className="flex items-center gap-2 flex-wrap pb-2">
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
+                  BOOKING_STATUS_COLORS[booking.status],
+                )}
+              >
+                {formatBookingStatus(booking.status)}
+              </span>
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
+                  PAYMENT_STATUS_COLORS[booking.paymentStatus],
+                )}
+              >
+                {booking.paymentStatus}
+              </span>
+              {booking.source !== 'Direct' && (
+                <span className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-500">
+                  {SOURCE_ICON[booking.source]}
+                  {SOURCE_LABEL[booking.source]}
+                </span>
+              )}
+            </div>
+
             {/* ── Booking summary ─────────────────────────────────────────── */}
             <section aria-labelledby="booking-summary-heading">
               <h3 id="booking-summary-heading" className="sr-only">Booking summary</h3>
@@ -262,7 +291,7 @@ export function AdminBookingDetailDrawer({
             {/* ── Payment details ──────────────────────────────────────────── */}
             {(booking.latestPayment || booking.paymentOrders?.length > 0) && (
               <section aria-labelledby="payment-heading" className="space-y-2">
-                <h3 id="payment-heading" className={labelClass}>Payment</h3>
+                <h3 id="payment-heading" className={labelClass}><CreditCard className="w-3.5 h-3.5" aria-hidden="true" />Payment</h3>
 
                 {booking.latestPayment && (
                   <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-2 text-sm">
@@ -344,7 +373,7 @@ export function AdminBookingDetailDrawer({
 
             {/* ── Related reports ──────────────────────────────────────────── */}
             <section aria-labelledby="reports-heading" className="space-y-3">
-              <h3 id="reports-heading" className={labelClass}>Linked Report</h3>
+              <h3 id="reports-heading" className={labelClass}><FileText className="w-3.5 h-3.5" aria-hidden="true" />Linked Report</h3>
 
               {/* Currently linked reports */}
               {booking.relatedReports && booking.relatedReports.length > 0 ? (
@@ -435,74 +464,52 @@ export function AdminBookingDetailDrawer({
 
             {/* ── Status controls ──────────────────────────────────────────── */}
             <section aria-labelledby="status-heading" className="space-y-4">
-              <h3 id="status-heading" className={labelClass}>Status</h3>
+              <h3 id="status-heading" className={labelClass}><Settings2 className="w-3.5 h-3.5" aria-hidden="true" />Status</h3>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="booking-status-select" className="block text-xs text-gray-500 mb-1">
                     Booking status
                   </label>
-                  <div className="flex items-center gap-2">
-                    <select
-                      id="booking-status-select"
-                      value={booking.status}
-                      disabled={isMutating}
-                      onChange={(e) =>
-                        onStatusChange(booking.id, e.target.value as BookingStatus)
-                      }
-                      className={selectClass}
-                    >
-                      {BOOKING_STATUSES.map((s) => (
-                        <option key={s} value={s}>{formatBookingStatus(s)}</option>
-                      ))}
-                    </select>
-                    <span
-                      className={cn(
-                        'shrink-0 inline-block rounded-full px-2 py-0.5 text-xs font-semibold',
-                        BOOKING_STATUS_COLORS[booking.status],
-                      )}
-                      aria-hidden="true"
-                    >
-                      {formatBookingStatus(booking.status)}
-                    </span>
-                  </div>
+                  <select
+                    id="booking-status-select"
+                    value={booking.status}
+                    disabled={isMutating}
+                    onChange={(e) =>
+                      onStatusChange(booking.id, e.target.value as BookingStatus)
+                    }
+                    className={selectClass}
+                  >
+                    {BOOKING_STATUSES.map((s) => (
+                      <option key={s} value={s}>{formatBookingStatus(s)}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label htmlFor="payment-status-select" className="block text-xs text-gray-500 mb-1">
                     Payment status
                   </label>
-                  <div className="flex items-center gap-2">
-                    <select
-                      id="payment-status-select"
-                      value={booking.paymentStatus}
-                      disabled={isMutating}
-                      onChange={(e) =>
-                        onPaymentStatusChange(booking.id, e.target.value as PaymentStatus)
-                      }
-                      className={selectClass}
-                    >
-                      {PAYMENT_STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                    <span
-                      className={cn(
-                        'shrink-0 inline-block rounded-full px-2 py-0.5 text-xs font-semibold',
-                        PAYMENT_STATUS_COLORS[booking.paymentStatus],
-                      )}
-                      aria-hidden="true"
-                    >
-                      {booking.paymentStatus}
-                    </span>
-                  </div>
+                  <select
+                    id="payment-status-select"
+                    value={booking.paymentStatus}
+                    disabled={isMutating}
+                    onChange={(e) =>
+                      onPaymentStatusChange(booking.id, e.target.value as PaymentStatus)
+                    }
+                    className={selectClass}
+                  >
+                    {PAYMENT_STATUSES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </section>
 
             {/* ── Assign ───────────────────────────────────────────────────── */}
             <section aria-labelledby="assign-heading" className="space-y-3">
-              <h3 id="assign-heading" className={labelClass}>Assigned Admin</h3>
+              <h3 id="assign-heading" className={labelClass}><User className="w-3.5 h-3.5" aria-hidden="true" />Assigned Admin</h3>
 
               {booking.assignedAdminEmail ? (
                 <p className="text-sm text-gray-700">
@@ -555,7 +562,7 @@ export function AdminBookingDetailDrawer({
 
             {/* ── Internal notes ───────────────────────────────────────────── */}
             <section aria-labelledby="notes-heading" className="space-y-3">
-              <h3 id="notes-heading" className={labelClass}>Internal Notes</h3>
+              <h3 id="notes-heading" className={labelClass}><StickyNote className="w-3.5 h-3.5" aria-hidden="true" />Internal Notes</h3>
 
               {booking.bookingNotes.length === 0 ? (
                 <p className="text-sm text-gray-400 italic">No notes yet.</p>
@@ -613,35 +620,53 @@ export function AdminBookingDetailDrawer({
             {/* ── Event timeline ───────────────────────────────────────────── */}
             {booking.events && booking.events.length > 0 && (
               <section aria-labelledby="events-heading" className="space-y-2">
-                <h3 id="events-heading" className={labelClass}>Activity</h3>
-                <ol className="space-y-2 text-xs text-gray-500" aria-label="Booking event history">
-                  {booking.events.map((ev) => (
-                    <li key={ev.eventId} className="flex gap-3">
-                      <span
-                        className="mt-1 w-2 h-2 rounded-full bg-amber-400 shrink-0"
-                        aria-hidden="true"
-                      />
-                      <div>
-                        <p className="font-medium text-gray-700">{ev.eventType}</p>
+                <h3 id="events-heading" className={labelClass}><Activity className="w-3.5 h-3.5" aria-hidden="true" />Activity</h3>
+                <ol className="relative border-l-2 border-gray-100 space-y-4 ml-2" aria-label="Booking event history">
+                  {booking.events.map((ev, i) => {
+                    const isLast = i === booking.events.length - 1
+                    const readableType = ev.eventType
+                      .replace(/\./g, ' ')
+                      .replace(/_/g, ' ')
+                      .replace(/\b\w/g, (c) => c.toUpperCase())
+                    return (
+                      <li key={ev.eventId} className="ml-5">
+                        <span
+                          className={`absolute -left-[9px] mt-0.5 h-4 w-4 rounded-full border-2 border-white shrink-0 ${
+                            isLast ? 'bg-amber-400' : 'bg-gray-300'
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className={`text-xs font-medium ${isLast ? 'text-gray-800' : 'text-gray-500'}`}>{readableType}</p>
+                          <time className="shrink-0 text-xs text-gray-400 tabular-nums">
+                            {new Date(ev.createdAt).toLocaleString(undefined, {
+                              month: 'short', day: 'numeric',
+                              hour: '2-digit', minute: '2-digit',
+                            })}
+                          </time>
+                        </div>
                         {ev.fromValue && ev.toValue && (
-                          <p>{ev.fromValue} &rarr; {ev.toValue}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{ev.fromValue} → {ev.toValue}</p>
                         )}
-                        <p className="text-gray-400">
-                          {ev.actorEmail ?? 'System'}
-                          &nbsp;&middot;&nbsp;
-                          {new Date(ev.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
+                        {ev.actorEmail && (
+                          <p className="text-xs text-gray-400">{ev.actorEmail}</p>
+                        )}
+                      </li>
+                    )
+                  })}
                 </ol>
               </section>
             )}
 
             {/* ── Timestamps ───────────────────────────────────────────────── */}
-            <footer className="text-xs text-gray-400 space-y-0.5">
-              <p>Created {new Date(booking.createdAt).toLocaleString()}</p>
-              <p>Updated {new Date(booking.updatedAt).toLocaleString()}</p>
+            <footer className="flex items-center gap-4 text-xs text-gray-400 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" aria-hidden="true" />
+                <span>Created {new Date(booking.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span>Updated {new Date(booking.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+              </div>
             </footer>
           </>
         )}

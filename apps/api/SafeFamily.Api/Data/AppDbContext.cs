@@ -6,10 +6,13 @@ using SafeFamily.Api.Domain.Bookings;
 using SafeFamily.Api.Domain.Checklists;
 using SafeFamily.Api.Domain.Common;
 using SafeFamily.Api.Domain.Devices;
+using SafeFamily.Api.Domain.Entitlements;
 using SafeFamily.Api.Domain.Families;
 using SafeFamily.Api.Domain.Incidents;
+using SafeFamily.Api.Domain.Plans;
 using SafeFamily.Api.Domain.Reports;
 using SafeFamily.Api.Domain.Settings;
+using SafeFamily.Api.Domain.Tasks;
 using SafeFamily.Api.Domain.Users;
 
 namespace SafeFamily.Api.Data;
@@ -45,6 +48,11 @@ public class AppDbContext : DbContext
     public DbSet<FamilyNote> FamilyNotes => Set<FamilyNote>();
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<UserSettings> UserSettings => Set<UserSettings>();
+    public DbSet<Entitlement> Entitlements => Set<Entitlement>();
+    public DbSet<FamilySafetyPlan> FamilySafetyPlans => Set<FamilySafetyPlan>();
+    public DbSet<IncidentRecoveryPack> IncidentRecoveryPacks => Set<IncidentRecoveryPack>();
+    public DbSet<SafetyTask> SafetyTasks => Set<SafetyTask>();
+    public DbSet<TaskEvent> TaskEvents => Set<TaskEvent>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

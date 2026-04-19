@@ -18,10 +18,9 @@ export function useInitiatePayment() {
 
   return useMutation({
     mutationFn: (bookingId: string) => bookingsService.initiatePayment(bookingId),
-    onSuccess: (data, bookingId) => {
-      if (data.paymentUrl) {
-        window.open(data.paymentUrl, '_blank', 'noopener,noreferrer')
-      }
+    onSuccess: (_data, bookingId) => {
+      // Store the bookingId so the payment callback page can redirect back here.
+      sessionStorage.setItem('payment_booking_id', bookingId)
       queryClient.invalidateQueries({ queryKey: bookingKeys.detail(bookingId) })
       queryClient.invalidateQueries({ queryKey: bookingKeys.paymentOrders(bookingId) })
     },
@@ -33,10 +32,21 @@ export function useRetryPayment() {
 
   return useMutation({
     mutationFn: (bookingId: string) => bookingsService.retryPayment(bookingId),
-    onSuccess: (data, bookingId) => {
-      if (data.paymentUrl) {
-        window.open(data.paymentUrl, '_blank', 'noopener,noreferrer')
-      }
+    onSuccess: (_data, bookingId) => {
+      // Store the bookingId so the payment callback page can redirect back here.
+      sessionStorage.setItem('payment_booking_id', bookingId)
+      queryClient.invalidateQueries({ queryKey: bookingKeys.detail(bookingId) })
+      queryClient.invalidateQueries({ queryKey: bookingKeys.paymentOrders(bookingId) })
+    },
+  })
+}
+
+export function useSyncPaymentStatus() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (bookingId: string) => bookingsService.syncPaymentStatus(bookingId),
+    onSuccess: (_data, bookingId) => {
       queryClient.invalidateQueries({ queryKey: bookingKeys.detail(bookingId) })
       queryClient.invalidateQueries({ queryKey: bookingKeys.paymentOrders(bookingId) })
     },

@@ -40,3 +40,18 @@ public class UnauthorizedException : AppException
     public UnauthorizedException(string message = "Authentication is required.")
         : base(message, 401) { }
 }
+
+public class EntitlementRequiredException : AppException
+{
+    /// <summary>The entitlement type name that is missing, returned in the error payload.</summary>
+    public string RequiredEntitlement { get; }
+
+    public EntitlementRequiredException(string productName, string requiredEntitlement)
+        : base(
+            $"Access to '{productName}' requires an active subscription. " +
+            $"Purchase a qualifying package to unlock this feature.",
+            402)
+    {
+        RequiredEntitlement = requiredEntitlement;
+    }
+}

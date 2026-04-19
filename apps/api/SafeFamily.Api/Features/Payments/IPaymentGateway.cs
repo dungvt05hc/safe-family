@@ -55,4 +55,13 @@ public interface IPaymentGateway
     /// <see cref="WebhookPaymentEvent"/> structure.
     /// </summary>
     WebhookPaymentEvent ParseWebhookEvent(string rawBody);
+
+    /// <summary>
+    /// Actively queries the gateway API for the current status of a payment order.
+    /// Used as a fallback when webhooks are unavailable (e.g. local development).
+    /// Returns <c>null</c> if the gateway does not support active status polling.
+    /// </summary>
+    Task<GatewayStatusResult?> QueryStatusAsync(
+        PaymentOrder order,
+        CancellationToken ct = default);
 }

@@ -104,4 +104,9 @@ public sealed class MockPaymentGateway : IPaymentGateway
 
         return new WebhookPaymentEvent(gatewayOrderId, eventType, transactionId, amount, null, rawBody);
     }
+
+    /// <inheritdoc />
+    /// <remarks>The mock gateway does not support active status polling.</remarks>
+    public Task<GatewayStatusResult?> QueryStatusAsync(PaymentOrder order, CancellationToken ct = default)
+        => Task.FromResult<GatewayStatusResult?>(null);
 }

@@ -25,22 +25,22 @@ namespace SafeFamily.Api.Features.Payments.Gateways;
 ///
 /// To activate:
 ///   Set PaymentSettings:DefaultProvider = "zalopay"
-///   and fill in PaymentSettings:ZalaPay:AppId, Key1, Key2, and RedirectUrl
+///   and fill in PaymentSettings:ZaloPay:AppId, Key1, Key2, and RedirectUrl
 ///   in your environment / secrets.
 /// </summary>
-public sealed class ZalaPayGateway : IPaymentGateway
+public sealed class ZaloPayGateway : IPaymentGateway
 {
     private readonly IHttpClientFactory _httpFactory;
-    private readonly ZalaPaySettings _cfg;
-    private readonly ILogger<ZalaPayGateway> _logger;
+    private readonly ZaloPaySettings _cfg;
+    private readonly ILogger<ZaloPayGateway> _logger;
 
-    public ZalaPayGateway(
+    public ZaloPayGateway(
         IHttpClientFactory httpFactory,
         IOptions<PaymentSettings> settings,
-        ILogger<ZalaPayGateway> logger)
+        ILogger<ZaloPayGateway> logger)
     {
         _httpFactory = httpFactory;
-        _cfg    = settings.Value.ZalaPay;
+        _cfg    = settings.Value.ZaloPay;
         _logger = logger;
     }
 
@@ -89,7 +89,7 @@ public sealed class ZalaPayGateway : IPaymentGateway
             "[ZaloPay] Creating order. AppTransId={TransId} Amount={Amount}VND BookingId={BookingId}",
             transId, amount, booking.Id);
 
-        var http     = _httpFactory.CreateClient("zalapay");
+        var http     = _httpFactory.CreateClient("zalopay");
         var response = await http.PostAsJsonAsync("/v2/create", body, ct);
         var json     = await response.Content.ReadAsStringAsync(ct);
 
@@ -191,6 +191,11 @@ public sealed class ZalaPayGateway : IPaymentGateway
 
         return new WebhookPaymentEvent(gatewayOrderId, eventType, zpTransId, amount, null, rawBody);
     }
+
+    /// <inheritdoc />
+    /// <remarks>ZaloPay status polling is not yet implemented; webhook is the primary notification channel.</remarks>
+    public Task<GatewayStatusResult?> QueryStatusAsync(PaymentOrder order, CancellationToken ct = default)
+        => Task.FromResult<GatewayStatusResult?>(null);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
