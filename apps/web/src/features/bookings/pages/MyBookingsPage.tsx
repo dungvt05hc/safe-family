@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CalendarDays, ChevronRight, Clock, CreditCard, PlusCircle, RotateCcw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Badge, Button, LoadingState, Alert, Spinner } from '@/components/ui'
 import { NoBookingsEmpty } from '@/components/ui/entity-empty-states'
@@ -22,6 +23,7 @@ import {
 function PaymentActionStrip({ booking }: { booking: BookingResult }) {
   const initiate = useInitiatePayment()
   const retry = useRetryPayment()
+  const { t } = useTranslation('bookings')
 
   const isTerminal = ['Completed', 'Cancelled', 'Expired'].includes(booking.status)
   if (isTerminal || booking.packagePrice === 0) return null
@@ -30,9 +32,9 @@ function PaymentActionStrip({ booking }: { booking: BookingResult }) {
     return (
       <div className="flex items-center gap-3 border-t border-amber-100 bg-amber-50 px-5 py-3">
         <CreditCard className="h-4 w-4 shrink-0 text-amber-600" />
-        <p className="flex-1 text-xs text-amber-700">Payment required to confirm your booking</p>
+        <p className="flex-1 text-xs text-amber-700">{t('payment.required')}</p>
         {initiate.isError && (
-          <span className="text-xs text-red-500">Failed — try again</span>
+          <span className="text-xs text-red-500">{t('payment.failedAction')}</span>
         )}
         <Button
           size="sm"
@@ -40,7 +42,7 @@ function PaymentActionStrip({ booking }: { booking: BookingResult }) {
           loading={initiate.isPending}
           onClick={(e) => { e.stopPropagation(); initiate.mutate(booking.id) }}
         >
-          Pay now
+          {t('payment.payNow')}
         </Button>
       </div>
     )
@@ -50,7 +52,7 @@ function PaymentActionStrip({ booking }: { booking: BookingResult }) {
     return (
       <div className="flex items-center gap-3 border-t border-blue-100 bg-blue-50 px-5 py-3">
         <Spinner size="sm" />
-        <p className="flex-1 text-xs text-blue-700">Waiting for payment confirmation</p>
+        <p className="flex-1 text-xs text-blue-700">{t('payment.waitingConfirmation')}</p>
       </div>
     )
   }
@@ -62,11 +64,11 @@ function PaymentActionStrip({ booking }: { booking: BookingResult }) {
         <RotateCcw className="h-4 w-4 shrink-0 text-red-500" />
         <p className="flex-1 text-xs text-red-700">
           {isFailed
-            ? 'Payment was declined — you can try again'
-            : 'Payment window expired — start a new session'}
+            ? t('payment.failedRetry')
+            : t('payment.expired')}
         </p>
         {retry.isError && (
-          <span className="text-xs text-red-500">Failed — try again</span>
+          <span className="text-xs text-red-500">{t('payment.failedAction')}</span>
         )}
         <Button
           size="sm"
@@ -74,7 +76,7 @@ function PaymentActionStrip({ booking }: { booking: BookingResult }) {
           loading={retry.isPending}
           onClick={(e) => { e.stopPropagation(); sessionStorage.setItem('payment_package_code', booking.packageCode); retry.mutate(booking.id) }}
         >
-          Retry
+          {t('payment.retry')}
         </Button>
       </div>
     )
@@ -187,22 +189,23 @@ function BookingRow({ booking, index }: { booking: BookingResult; index: number 
 export function MyBookingsPage() {
   const navigate = useNavigate()
   const { data: bookings, isLoading, isError } = useMyBookings()
+  const { t } = useTranslation('bookings')
 
   return (
     <PageLayout
-      title="My Bookings"
-      description="Your upcoming and past safety sessions."
+      title={t('myBookings.title')}
+      description={t('myBookings.description')}
       action={
         <Button size="sm" onClick={() => navigate('/bookings')}>
           <PlusCircle className="h-4 w-4" />
-          Book a Session
+          {t('myBookings.bookSession')}
         </Button>
       }
     >
       {isLoading && <LoadingState />}
 
       {isError && (
-        <Alert variant="error">Failed to load bookings. Please refresh and try again.</Alert>
+        <Alert variant="error">{t('myBookings.loadError')}</Alert>
       )}
 
       {!isLoading && !isError && (!bookings || bookings.length === 0) && (

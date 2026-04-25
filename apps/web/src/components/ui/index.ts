@@ -40,6 +40,9 @@ export type { EmptyStateProps } from './EmptyState'
 export { LockedFeature }    from './LockedFeature'
 export type { LockedFeatureProps } from './LockedFeature'
 
+export { FeatureComingSoon } from './FeatureComingSoon'
+export type { FeatureComingSoonProps } from './FeatureComingSoon'
+
 export { PremiumLockedState }  from './PremiumLockedState'
 export type { PremiumLockedStateProps, PremiumProduct } from './PremiumLockedState'
 export { PRODUCT_CONFIGS }     from './PremiumLockedState'

@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion'
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { NAV_GROUPS, type NavGroup } from './nav-items'
 import { navItemVariants } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { useFeatureFlags } from '@/lib/featureFlags'
 
 // motion(NavLink) preserves the isActive function-className contract while
 // adding framer-motion animation support.
@@ -24,14 +26,28 @@ interface NavContentProps {
  * Shared grouped navigation list.
  * Renders NAV_GROUPS with labelled sections and per-item stagger animations.
  * Used by both Sidebar (desktop) and MobileSidebar (mobile drawer).
+ * Items tagged with `featureFlag` are hidden when that flag is disabled.
  */
 export function NavContent({ onItemClick, itemDelay = 0, navGroups }: NavContentProps) {
-  const groups = navGroups ?? NAV_GROUPS
+  const flags = useFeatureFlags()
+  const { t } = useTranslation('nav')
+  const rawGroups = navGroups ?? NAV_GROUPS
+
+  // Filter out items whose feature flag is disabled, then drop empty groups.
+  const visibleGroups = rawGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => item.featureFlag === undefined || flags[item.featureFlag],
+      ),
+    }))
+    .filter((group) => group.items.length > 0)
+
   // Precompute each group's global stagger-start index so the stagger delay
   // increments continuously across groups rather than resetting to 0 each time.
-  const groupsWithOffset = groups.map((group, gi) => ({
+  const groupsWithOffset = visibleGroups.map((group, gi) => ({
     ...group,
-    startIdx: groups.slice(0, gi).reduce((sum, g) => sum + g.items.length, 0),
+    startIdx: visibleGroups.slice(0, gi).reduce((sum, g) => sum + g.items.length, 0),
   }))
 
   return (
@@ -45,7 +61,7 @@ export function NavContent({ onItemClick, itemDelay = 0, navGroups }: NavContent
         <div key={group.label} className="mb-1">
           {/* Group label */}
           <p className="px-3 pt-4 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500 select-none first:pt-2">
-            {group.label}
+            {t(group.label as Parameters<typeof t>[0])}
           </p>
 
           {/* Nav items */}
@@ -70,7 +86,7 @@ export function NavContent({ onItemClick, itemDelay = 0, navGroups }: NavContent
                 }
               >
                 <item.icon className="w-4 h-4 shrink-0" aria-hidden="true" />
-                {item.label}
+                {t(item.label as Parameters<typeof t>[0])}
               </MotionNavLink>
             ))}
           </div>

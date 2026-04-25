@@ -1,23 +1,10 @@
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import type { CreateFamilyFormValues } from '../families.types'
 import type { ApiError } from '@/types/api'
-
-const schema = z.object({
-  displayName: z
-    .string()
-    .min(1, 'Family name is required')
-    .max(200, 'Family name must be 200 characters or fewer'),
-  countryCode: z
-    .string()
-    .length(2, 'Enter a valid 2-letter country code')
-    .toUpperCase(),
-  timezone: z
-    .string()
-    .min(1, 'Timezone is required')
-    .max(100, 'Timezone must be 100 characters or fewer'),
-})
 
 interface Props {
   onSubmit: (values: CreateFamilyFormValues) => void
@@ -26,16 +13,38 @@ interface Props {
 }
 
 export function FamilyCreateForm({ onSubmit, error, isSubmitting }: Props) {
+  const { t } = useTranslation('common')
+  const { t: tv } = useTranslation('validation')
+  const { t: te } = useTranslation('errors')
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        displayName: z
+          .string()
+          .min(1, tv('familyName.required'))
+          .max(200, tv('familyName.max')),
+        countryCode: z
+          .string()
+          .length(2, tv('countryCode.length'))
+          .toUpperCase(),
+        timezone: z
+          .string()
+          .min(1, tv('timezone.required'))
+          .max(100, tv('timezone.max')),
+      }),
+    [tv],
+  )
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<CreateFamilyFormValues>({ resolver: zodResolver(schema) })
 
-  const serverMessage =
-    error?.isConflict
-      ? 'You already belong to a family.'
-      : (error?.message ?? null)
+  const serverMessage = error?.isConflict
+    ? te('mutation.familyConflict')
+    : (error ? te('unknown') : null)
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
@@ -48,7 +57,7 @@ export function FamilyCreateForm({ onSubmit, error, isSubmitting }: Props) {
       {/* Family name */}
       <div>
         <label htmlFor="displayName" className="mb-1.5 block text-sm font-medium text-gray-700">
-          Family name
+          {t('familyName')}
         </label>
         <input
           id="displayName"
@@ -66,7 +75,7 @@ export function FamilyCreateForm({ onSubmit, error, isSubmitting }: Props) {
       {/* Country code */}
       <div>
         <label htmlFor="countryCode" className="mb-1.5 block text-sm font-medium text-gray-700">
-          Country code
+          {t('countryCode')}
         </label>
         <input
           id="countryCode"
@@ -76,7 +85,7 @@ export function FamilyCreateForm({ onSubmit, error, isSubmitting }: Props) {
           {...register('countryCode')}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        <p className="mt-1 text-xs text-gray-400">ISO 3166-1 alpha-2 (e.g. US, BR, GB)</p>
+        <p className="mt-1 text-xs text-gray-400">{t('countryCodeHint')}</p>
         {errors.countryCode && (
           <p className="mt-1 text-xs text-red-500">{errors.countryCode.message}</p>
         )}
@@ -85,7 +94,7 @@ export function FamilyCreateForm({ onSubmit, error, isSubmitting }: Props) {
       {/* Timezone */}
       <div>
         <label htmlFor="timezone" className="mb-1.5 block text-sm font-medium text-gray-700">
-          Timezone
+          {t('timezone')}
         </label>
         <input
           id="timezone"
@@ -94,7 +103,7 @@ export function FamilyCreateForm({ onSubmit, error, isSubmitting }: Props) {
           {...register('timezone')}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-        <p className="mt-1 text-xs text-gray-400">IANA timezone (e.g. Europe/London)</p>
+        <p className="mt-1 text-xs text-gray-400">{t('timezoneHint')}</p>
         {errors.timezone && (
           <p className="mt-1 text-xs text-red-500">{errors.timezone.message}</p>
         )}
@@ -105,7 +114,7 @@ export function FamilyCreateForm({ onSubmit, error, isSubmitting }: Props) {
         disabled={isSubmitting}
         className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
       >
-        {isSubmitting ? 'Creating…' : 'Create family'}
+        {isSubmitting ? t('creatingFamily') : t('createFamily')}
       </button>
     </form>
   )

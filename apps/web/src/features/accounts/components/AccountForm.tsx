@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import {
   ACCOUNT_TYPES,
   ACCOUNT_TYPE_LABELS,
@@ -12,22 +14,10 @@ import {
 } from '../accounts.types'
 import type { FamilyMember } from '@/features/families/families.types'
 
-const schema = z.object({
-  memberId: z.string().optional().default(''),
-  accountType: z.enum([
-    'Email', 'SocialMedia', 'Banking', 'Shopping', 'Streaming',
-    'Gaming', 'Government', 'Healthcare', 'Insurance', 'Utility', 'Work', 'Other',
-  ] as const, { errorMap: () => ({ message: 'Select an account type' }) }),
-  maskedIdentifier: z
-    .string()
-    .min(1, 'Identifier is required')
-    .max(255, 'Must be 255 characters or fewer'),
-  twoFactorStatus: z.enum(['Unknown', 'Enabled', 'Disabled'] as const),
-  recoveryEmailStatus: z.enum(['Unknown', 'Set', 'NotSet'] as const),
-  recoveryPhoneStatus: z.enum(['Unknown', 'Set', 'NotSet'] as const),
-  suspiciousActivityFlag: z.boolean().default(false),
-  notes: z.string().max(1000).optional().default(''),
-})
+const ACCOUNT_TYPE_VALUES = [
+  'Email', 'SocialMedia', 'Banking', 'Shopping', 'Streaming',
+  'Gaming', 'Government', 'Healthcare', 'Insurance', 'Utility', 'Work', 'Other',
+] as const
 
 interface Props {
   members: FamilyMember[]
@@ -55,6 +45,28 @@ export function AccountForm({
   submitLabel = 'Save',
   serverError,
 }: Props) {
+  const { t: tv } = useTranslation('validation')
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        memberId: z.string().optional().default(''),
+        accountType: z.enum(ACCOUNT_TYPE_VALUES, {
+          errorMap: () => ({ message: tv('accountType.required') }),
+        }),
+        maskedIdentifier: z
+          .string()
+          .min(1, tv('identifier.required'))
+          .max(255, tv('identifier.max')),
+        twoFactorStatus: z.enum(['Unknown', 'Enabled', 'Disabled'] as const),
+        recoveryEmailStatus: z.enum(['Unknown', 'Set', 'NotSet'] as const),
+        recoveryPhoneStatus: z.enum(['Unknown', 'Set', 'NotSet'] as const),
+        suspiciousActivityFlag: z.boolean().default(false),
+        notes: z.string().max(1000, tv('notes.max')).optional().default(''),
+      }),
+    [tv],
+  )
+
   const {
     register,
     handleSubmit,

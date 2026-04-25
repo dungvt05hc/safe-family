@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, Button, LoadingState } from '@/components/ui'
 import { ApiError } from '@/types/api'
 import { useEntitlements } from '@/features/entitlements/EntitlementProvider'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import { DEFAULT_FILTERS, type ChecklistFilters } from './checklist.types'
 import { useChecklistItems } from './checklist.hooks'
 import { ChecklistSummary } from './components/ChecklistSummary'
@@ -16,7 +18,9 @@ import { ChecklistList } from './components/ChecklistList'
 export function ChecklistPage() {
   const { data: items = [], isLoading, isError, error } = useChecklistItems()
   const { hasEntitlement } = useEntitlements()
+  const { bookingEnabled } = useFeatureFlags()
   const navigate = useNavigate()
+  const { t } = useTranslation('checklist')
 
   const hasPremiumChecklist = hasEntitlement('PremiumChecklistAccess')
 
@@ -45,8 +49,8 @@ export function ChecklistPage() {
 
   return (
     <PageLayout
-      title="Checklist"
-      description="Track the most important actions to improve your family's digital safety."
+      title={t('title')}
+      description={t('description')}
     >
       {/* Loading */}
       {isLoading && <LoadingState />}
@@ -54,7 +58,7 @@ export function ChecklistPage() {
       {/* Error */}
       {isError && (
         <Alert variant="error">
-          {error instanceof ApiError ? error.message : 'Failed to load your checklist.'}
+          {error instanceof ApiError ? error.message : t('loadError')}
         </Alert>
       )}
 
@@ -66,19 +70,21 @@ export function ChecklistPage() {
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
               <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-hidden="true" />
               <div className="flex-1 text-sm">
-                <p className="font-medium text-amber-800">Some checklist items are hidden</p>
+                <p className="font-medium text-amber-800">{t('lockedBanner.title')}</p>
                 <p className="mt-0.5 text-amber-700">
-                  Checklist items generated from your safety consultation are included with the Family Core or Annual Plan.
+                  {t('lockedBanner.body')}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100"
-                onClick={() => navigate('/bookings')}
-              >
-                Unlock
-              </Button>
+              {bookingEnabled && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100"
+                  onClick={() => navigate('/bookings')}
+                >
+                  {t('lockedBanner.unlock')}
+                </Button>
+              )}
             </div>
           )}
 

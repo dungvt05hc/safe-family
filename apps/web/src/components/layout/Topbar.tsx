@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Menu, Search, Bell, LogOut, ChevronDown, User, Settings } from 'lucide-react'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 import { cn } from '@/lib/utils'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 interface TopbarProps {
   title: string
@@ -14,6 +16,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
   const { data: user } = useCurrentUser()
   const logout = useLogout()
   const navigate = useNavigate()
+  const { t } = useTranslation('topbar')
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -47,7 +50,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
       {/* Mobile hamburger */}
       <button
         onClick={onMenuClick}
-        aria-label="Open navigation"
+        aria-label={t('openNavigation')}
         className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >
         <Menu className="w-5 h-5" />
@@ -61,15 +64,15 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
         <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
         <input
           type="search"
-          placeholder="Search…"
-          aria-label="Search"
+          placeholder={t('searchPlaceholder')}
+          aria-label={t('searchPlaceholder')}
           className="flex-1 bg-transparent outline-none placeholder:text-gray-400 text-gray-800"
         />
       </div>
 
       {/* Notification bell */}
       <button
-        aria-label="Notifications"
+        aria-label={t('notifications')}
         className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >
         <Bell className="w-5 h-5" />
@@ -80,13 +83,16 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
         />
       </button>
 
+      {/* Language switcher */}
+      <LanguageSwitcher />
+
       {/* Avatar dropdown */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen((v) => !v)}
           aria-haspopup="menu"
           aria-expanded={dropdownOpen}
-          aria-label="Account menu"
+          aria-label={t('accountMenu')}
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors"
         >
           <span
@@ -124,7 +130,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
               className="flex w-full items-center gap-2.5 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <User className="w-4 h-4 text-gray-400" aria-hidden="true" />
-              Profile
+              {t('profile')}
             </button>
 
             <button
@@ -133,7 +139,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
               className="flex w-full items-center gap-2.5 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <Settings className="w-4 h-4 text-gray-400" aria-hidden="true" />
-              Settings
+              {t('settings')}
             </button>
 
             <div className="border-t border-gray-100 mt-1" />
@@ -145,7 +151,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
               className="flex w-full items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
             >
               <LogOut className="w-4 h-4" aria-hidden="true" />
-              {logout.isPending ? 'Signing out…' : 'Sign out'}
+              {logout.isPending ? t('signingOut') : t('signOut')}
             </button>
           </div>
         )}

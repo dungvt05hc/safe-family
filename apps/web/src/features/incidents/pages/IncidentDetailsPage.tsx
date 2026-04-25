@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarClock, CalendarPlus, ListChecks } from 'lucide-react
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, Badge, Button, LoadingState } from '@/components/ui'
 import { fadeUpVariants } from '@/lib/motion'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import { useIncident } from '../hooks/useIncidentQueries'
 import {
   INCIDENT_TYPE_CONFIG,
@@ -17,6 +18,7 @@ import {
 export function IncidentDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { bookingEnabled } = useFeatureFlags()
   const { data: incident, isLoading, isError } = useIncident(id ?? '')
 
   if (isLoading) {
@@ -106,8 +108,10 @@ export function IncidentDetailsPage() {
           className="mb-5"
         >
           <Alert variant="warning">
-            This is a <strong>{incident.severity.toLowerCase()}-severity</strong> incident. Book a
-            session with a SafeFamily advisor for personalised support.
+            This is a <strong>{incident.severity.toLowerCase()}-severity</strong> incident.
+            {bookingEnabled
+              ? ' Book a session with a SafeFamily advisor for personalised support.'
+              : ' Contact a SafeFamily advisor for personalised support.'}
           </Alert>
         </motion.div>
       )}
@@ -143,10 +147,12 @@ export function IncidentDetailsPage() {
         animate="visible"
         className="flex flex-wrap gap-3"
       >
-        <Button variant="primary" onClick={() => navigate('/bookings')}>
-          <CalendarPlus className="w-4 h-4" aria-hidden="true" />
-          Book help
-        </Button>
+        {bookingEnabled && (
+          <Button variant="primary" onClick={() => navigate('/bookings')}>
+            <CalendarPlus className="w-4 h-4" aria-hidden="true" />
+            Book help
+          </Button>
+        )}
         <Button variant="outline" onClick={() => navigate('/checklists')}>
           <ListChecks className="w-4 h-4" aria-hidden="true" />
           View checklist

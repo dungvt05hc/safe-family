@@ -10,7 +10,7 @@ import { useArchiveDevice } from '../hooks/useDeviceMutations'
 import { AddDeviceModal } from '../components/AddDeviceModal'
 import { EditDeviceModal } from '../components/EditDeviceModal'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
-import { ApiError } from '@/types/api'
+import { useApiError } from '@/lib/i18n/useApiError'
 import type { Device, DeviceFilters, SupportStatus } from '../devices.types'
 import { SUPPORT_STATUSES, SUPPORT_STATUS_LABELS } from '../devices.types'
 import { useDeviceTypes } from '../deviceCatalog.hooks'
@@ -41,6 +41,7 @@ export function DevicesPage() {
   const { mutate: archive } = useArchiveDevice()
   const [showAdd, setShowAdd] = useState(false)
   const [editTarget, setEditTarget] = useState<Device | null>(null)
+  const loadError = useApiError(error, 'load.devices')
 
   function memberName(memberId: string | null) {
     if (!memberId) return null
@@ -120,7 +121,7 @@ export function DevicesPage() {
 
       {isError && (
         <Alert variant="error">
-          {error instanceof ApiError ? error.message : 'Failed to load devices.'}
+          {loadError}
         </Alert>
       )}
 

@@ -2,11 +2,13 @@ import { motion } from 'framer-motion'
 import { Crown, CalendarCheck, ShieldCheck, Package } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useEntitlements } from '@/features/entitlements/EntitlementProvider'
+import { useFeatureFlags } from '@/lib/featureFlags'
 
 // ── Subscriber benefits card ──────────────────────────────────────────────────
 
 function SubscriberCard() {
   const navigate = useNavigate()
+  const { plansEnabled } = useFeatureFlags()
 
   return (
     <motion.div
@@ -44,21 +46,25 @@ function SubscriberCard() {
 
       {/* Quick links */}
       <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => navigate('/plans/safety')}
-          className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
-        >
-          View Safety Plans →
-        </button>
-        <span className="text-indigo-300">·</span>
-        <button
-          type="button"
-          onClick={() => navigate('/plans/incident-recovery')}
-          className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
-        >
-          Recovery Packs →
-        </button>
+        {plansEnabled && (
+          <>
+            <button
+              type="button"
+              onClick={() => navigate('/plans/safety')}
+              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
+            >
+              View Safety Plans →
+            </button>
+            <span className="text-indigo-300">·</span>
+            <button
+              type="button"
+              onClick={() => navigate('/plans/incident-recovery')}
+              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
+            >
+              Recovery Packs →
+            </button>
+          </>
+        )}
       </div>
     </motion.div>
   )
@@ -68,6 +74,7 @@ function SubscriberCard() {
 
 function UpgradeCard() {
   const navigate = useNavigate()
+  const { bookingEnabled } = useFeatureFlags()
 
   return (
     <motion.div
@@ -85,13 +92,15 @@ function UpgradeCard() {
           <p className="mt-0.5 text-xs text-gray-500 leading-relaxed">
             Get unlimited Safety Plans, priority incident response, and quarterly updates for your entire family.
           </p>
-          <button
-            type="button"
-            onClick={() => navigate('/bookings')}
-            className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-          >
-            View packages →
-          </button>
+          {bookingEnabled && (
+            <button
+              type="button"
+              onClick={() => navigate('/bookings')}
+              className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              View packages →
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
@@ -103,14 +112,21 @@ function UpgradeCard() {
 /**
  * AnnualPlanCard — a dashboard section that either shows subscriber benefits
  * (when AnnualPlanSubscription entitlement is active) or a soft upgrade CTA.
+ * Hidden entirely when both bookings and plans are disabled.
  */
 export function AnnualPlanCard() {
   const { hasEntitlement, isLoading } = useEntitlements()
+  const { plansEnabled, bookingEnabled } = useFeatureFlags()
 
   // Don't flash during initial load.
   if (isLoading) return null
 
-  return hasEntitlement('AnnualPlanSubscription')
-    ? <SubscriberCard />
-    : <UpgradeCard />
+  // Subscriber card requires plans to be navigable; upgrade card requires
+  // at least one of plans or bookings to show actionable content.
+  const showSubscriberCard = hasEntitlement('AnnualPlanSubscription') && plansEnabled
+  const showUpgradeCard    = !hasEntitlement('AnnualPlanSubscription') && (plansEnabled || bookingEnabled)
+
+  if (!showSubscriberCard && !showUpgradeCard) return null
+
+  return showSubscriberCard ? <SubscriberCard /> : <UpgradeCard />
 }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useUpdateAccount } from '../hooks/useAccountMutations'
 import { AccountForm } from './AccountForm'
 import type { Account, AccountFormValues } from '../accounts.types'
-import { ApiError } from '@/types/api'
+import { useApiError } from '@/lib/i18n/useApiError'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 
 interface Props {
@@ -13,7 +13,8 @@ interface Props {
 export function EditAccountModal({ account, onClose }: Props) {
   const { mutate, isPending } = useUpdateAccount(account.id)
   const { data: members = [] } = useFamilyMembers()
-  const [serverError, setServerError] = useState<string | null>(null)
+  const [mutationError, setMutationError] = useState<unknown>(null)
+  const serverError = useApiError(mutationError, 'mutation.generic')
 
   const defaultValues: AccountFormValues = {
     memberId: account.memberId ?? '',
@@ -27,12 +28,10 @@ export function EditAccountModal({ account, onClose }: Props) {
   }
 
   function handleSubmit(values: AccountFormValues) {
-    setServerError(null)
+    setMutationError(null)
     mutate(values, {
       onSuccess: () => onClose(),
-      onError: (err) => {
-        setServerError(err instanceof ApiError ? err.message : 'Something went wrong.')
-      },
+      onError: (err) => setMutationError(err),
     })
   }
 

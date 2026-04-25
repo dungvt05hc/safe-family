@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { ShieldCheck, CalendarDays, AlertTriangle, Link as LinkIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, Card, CardContent, EmptyState, LoadingState, LockedFeature } from '@/components/ui'
 import { fadeUpVariants } from '@/lib/motion'
@@ -20,6 +21,7 @@ const STATUS_BADGE: Record<string, string> = {
 // ── Single plan card ──────────────────────────────────────────────────────────
 
 function SafetyPlanCard({ plan, index }: { plan: FamilySafetyPlan; index: number }) {
+  const { t } = useTranslation('plans')
   const date = new Date(plan.createdAt).toLocaleDateString('en-AU', {
     day: 'numeric', month: 'short', year: 'numeric',
   })
@@ -40,7 +42,7 @@ function SafetyPlanCard({ plan, index }: { plan: FamilySafetyPlan; index: number
                 <ShieldCheck className="h-5 w-5 text-blue-500" aria-hidden="true" />
               </span>
               <div>
-                <p className="font-semibold text-gray-900 text-sm">Family Safety Plan</p>
+                <p className="font-semibold text-gray-900 text-sm">{t('safetyPlans.card.title')}</p>
                 <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-400">
                   <CalendarDays className="h-3 w-3" aria-hidden="true" />
                   {date}
@@ -60,7 +62,7 @@ function SafetyPlanCard({ plan, index }: { plan: FamilySafetyPlan; index: number
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
               <span className="text-xs text-gray-600">
-                Risk level:{' '}
+                {t('safetyPlans.card.riskLevel')}:{' '}
                 <span className="font-medium text-amber-700">{plan.assessmentRiskLevel}</span>
                 {plan.assessmentOverallScore !== null && (
                   <span className="ml-1 text-gray-400">({plan.assessmentOverallScore}/100)</span>
@@ -73,23 +75,23 @@ function SafetyPlanCard({ plan, index }: { plan: FamilySafetyPlan; index: number
 
           {/* Section grid */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <PlanSection title="Top Risks" content={plan.topRisks} />
-            <PlanSection title="Top Priorities" content={plan.topPriorities} />
-            <PlanSection title="Action Plan — Members" content={plan.actionPlanByMember} />
-            <PlanSection title="Action Plan — Devices" content={plan.actionPlanByDevice} />
+            <PlanSection title={t('safetyPlans.card.topRisks')}         content={plan.topRisks} />
+            <PlanSection title={t('safetyPlans.card.topPriorities')}    content={plan.topPriorities} />
+            <PlanSection title={t('safetyPlans.card.actionPlanMembers')} content={plan.actionPlanByMember} />
+            <PlanSection title={t('safetyPlans.card.actionPlanDevices')} content={plan.actionPlanByDevice} />
           </div>
 
           {/* Footer: linked booking */}
           <div className="flex items-center gap-1.5 text-xs text-gray-400 pt-1">
             <LinkIcon className="h-3 w-3" aria-hidden="true" />
             <Link to={`/bookings/${plan.bookingId}`} className="hover:text-blue-600 hover:underline">
-              View booking
+              {t('safetyPlans.card.viewBooking')}
             </Link>
             {plan.sourceAssessmentId && (
               <>
                 <span>·</span>
                 <Link to="/assessment/history" className="hover:text-blue-600 hover:underline">
-                  Source assessment
+                  {t('safetyPlans.card.sourceAssessment')}
                 </Link>
               </>
             )}
@@ -109,24 +111,29 @@ function PlanSection({ title, content }: { title: string; content: string }) {
   )
 }
 
+// ── SafetyPlanCard internal labels ────────────────────────────────────────────
+// These sub-labels (Risk level:, Top Risks, etc.) are rendered inside the card
+// but need t() from a parent that calls useTranslation. We pass them as strings.
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function SafetyPlansPage() {
   const { hasEntitlement, isLoading: entLoading } = useEntitlements()
   const { data: plans = [], isLoading, isError, error } = useSafetyPlans()
+  const { t } = useTranslation('plans')
 
   // Show locked state immediately (without fetching) when we know there's no entitlement.
   if (!entLoading && !hasEntitlement('FamilySafetyPlanAccess')) {
     return (
       <PageLayout
-        title="Family Safety Plans"
-        description="Personalised safety roadmaps generated for your family."
+        title={t('safetyPlans.title')}
+        description={t('safetyPlans.description')}
       >
         <LockedFeature
-          title="Family Safety Plans are locked"
-          description="Your personalised family safety plan — including risk analysis and action items — is generated after completing a Family Safety session."
-          packageName="Family Core or Annual Plan"
-          ctaLabel="View packages"
+          title={t('safetyPlans.lockedTitle')}
+          description={t('safetyPlans.lockedDescription')}
+          packageName={t('safetyPlans.lockedPackage')}
+          ctaLabel={t('safetyPlans.lockedCta')}
           ctaPath="/bookings"
         />
       </PageLayout>
@@ -135,26 +142,26 @@ export function SafetyPlansPage() {
 
   return (
     <PageLayout
-      title="Family Safety Plans"
-      description="Personalised safety roadmaps generated for your family."
+      title={t('safetyPlans.title')}
+      description={t('safetyPlans.description')}
     >
       {(isLoading || entLoading) && <LoadingState />}
 
       {isError && (
         <Alert variant="error">
           {error instanceof ApiError && error.isPaymentRequired
-            ? 'Access to Family Safety Plans requires an active subscription.'
+            ? t('safetyPlans.error.subscription')
             : error instanceof ApiError
             ? error.message
-            : 'Failed to load safety plans.'}
+            : t('safetyPlans.error.generic')}
         </Alert>
       )}
 
       {!isLoading && !isError && plans.length === 0 && (
         <EmptyState
           icon={ShieldCheck}
-          title="Your safety plan is being prepared"
-          description="Our advisors are reviewing your family details and building your personalised safety plan. We'll notify you when it's ready."
+          title={t('safetyPlans.empty.title')}
+          description={t('safetyPlans.empty.description')}
         />
       )}
 

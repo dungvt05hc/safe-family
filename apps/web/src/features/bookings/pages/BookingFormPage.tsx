@@ -1,4 +1,5 @@
 import { useState, type ComponentType } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -28,91 +29,37 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-const HELP_TOPICS: string[] = [
-  'Account security & passwords',
-  'Phishing or suspicious messages',
-  'Data breach or leaked information',
-  'Social media safety',
-  'Device security & malware',
-  'Online scams & fraud',
-  'Child online safety',
-  'Privacy settings',
-  'Identity theft',
-]
-
-const URGENCY_OPTIONS: {
+// ── Visual-only static data (all text comes from i18n) ────────────────────
+type UrgencyColor = { border: string; bg: string; text: string; icon: string }
+const URGENCY_STATICS: {
   value: BookingUrgency
   icon: ComponentType<{ className?: string }>
-  label: string
-  body: string
-  color: { border: string; bg: string; text: string; icon: string }
+  color: UrgencyColor
 }[] = [
-  {
-    value: 'Routine',
-    icon:  Clock,
-    label: 'No rush',
-    body:  "I'd like to improve our safety, but there's no immediate threat.",
-    color: { border: 'border-blue-400', bg: 'bg-blue-50', text: 'text-blue-900', icon: 'text-blue-500' },
-  },
-  {
-    value: 'Urgent',
-    icon:  AlertTriangle,
-    label: 'Needs attention',
-    body:  'Something concerning has happened recently and I want to sort it out.',
-    color: { border: 'border-amber-400', bg: 'bg-amber-50', text: 'text-amber-900', icon: 'text-amber-500' },
-  },
-  {
-    value: 'Critical',
-    icon:  ShieldAlert,
-    label: 'Active issue — urgent',
-    body:  "We're dealing with an active problem right now and need immediate guidance.",
-    color: { border: 'border-red-400', bg: 'bg-red-50', text: 'text-red-900', icon: 'text-red-500' },
-  },
+  { value: 'Routine',  icon: Clock,        color: { border: 'border-blue-400',  bg: 'bg-blue-50',  text: 'text-blue-900',  icon: 'text-blue-500'  } },
+  { value: 'Urgent',   icon: AlertTriangle, color: { border: 'border-amber-400', bg: 'bg-amber-50', text: 'text-amber-900', icon: 'text-amber-500' } },
+  { value: 'Critical', icon: ShieldAlert,   color: { border: 'border-red-400',   bg: 'bg-red-50',   text: 'text-red-900',   icon: 'text-red-500'   } },
 ]
 
-const HOW_IT_WORKS: { Icon: ComponentType<{ className?: string }>; title: string; body: string }[] = [
-  {
-    Icon: CreditCard,
-    title: 'Pay securely',
-    body:  'Your payment is processed via our secure gateway. Free packages skip this step entirely.',
-  },
-  {
-    Icon: FileText,
-    title: 'We prepare your materials',
-    body:  'Our advisors review your details and personalise your plan or pack — usually within 1 business day.',
-  },
-  {
-    Icon: Download,
-    title: 'Access your content',
-    body:  "Your safety materials are delivered to your account and inbox as soon as they're ready.",
-  },
-]
+const HOW_IT_WORKS_ICONS: ComponentType<{ className?: string }>[] = [CreditCard, FileText, Download]
 
-const PACKAGE_DELIVERABLES: Record<string, { icon: ComponentType<{ className?: string }>; label: string }[]> = {
-  'FREE-CHECK': [
-    { icon: FileText,     label: 'Digital security summary report' },
-    { icon: CheckCircle2, label: '3 personalised action items' },
-    { icon: LayoutList,   label: 'Starter safety checklist' },
-  ],
-  'FAMILY-CORE': [
-    { icon: FileText,     label: 'Personalised family safety plan (PDF)' },
-    { icon: LayoutList,   label: 'Premium interactive safety checklist' },
-    { icon: CheckCircle2, label: 'Password & account audit results' },
-  ],
-  'INCIDENT-RESP': [
-    { icon: Download,     label: 'Incident recovery pack (step-by-step guide)' },
-    { icon: LayoutList,   label: 'Threat containment checklist' },
-    { icon: FileText,     label: 'Follow-up action plan & monitoring guide' },
-  ],
-  'ANNUAL-PLAN': [
-    { icon: FileText,     label: '4× quarterly safety plan updates' },
-    { icon: Package,      label: 'Priority incident response (24h SLA)' },
-    { icon: Download,     label: 'Full family security roadmap (PDF)' },
-  ],
+const DELIVERABLE_ICONS: Record<string, ComponentType<{ className?: string }>[]> = {
+  'FREE-CHECK':    [FileText,  CheckCircle2, LayoutList],
+  'FAMILY-CORE':   [FileText,  LayoutList,   CheckCircle2],
+  'INCIDENT-RESP': [Download,  LayoutList,   FileText],
+  'ANNUAL-PLAN':   [FileText,  Package,      Download],
+}
+
+const CODE_TO_DELIVERABLE_KEY: Record<string, 'freeCheck' | 'familyCore' | 'incidentResp' | 'annualPlan'> = {
+  'FREE-CHECK':    'freeCheck',
+  'FAMILY-CORE':   'familyCore',
+  'INCIDENT-RESP': 'incidentResp',
+  'ANNUAL-PLAN':   'annualPlan',
 }
 
 export function BookingFormPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('bookings')
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
 
   const { data: packages, isLoading: packagesLoading } = useServicePackages()
@@ -167,29 +114,29 @@ export function BookingFormPage() {
 
   return (
     <PageLayout
-      title="Get Personalized Safety Help"
-      description="Choose a plan, tell us what's happening, and we'll prepare your personalised safety materials."
+      title={t('form.title')}
+      description={t('form.description')}
       action={
         <Button variant="outline" size="sm" onClick={() => navigate('/bookings/my')}>
           <List className="h-4 w-4" />
-          My Bookings
+          {t('form.myBookings')}
         </Button>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 max-w-2xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 max-w-2xl mx-auto">
 
         {isError && (
           <Alert variant="error">
-            Something went wrong. Please try again.
+            {t('form.errorGeneric')}
           </Alert>
         )}
 
         {/* ── 1. Package ─────────────────────────────────────────────── */}
         <section className="space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">1. Choose your safety package</h2>
+            <h2 className="text-sm font-semibold text-gray-800">{t('form.step1.title')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Each package unlocks a different set of digital safety materials — pick the one that fits your situation.
+              {t('form.step1.description')}
             </p>
           </div>
           <ServicePackagesSection
@@ -197,22 +144,22 @@ export function BookingFormPage() {
             isLoading={packagesLoading}
             selectedId={selectedPackageId}
             onSelect={handlePackageSelect}
-            error={errors.packageId?.message}
+            error={errors.packageId ? t('form.validation.selectPackage') : undefined}
           />
         </section>
 
         {/* ── 2. Help topic ──────────────────────────────────────────── */}
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">2. What do you need help with?</h2>
+            <h2 className="text-sm font-semibold text-gray-800">{t('form.step2.title')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Pick the closest match — this helps us personalise your safety materials.
+              {t('form.step2.description')}
             </p>
           </div>
 
           {/* Quick-select tags */}
           <div className="flex flex-wrap gap-2">
-            {HELP_TOPICS.map((topic) => (
+            {(t('helpTopics', { returnObjects: true }) as string[]).map((topic) => (
               <button
                 key={topic}
                 type="button"
@@ -234,28 +181,31 @@ export function BookingFormPage() {
             <Tag className="h-4 w-4 shrink-0 text-gray-400" />
             <input
               type="text"
-              placeholder="Or describe it in your own words…"
-              value={HELP_TOPICS.includes(watchedHelpTopic ?? '') ? '' : (watchedHelpTopic ?? '')}
+              placeholder={t('form.step2.placeholder')}
+              value={(t('helpTopics', { returnObjects: true }) as string[]).includes(watchedHelpTopic ?? '') ? '' : (watchedHelpTopic ?? '')}
               onChange={(e) => setValue('helpTopic', e.target.value, { shouldValidate: true })}
               className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           {errors.helpTopic && (
-            <p className="text-sm text-red-600">{errors.helpTopic.message}</p>
+            <p className="text-sm text-red-600">{t('form.validation.helpTopicRequired')}</p>
           )}
         </section>
 
         {/* ── 3. Urgency ─────────────────────────────────────────────── */}
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">3. How urgent is this?</h2>
+            <h2 className="text-sm font-semibold text-gray-800">{t('form.step3.title')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              This helps us prioritise your request and tailor the tone of your materials.
+              {t('form.step3.description')}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {URGENCY_OPTIONS.map(({ value, icon: Icon, label, body, color }) => {
+            {URGENCY_STATICS.map(({ value, icon: Icon, color }) => {
+              const urgencyKey = value.toLowerCase() as 'routine' | 'urgent' | 'critical'
+              const label = t(`urgency.${urgencyKey}.label`)
+              const body  = t(`urgency.${urgencyKey}.body`)
               const isChecked = watchedUrgency === value
               return (
                 <label
@@ -288,11 +238,11 @@ export function BookingFormPage() {
         <section className="space-y-3">
           <div>
             <h2 className="text-sm font-semibold text-gray-800">
-              4. Who is affected?{' '}
-              <span className="font-normal text-gray-400">(optional)</span>
+              {t('form.step4.title')}{' '}
+              <span className="font-normal text-gray-400">{t('form.step4.optional')}</span>
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Which family member does this situation primarily involve?
+              {t('form.step4.description')}
             </p>
           </div>
 
@@ -329,7 +279,7 @@ export function BookingFormPage() {
             <Users className="h-4 w-4 shrink-0 text-gray-400" />
             <input
               type="text"
-              placeholder="Or type a name…"
+              placeholder={t('form.step4.placeholder')}
               value={
                 familyMembers?.some((m) => m.displayName === (watchedAffectedMember ?? ''))
                   ? ''
@@ -351,17 +301,17 @@ export function BookingFormPage() {
           <div>
             <h2 className="text-sm font-semibold text-gray-800">
               5. Which account or device is affected?{' '}
-              <span className="font-normal text-gray-400">(optional)</span>
+              <span className="font-normal text-gray-400">{t('form.step5.optional')}</span>
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              e.g. "Dad's Gmail", "Family iPad", "Instagram account". Helps us target our advice.
+              {t('form.step5.description')}
             </p>
           </div>
           <div className="relative max-w-sm">
             <Smartphone className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="e.g. Mum's iPhone, Netflix account…"
+              placeholder={t('form.step5.placeholder')}
               {...register('affectedTarget')}
               className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
@@ -376,64 +326,68 @@ export function BookingFormPage() {
           <div>
             <h2 className="text-sm font-semibold text-gray-800">
               6. Anything else we should know?{' '}
-              <span className="font-normal text-gray-400">(optional)</span>
+              <span className="font-normal text-gray-400">{t('form.step6.optional')}</span>
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              The more context you share, the more targeted your materials will be.
+              {t('form.step6.description')}
             </p>
           </div>
           <textarea
             rows={4}
-            placeholder="e.g. We received a suspicious email last week. Our teenager has also been getting strange messages on Instagram…"
+            placeholder={t('form.step6.placeholder')}
             {...register('customerNotes')}
             className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <p className="text-xs text-gray-400">
-            Tip: describe what happened, when, and who in your family is affected.
+            {t('form.step6.tip')}
           </p>
           {errors.customerNotes && (
-            <p className="text-sm text-red-600">{errors.customerNotes.message}</p>
+            <p className="text-sm text-red-600">{t('form.validation.notesLength')}</p>
           )}
         </section>
 
         {/* ── Booking summary ────────────────────────────────────────── */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-800">Your order at a glance</h2>
+            <h2 className="text-sm font-semibold text-gray-800">{t('form.summary.title')}</h2>
             {selectedPackage && watchedHelpTopic && watchedUrgency && (
               <span className="flex items-center gap-1 text-xs font-medium text-green-600">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Ready to submit
+                {t('form.summary.readyToSubmit')}
               </span>
             )}
           </div>
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
             <SummaryLine
               icon={Package}
-              label="Package"
+              label={t('form.summary.package')}
               value={selectedPackage?.name ?? null}
+              placeholder={t('form.whatsUnlocked.notSelectedYet')}
             />
             <SummaryLine
               icon={Tag}
-              label="Help topic"
+              label={t('form.summary.helpTopic')}
               value={watchedHelpTopic || null}
+              placeholder={t('form.whatsUnlocked.notSelectedYet')}
             />
             <SummaryLine
               icon={
                 watchedUrgency === 'Critical' ? ShieldAlert :
                 watchedUrgency === 'Urgent'   ? AlertTriangle : Clock
               }
-              label="Urgency"
+              label={t('form.summary.urgency')}
               value={
                 watchedUrgency
-                  ? (URGENCY_OPTIONS.find((u) => u.value === watchedUrgency)?.label ?? watchedUrgency)
+                  ? t(`urgency.${watchedUrgency.toLowerCase() as 'routine' | 'urgent' | 'critical'}.label`)
                   : null
               }
+              placeholder={t('form.whatsUnlocked.notSelectedYet')}
             />
             <SummaryLine
               icon={Download}
-              label="Delivery"
+              label={t('form.summary.delivery')}
               value={selectedPackage?.durationLabel ?? null}
+              placeholder={t('form.whatsUnlocked.notSelectedYet')}
             />
             {/* Price footer */}
             <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-4 py-3">
@@ -444,7 +398,7 @@ export function BookingFormPage() {
                     selectedPackage ? 'text-blue-500' : 'text-gray-300',
                   )}
                 />
-                <span className="text-sm font-semibold text-gray-700">Total due</span>
+                <span className="text-sm font-semibold text-gray-700">{t('form.summary.totalDue')}</span>
               </div>
               <span
                 className={cn(
@@ -464,62 +418,74 @@ export function BookingFormPage() {
 
         {/* ── What you'll unlock ──────────────────────────────────────── */}
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-gray-800">What you'll unlock</h2>
+          <h2 className="text-sm font-semibold text-gray-800">{t('form.whatsUnlocked.title')}</h2>
 
           {/* Package-specific deliverables */}
           {selectedPackage ? (
             <div className="overflow-hidden rounded-xl border border-blue-100 bg-blue-50/40">
               <p className="border-b border-blue-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-blue-600">
-                Included with {selectedPackage.name}
+                {t('form.whatsUnlocked.includedWith', { name: selectedPackage.name })}
               </p>
               <ul className="divide-y divide-blue-50 px-4">
-                {(PACKAGE_DELIVERABLES[selectedPackage.code] ?? []).map(({ icon: Icon, label }, i) => (
-                  <li key={i} className="flex items-center gap-3 py-3">
-                    <Icon className="h-4 w-4 shrink-0 text-blue-500" />
-                    <span className="text-sm text-gray-800">{label}</span>
-                  </li>
-                ))}
+                {(() => {
+                  const key = CODE_TO_DELIVERABLE_KEY[selectedPackage.code]
+                  const labels = key ? (t(`deliverables.${key}`, { returnObjects: true }) as string[]) : []
+                  const icons  = DELIVERABLE_ICONS[selectedPackage.code] ?? []
+                  return labels.map((label, i) => {
+                    const Icon = icons[i]
+                    return (
+                      <li key={i} className="flex items-center gap-3 py-3">
+                        {Icon && <Icon className="h-4 w-4 shrink-0 text-blue-500" />}
+                        <span className="text-sm text-gray-800">{label}</span>
+                      </li>
+                    )
+                  })
+                })()}
               </ul>
             </div>
           ) : (
             <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-4">
               <Package className="h-5 w-5 shrink-0 text-gray-300" />
-              <p className="text-sm italic text-gray-400">Select a package above to see what you'll unlock.</p>
+              <p className="text-sm italic text-gray-400">{t('form.whatsUnlocked.selectPrompt')}</p>
             </div>
           )}
 
           {/* How it works */}
           <ol className="overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
-            {HOW_IT_WORKS.map(({ Icon, title, body }, i) => (
-              <li
-                key={i}
-                className={cn(
-                  'flex items-start gap-4 px-4 py-4',
-                  i < HOW_IT_WORKS.length - 1 && 'border-b border-gray-100',
-                )}
-              >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold leading-none text-white">
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1 pt-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5 shrink-0 text-blue-500" />
-                    <p className="text-sm font-semibold text-gray-800">{title}</p>
+            {HOW_IT_WORKS_ICONS.map((Icon, i) => {
+              const steps = t('howItWorks', { returnObjects: true }) as Array<{ title: string; body: string }>
+              const step = steps[i]
+              return (
+                <li
+                  key={i}
+                  className={cn(
+                    'flex items-start gap-4 px-4 py-4',
+                    i < HOW_IT_WORKS_ICONS.length - 1 && 'border-b border-gray-100',
+                  )}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold leading-none text-white">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1 pt-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+                      <p className="text-sm font-semibold text-gray-800">{step.title}</p>
+                    </div>
+                    <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{step.body}</p>
                   </div>
-                  <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{body}</p>
-                </div>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ol>
         </section>
 
         {/* ── Submit ─────────────────────────────────────────────────── */}
         <div className="flex gap-3 border-t border-gray-100 pt-4">
           <Button type="button" variant="outline" onClick={() => navigate('/bookings/my')}>
-            My Bookings
+            {t('form.myBookings')}
           </Button>
           <Button type="submit" loading={isPending}>
-            {isFree ? 'Unlock My Plan' : 'Continue to Payment'}
+            {isFree ? t('form.submit.free') : t('form.submit.paid')}
           </Button>
         </div>
 
@@ -534,11 +500,13 @@ function SummaryLine({
   icon: Icon,
   label,
   value,
+  placeholder,
 }: {
   icon: ComponentType<{ className?: string }>
   label: string
   /** Pass null to show the unfilled placeholder. */
   value: string | null
+  placeholder: string
 }) {
   const filled = value !== null
   return (
@@ -548,7 +516,7 @@ function SummaryLine({
       {filled ? (
         <span className="truncate text-sm font-medium text-gray-900">{value}</span>
       ) : (
-        <span className="text-sm italic text-gray-300">Not selected yet</span>
+        <span className="text-sm italic text-gray-300">{placeholder}</span>
       )}
     </div>
   )

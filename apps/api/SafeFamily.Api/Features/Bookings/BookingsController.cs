@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SafeFamily.Api.Common.FeatureFlags;
 using SafeFamily.Api.Common.Services;
 using SafeFamily.Api.Features.Bookings.Dtos;
 
@@ -9,6 +10,7 @@ namespace SafeFamily.Api.Features.Bookings;
 
 [ApiController]
 [Authorize]
+[RequireFeature(FeatureFlag.Booking)]
 public class BookingsController : ControllerBase
 {
     private readonly IBookingService _bookingService;

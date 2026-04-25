@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import { UserPlus, PlusCircle, ClipboardList, Flame, CalendarPlus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import type { DashboardCounts } from '../dashboard.types'
 
 type ActionVariant = 'default' | 'primary' | 'danger'
@@ -31,44 +33,49 @@ interface QuickActionsProps {
  */
 export function QuickActions({ counts }: QuickActionsProps) {
   const navigate = useNavigate()
+  const { bookingEnabled } = useFeatureFlags()
+  const { t } = useTranslation('dashboard')
 
   const actions: ActionItem[] = [
     {
-      label:   'Add Member',
+      label:   t('addMember'),
       icon:    UserPlus,
       variant: counts.members === 0 ? 'primary' : 'default',
       path:    '/family/members',
     },
     {
-      label:   'Add Account',
+      label:   t('addAccount'),
       icon:    PlusCircle,
       variant: counts.accounts === 0 ? 'primary' : 'default',
       path:    '/accounts',
     },
     {
-      label:   'Risk Check',
+      label:   t('runRiskCheck'),
       icon:    ClipboardList,
       variant: 'primary',
       path:    '/assessment',
     },
     {
-      label:   'Report Incident',
+      label:   t('reportIncident'),
       icon:    Flame,
       variant: 'danger',
       path:    '/incidents/report',
     },
-    {
-      label:   'Book Support',
+    ...(bookingEnabled ? [{
+      label:   t('bookSupport'),
       icon:    CalendarPlus,
-      variant: 'default',
+      variant: 'default' as ActionVariant,
       path:    '/bookings',
-    },
+    }] : []),
   ]
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 lg:col-span-3">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-5 gap-2 sm:gap-3">
+      <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('quickActions')}</h2>
+      <div
+        className="grid gap-2 sm:gap-3"
+        style={{ gridTemplateColumns: `repeat(${actions.length}, minmax(0, 1fr))` }}
+      >
         {actions.map((action, i) => (
           <motion.button
             key={action.label}

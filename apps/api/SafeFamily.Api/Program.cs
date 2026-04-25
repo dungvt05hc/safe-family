@@ -24,10 +24,14 @@ using SafeFamily.Api.Features.Fulfillment.Handlers;
 using SafeFamily.Api.Features.Plans;
 using SafeFamily.Api.Features.Reports;
 using SafeFamily.Api.Features.Settings;
+using SafeFamily.Api.Common.FeatureFlags;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Services ────────────────────────────────────────────────────────────────────────────
+builder.Services.Configure<FeatureFlagsSettings>(
+    builder.Configuration.GetSection(FeatureFlagsSettings.SectionName));
+
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
     {

@@ -1,25 +1,33 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import { useRegister } from '../hooks/useRegister'
 import type { RegisterFormValues } from '../auth.types'
 
-const schema = z.object({
-  email: z.string().min(1, 'Email is required').email('Enter a valid email'),
-  displayName: z
-    .string()
-    .min(1, 'Display name is required')
-    .max(200, 'Display name is too long'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password is too long'),
-})
-
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('auth')
+  const { t: tv } = useTranslation('validation')
   const register_ = useRegister()
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.string().min(1, tv('email.required')).email(tv('email.invalid')),
+        displayName: z
+          .string()
+          .min(1, tv('displayName.required'))
+          .max(200, tv('displayName.max')),
+        password: z
+          .string()
+          .min(8, tv('password.min'))
+          .max(100, tv('password.max')),
+      }),
+    [tv],
+  )
 
   const {
     register,
@@ -33,9 +41,7 @@ export function RegisterPage() {
       onSuccess: () => navigate('/dashboard', { replace: true }),
       onError: (err) =>
         setError('root', {
-          message: err.isConflict
-            ? 'An account with this email already exists.'
-            : (err.message ?? 'Something went wrong. Please try again.'),
+          message: err.isConflict ? t('emailConflict') : t('registerError'),
         }),
     })
   }
@@ -45,7 +51,7 @@ export function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-blue-600">SafeFamily</h1>
-          <p className="mt-2 text-sm text-gray-500">Create your account</p>
+          <p className="mt-2 text-sm text-gray-500">{t('registerTitle')}</p>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
@@ -53,7 +59,7 @@ export function RegisterPage() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t('email')}
               </label>
               <input
                 {...register('email')}
@@ -71,7 +77,7 @@ export function RegisterPage() {
             {/* Display name */}
             <div>
               <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-1">
-                Display name
+                {t('displayNameLabel')}
               </label>
               <input
                 {...register('displayName')}
@@ -89,7 +95,7 @@ export function RegisterPage() {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <input
                 {...register('password')}
@@ -116,15 +122,15 @@ export function RegisterPage() {
               disabled={isSubmitting || register_.isPending}
               className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
             >
-              {register_.isPending ? 'Creating account…' : 'Create account'}
+              {register_.isPending ? t('registering') : t('registerButton')}
             </button>
           </form>
         </div>
 
         <p className="mt-4 text-center text-sm text-gray-500">
-          Already have an account?{' '}
+          {t('haveAccount')}{' '}
           <Link to="/login" className="font-medium text-blue-600 hover:underline">
-            Sign in
+            {t('loginLink')}
           </Link>
         </p>
       </div>

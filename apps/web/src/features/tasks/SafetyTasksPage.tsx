@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, LoadingState } from '@/components/ui'
-import { ApiError } from '@/types/api'
+import { useApiError } from '@/lib/i18n/useApiError'
 import { DEFAULT_TASK_FILTERS, type SafetyTaskFilters } from './safety-tasks.types'
 import { useSafetyTasks } from './safety-tasks.hooks'
 import { SafetyTaskSummaryCards } from './components/SafetyTaskSummaryCards'
@@ -10,6 +10,7 @@ import { SafetyTaskList } from './components/SafetyTaskList'
 
 export function SafetyTasksPage() {
   const { data: tasks = [], isLoading, isError, error } = useSafetyTasks()
+  const loadError = useApiError(error, 'load.tasks')
 
   const [filters, setFilters] = useState<SafetyTaskFilters>(DEFAULT_TASK_FILTERS)
 
@@ -45,7 +46,7 @@ export function SafetyTasksPage() {
       {/* Error */}
       {isError && (
         <Alert variant="error">
-          {error instanceof ApiError ? error.message : 'Failed to load your safety tasks.'}
+          {loadError}
         </Alert>
       )}
 

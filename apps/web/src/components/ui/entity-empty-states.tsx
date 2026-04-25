@@ -7,18 +7,20 @@
  */
 
 import { Users, CreditCard, Smartphone, ShieldAlert, CalendarDays } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { EmptyState } from './EmptyState'
 
 // ── Family Members ────────────────────────────────────────────────────────────
 
 export function NoFamilyMembersEmpty({ onAdd }: { onAdd: () => void }) {
+  const { t } = useTranslation('emptyStates')
   return (
     <EmptyState
       icon={Users}
       iconColor="bg-blue-50 text-blue-500"
-      title="No family members yet"
-      description="Add the people in your family to start tracking their digital safety and online habits."
-      actionLabel="Add Member"
+      title={t('familyMembers.title')}
+      description={t('familyMembers.description')}
+      actionLabel={t('familyMembers.action')}
       onAction={onAdd}
     />
   )
@@ -27,13 +29,14 @@ export function NoFamilyMembersEmpty({ onAdd }: { onAdd: () => void }) {
 // ── Accounts ─────────────────────────────────────────────────────────────────
 
 export function NoAccountsEmpty({ onAdd }: { onAdd: () => void }) {
+  const { t } = useTranslation('emptyStates')
   return (
     <EmptyState
       icon={CreditCard}
       iconColor="bg-violet-50 text-violet-500"
-      title="No accounts tracked"
-      description="Register your family's online accounts to monitor two-factor authentication, recovery settings, and suspicious activity."
-      actionLabel="Add Account"
+      title={t('accounts.title')}
+      description={t('accounts.description')}
+      actionLabel={t('accounts.action')}
       onAction={onAdd}
     />
   )
@@ -42,13 +45,14 @@ export function NoAccountsEmpty({ onAdd }: { onAdd: () => void }) {
 // ── Devices ───────────────────────────────────────────────────────────────────
 
 export function NoDevicesEmpty({ onAdd }: { onAdd: () => void }) {
+  const { t } = useTranslation('emptyStates')
   return (
     <EmptyState
       icon={Smartphone}
       iconColor="bg-indigo-50 text-indigo-500"
-      title="No devices registered"
-      description="Add your family's phones, tablets, and computers to check their security health — screen lock, backups, OS support, and more."
-      actionLabel="Add Device"
+      title={t('devices.title')}
+      description={t('devices.description')}
+      actionLabel={t('devices.action')}
       onAction={onAdd}
     />
   )
@@ -57,13 +61,14 @@ export function NoDevicesEmpty({ onAdd }: { onAdd: () => void }) {
 // ── Incidents ─────────────────────────────────────────────────────────────────
 
 export function NoIncidentsEmpty({ onReport }: { onReport: () => void }) {
+  const { t } = useTranslation('emptyStates')
   return (
     <EmptyState
       icon={ShieldAlert}
       iconColor="bg-amber-50 text-amber-500"
-      title="No incidents reported"
-      description="All clear! If your family encounters phishing, suspicious logins, or any other threat, report it here so we can guide you through the next steps."
-      actionLabel="Report an Incident"
+      title={t('incidents.title')}
+      description={t('incidents.description')}
+      actionLabel={t('incidents.action')}
       onAction={onReport}
     />
   )
@@ -72,13 +77,14 @@ export function NoIncidentsEmpty({ onReport }: { onReport: () => void }) {
 // ── Bookings ──────────────────────────────────────────────────────────────────
 
 export function NoBookingsEmpty({ onBook }: { onBook: () => void }) {
+  const { t } = useTranslation('emptyStates')
   return (
     <EmptyState
       icon={CalendarDays}
       iconColor="bg-emerald-50 text-emerald-500"
-      title="No bookings yet"
-      description="Book a one-on-one safety session with our experts. We'll help your family strengthen passwords, review device security, and protect against online threats."
-      actionLabel="Book a Session"
+      title={t('bookings.title')}
+      description={t('bookings.description')}
+      actionLabel={t('bookings.action')}
       onAction={onBook}
     />
   )

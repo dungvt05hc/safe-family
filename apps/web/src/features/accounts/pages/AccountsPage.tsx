@@ -10,7 +10,7 @@ import { useArchiveAccount } from '../hooks/useAccountMutations'
 import { AddAccountModal } from '../components/AddAccountModal'
 import { EditAccountModal } from '../components/EditAccountModal'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
-import { ApiError } from '@/types/api'
+import { useApiError } from '@/lib/i18n/useApiError'
 import type { Account, AccountType, AccountFilters } from '../accounts.types'
 import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABELS, TWO_FACTOR_LABELS, RECOVERY_LABELS } from '../accounts.types'
 
@@ -38,6 +38,7 @@ export function AccountsPage() {
   const { mutate: archive } = useArchiveAccount()
   const [showAdd, setShowAdd] = useState(false)
   const [editTarget, setEditTarget] = useState<Account | null>(null)
+  const loadError = useApiError(error, 'load.accounts')
 
   function memberName(memberId: string | null) {
     if (!memberId) return null
@@ -103,7 +104,7 @@ export function AccountsPage() {
 
       {isError && (
         <Alert variant="error">
-          {error instanceof ApiError ? error.message : 'Failed to load accounts.'}
+          {loadError}
         </Alert>
       )}
 

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SafeFamily.Api.Common.FeatureFlags;
 using SafeFamily.Api.Features.Plans.Dtos;
 
 namespace SafeFamily.Api.Features.Plans;
@@ -8,6 +9,7 @@ namespace SafeFamily.Api.Features.Plans;
 [ApiController]
 [Route("api/plans")]
 [Authorize]
+[RequireFeature(FeatureFlag.PremiumPlans)]
 public class PlansController(IPlansService plansService) : ControllerBase
 {
     // ── Family Safety Plan ────────────────────────────────────────────────────

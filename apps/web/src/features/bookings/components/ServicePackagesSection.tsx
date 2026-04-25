@@ -1,6 +1,7 @@
 import { Check, Download, Shield, ShieldCheck, ShieldAlert, Star } from 'lucide-react'
 import { type ComponentType } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import { LoadingState } from '@/components/ui'
 import { cn } from '@/lib/utils'
@@ -29,10 +30,14 @@ interface PackageAccent {
 interface PackageMeta {
   icon: ComponentType<{ className?: string }>
   accent: PackageAccent
-  badge?: { label: string; className: string }
-  tagline: string
-  bestFor: string
-  highlights: string[]
+  badge?: { className: string }
+}
+
+const CODE_TO_KEY: Record<string, 'freeCheck' | 'familyCore' | 'incidentResp' | 'annualPlan'> = {
+  'FREE-CHECK':    'freeCheck',
+  'FAMILY-CORE':   'familyCore',
+  'INCIDENT-RESP': 'incidentResp',
+  'ANNUAL-PLAN':   'annualPlan',
 }
 
 const PACKAGE_META: Record<string, PackageMeta> = {
@@ -47,14 +52,7 @@ const PACKAGE_META: Record<string, PackageMeta> = {
       footerBg:   'bg-green-50',
       footerText: 'text-green-600',
     },
-    badge:     { label: 'Free — no card needed', className: 'bg-green-100 text-green-700 border border-green-200' },
-    tagline:   'Know your exact risk level in minutes',
-    bestFor:   'Families new to digital safety who want a clear, no-cost starting point',
-    highlights: [
-      'Downloadable security summary report',
-      '3 personalised action items',
-      'Starter safety checklist',
-    ],
+    badge:     { className: 'bg-green-100 text-green-700 border border-green-200' },
   },
   'FAMILY-CORE': {
     icon:  ShieldCheck,
@@ -67,14 +65,7 @@ const PACKAGE_META: Record<string, PackageMeta> = {
       footerBg:   'bg-blue-50',
       footerText: 'text-blue-600',
     },
-    badge:     { label: 'Most popular', className: 'bg-amber-100 text-amber-700 border border-amber-200' },
-    tagline:   'A complete safety roadmap for your whole family',
-    bestFor:   'Families ready for a thorough safety audit across all accounts and devices',
-    highlights: [
-      'Personalised family safety plan (PDF)',
-      'Premium interactive safety checklist',
-      'Password & account audit results',
-    ],
+    badge:     { className: 'bg-amber-100 text-amber-700 border border-amber-200' },
   },
   'INCIDENT-RESP': {
     icon:  ShieldAlert,
@@ -87,14 +78,7 @@ const PACKAGE_META: Record<string, PackageMeta> = {
       footerBg:   'bg-orange-50',
       footerText: 'text-orange-600',
     },
-    badge:     { label: 'For active incidents', className: 'bg-red-100 text-red-700 border border-red-200' },
-    tagline:   'Stop an active threat and know exactly what to do next',
-    bestFor:   'Families dealing with an active breach, scam, or data leak',
-    highlights: [
-      'Expert-authored incident recovery pack',
-      'Step-by-step threat containment checklist',
-      'Follow-up monitoring guide',
-    ],
+    badge:     { className: 'bg-red-100 text-red-700 border border-red-200' },
   },
   'ANNUAL-PLAN': {
     icon:  Star,
@@ -107,15 +91,7 @@ const PACKAGE_META: Record<string, PackageMeta> = {
       footerBg:   'bg-purple-50',
       footerText: 'text-purple-600',
     },
-    badge:     { label: 'Best value', className: 'bg-purple-100 text-purple-700 border border-purple-200' },
-    tagline:   'Stay ahead of threats all year with expert-curated guidance',
-    bestFor:   'Families wanting ongoing protection and priority access year-round',
-    highlights: [
-      '4× quarterly safety plan updates',
-      'Priority incident response — 24h SLA',
-      'Full family security roadmap (PDF)',
-      'Unlimited advisor access for 12 months',
-    ],
+    badge:     { className: 'bg-purple-100 text-purple-700 border border-purple-200' },
   },
 }
 
@@ -138,12 +114,14 @@ export function ServicePackagesSection({
   onSelect,
   error,
 }: ServicePackagesSectionProps) {
+  const { t } = useTranslation('bookings')
+
   if (isLoading) {
     return <LoadingState className="py-12" />
   }
 
   if (!packages || packages.length === 0) {
-    return <p className="text-sm text-gray-500">No service packages available at this time.</p>
+    return <p className="text-sm text-gray-500">{t('form.noPackagesAvailable')}</p>
   }
 
   return (
@@ -154,6 +132,7 @@ export function ServicePackagesSection({
           const meta = PACKAGE_META[pkg.code]
           const accent = meta?.accent
           const isFree = pkg.priceDisplay === 'Free'
+          const localeKey = CODE_TO_KEY[pkg.code]
 
           return (
             <motion.button
@@ -199,7 +178,7 @@ export function ServicePackagesSection({
                     <p className="text-sm font-bold leading-tight text-gray-900">{pkg.name}</p>
                     {meta?.badge && (
                       <span className={cn('mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', meta.badge.className)}>
-                        {meta.badge.label}
+                        {localeKey ? t(`packages.${localeKey}.badge`) : pkg.name}
                       </span>
                     )}
                   </div>
@@ -244,16 +223,16 @@ export function ServicePackagesSection({
               {/* ── Body ──────────────────────────────────────────── */}
               <div className="flex flex-1 flex-col gap-4 px-5 pb-5">
                 {/* One-line tagline */}
-                {meta?.tagline && (
+                {localeKey && (
                   <p className="text-sm font-medium leading-snug text-gray-700">
-                    {meta.tagline}
+                    {t(`packages.${localeKey}.tagline`)}
                   </p>
                 )}
 
                 {/* Included outcomes */}
-                {meta?.highlights && (
+                {localeKey && (
                   <ul className="space-y-2 border-t border-gray-100 pt-3">
-                    {meta.highlights.map((h, j) => (
+                    {(t(`packages.${localeKey}.highlights`, { returnObjects: true }) as string[]).map((h, j) => (
                       <li key={j} className="flex items-start gap-2 text-xs leading-snug text-gray-700">
                         <Check
                           className={cn(
@@ -268,11 +247,11 @@ export function ServicePackagesSection({
                 )}
 
                 {/* Best for */}
-                {meta?.bestFor && (
+                {localeKey && (
                   <div className="mt-auto rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
                     <p className="text-xs">
-                      <span className="font-semibold text-gray-500">Best for: </span>
-                      <span className="text-gray-600">{meta.bestFor}</span>
+                      <span className="font-semibold text-gray-500">{t('form.bestFor')}: </span>
+                      <span className="text-gray-600">{t(`packages.${localeKey}.bestFor`)}</span>
                     </p>
                   </div>
                 )}

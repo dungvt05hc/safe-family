@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { settingsApi } from './settings.api'
 import type { NotificationSettings, ProfileSettings, ChangePasswordRequest } from './settings.types'
+import { SUPPORTED_LANGUAGES, type SupportedLanguageCode } from '@/lib/i18n'
 
 // ── Query keys ────────────────────────────────────────────────────────────────
 
@@ -70,4 +72,31 @@ export function useRequestAccountDeletion() {
   return useMutation({
     mutationFn: settingsApi.requestAccountDeletion,
   })
+}
+
+// ── Language preference ───────────────────────────────────────────────────────
+
+/**
+ * Returns the current resolved language code and a setter that:
+ *   1. Applies the language change immediately via i18next.
+ *   2. Persists the choice to localStorage (handled automatically by i18next's
+ *      LanguageDetector with `caches: ['localStorage']`, key `sf-language`).
+ *
+ * TODO: when the backend exposes a user-settings endpoint for language
+ * preference, add a mutation call inside `setLanguage` after the
+ * `i18n.changeLanguage()` call:
+ *   await settingsApi.updateLanguagePreference({ language: code })
+ */
+export function useLanguagePreference() {
+  const { i18n } = useTranslation()
+  const currentCode = (
+    (i18n.resolvedLanguage ?? i18n.language ?? 'en').slice(0, 2)
+  ) as SupportedLanguageCode
+
+  function setLanguage(code: SupportedLanguageCode) {
+    i18n.changeLanguage(code)
+    // Future: sync to backend here
+  }
+
+  return { currentCode, setLanguage, languages: SUPPORTED_LANGUAGES }
 }

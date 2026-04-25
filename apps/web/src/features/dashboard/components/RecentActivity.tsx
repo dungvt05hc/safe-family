@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Activity, AlertTriangle, Calendar, ChevronRight, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import type { DashboardRecentIncident, DashboardRecentBooking } from '../dashboard.types'
 
 // ── Severity badge colours ────────────────────────────────────────────────────
@@ -46,7 +47,8 @@ interface RecentActivityProps {
  */
 export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
   const navigate  = useNavigate()
-  const hasItems  = incidents.length > 0 || bookings.length > 0
+  const { bookingEnabled } = useFeatureFlags()
+  const hasItems  = incidents.length > 0 || (bookingEnabled && bookings.length > 0)
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white shadow-sm lg:col-span-3">
@@ -73,13 +75,15 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
             >
               Report an incident →
             </button>
-            <button
-              type="button"
-              onClick={() => navigate('/bookings')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              Book a session →
-            </button>
+            {bookingEnabled && (
+              <button
+                type="button"
+                onClick={() => navigate('/bookings')}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Book a session →
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -117,7 +121,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
           ))}
 
           {/* Recent bookings */}
-          {bookings.map((booking, i) => (
+          {bookingEnabled && bookings.map((booking, i) => (
             <motion.li
               key={`bk-${booking.id}`}
               custom={incidents.length + i}
@@ -162,13 +166,15 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
           >
             All incidents →
           </button>
-          <button
-            type="button"
-            onClick={() => navigate('/bookings/my')}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-          >
-            All bookings →
-          </button>
+          {bookingEnabled && (
+            <button
+              type="button"
+              onClick={() => navigate('/bookings/my')}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              All bookings →
+            </button>
+          )}
         </div>
       )}
     </div>

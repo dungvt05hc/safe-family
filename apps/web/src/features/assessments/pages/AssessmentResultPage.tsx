@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { PageLayout } from '@/components/layout/PageLayout'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import { useLatestAssessment } from '../hooks/useAssessmentQueries'
 import { CATEGORY_LABELS, RISK_LEVEL_CONFIG } from '../assessments.types'
 import type { AssessmentResult } from '../assessments.types'
@@ -83,6 +84,7 @@ function CategoryBar({ category, score }: { category: string; score: number }) {
 
 export function AssessmentResultPage() {
   const navigate = useNavigate()
+  const { bookingEnabled } = useFeatureFlags()
   const { data: result, isLoading, isError } = useLatestAssessment()
 
   if (isLoading) {
@@ -187,12 +189,14 @@ export function AssessmentResultPage() {
             </button>
           </div>
           <div className="mt-4 flex justify-between text-sm">
-            <button
-              onClick={() => navigate('/bookings')}
-              className="font-medium text-gray-500 hover:text-gray-700 hover:underline"
-            >
-              📅 Book a consultation
-            </button>
+            {bookingEnabled && (
+              <button
+                onClick={() => navigate('/bookings')}
+                className="font-medium text-gray-500 hover:text-gray-700 hover:underline"
+              >
+                📅 Book a consultation
+              </button>
+            )}
             <button
               onClick={() => navigate('/assessment/history')}
               className="font-medium text-blue-600 hover:underline"

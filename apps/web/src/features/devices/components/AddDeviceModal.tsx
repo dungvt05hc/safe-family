@@ -3,7 +3,7 @@ import { useCreateDevice } from '../hooks/useDeviceMutations'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 import { DeviceForm } from './DeviceForm'
 import type { DeviceFormValues } from '../devices.types'
-import { ApiError } from '@/types/api'
+import { useApiError } from '@/lib/i18n/useApiError'
 import { X } from 'lucide-react'
 
 interface Props {
@@ -13,15 +13,14 @@ interface Props {
 export function AddDeviceModal({ onClose }: Props) {
   const { data: members = [] } = useFamilyMembers()
   const { mutate, isPending } = useCreateDevice()
-  const [serverError, setServerError] = useState<string | null>(null)
+  const [mutationError, setMutationError] = useState<unknown>(null)
+  const serverError = useApiError(mutationError, 'mutation.generic')
 
   function handleSubmit(values: DeviceFormValues) {
-    setServerError(null)
+    setMutationError(null)
     mutate(values, {
       onSuccess: () => onClose(),
-      onError: (err) => {
-        setServerError(err instanceof ApiError ? err.message : 'Something went wrong.')
-      },
+      onError: (err) => setMutationError(err),
     })
   }
 

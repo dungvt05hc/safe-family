@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Sidebar } from './Sidebar'
 import { MobileSidebar } from './MobileSidebar'
 import { Topbar } from './Topbar'
@@ -13,12 +14,13 @@ interface AppShellProps {
 /** Derive the page title from the current URL path. */
 function usePageTitle(navItems?: NavItem[]): string {
   const { pathname } = useLocation()
+  const { t } = useTranslation('nav')
   const items = navItems ?? NAV_ITEMS
   const match = items.find((item) => {
     if (item.href === '/dashboard' || item.href === '/admin') return pathname === item.href
     return pathname.startsWith(item.href)
   })
-  return match?.label ?? 'SafeFamily'
+  return match ? t(match.label as Parameters<typeof t>[0]) : 'SafeFamily'
 }
 
 /**

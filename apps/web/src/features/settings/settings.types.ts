@@ -39,12 +39,13 @@ export interface PrivacyActionResponse {
 
 // ── Tab navigation ────────────────────────────────────────────────────────────
 
-export type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'danger'
+export type SettingsTab = 'profile' | 'security' | 'notifications' | 'privacy' | 'preferences' | 'danger'
 
 export const SETTINGS_TABS: { id: SettingsTab; label: string }[] = [
   { id: 'profile',       label: 'Profile' },
   { id: 'security',      label: 'Security' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'privacy',       label: 'Privacy' },
+  { id: 'preferences',   label: 'Preferences' },
   { id: 'danger',        label: 'Danger Zone' },
 ]

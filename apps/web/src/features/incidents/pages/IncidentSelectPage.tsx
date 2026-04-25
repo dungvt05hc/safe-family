@@ -6,7 +6,7 @@ import { Alert, Badge, Button, LoadingState } from '@/components/ui'
 import { NoIncidentsEmpty } from '@/components/ui/entity-empty-states'
 import { fadeUpVariants } from '@/lib/motion'
 import { cn } from '@/lib/utils'
-import { ApiError } from '@/types/api'
+import { useApiError } from '@/lib/i18n/useApiError'
 import {
   INCIDENT_TYPE_CONFIG,
   SEVERITY_BADGE,
@@ -82,6 +82,7 @@ function IncidentCard({
 export function IncidentSelectPage() {
   const navigate = useNavigate()
   const { data: incidents = [], isLoading, isError, error } = useIncidents()
+  const loadError = useApiError(error, 'load.incidents')
 
   return (
     <PageLayout
@@ -98,7 +99,7 @@ export function IncidentSelectPage() {
 
       {isError && (
         <Alert variant="error">
-          {error instanceof ApiError ? error.message : 'Failed to load incidents.'}
+          {loadError}
         </Alert>
       )}
 

@@ -8,6 +8,7 @@ import {
   ShieldOff,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/types/api'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useDashboard } from './dashboard.hooks'
@@ -28,6 +29,7 @@ function WelcomeBanner({
   hasFamily:    boolean
 }) {
   const navigate = useNavigate()
+  const { t } = useTranslation('dashboard')
 
   return (
     <motion.div
@@ -42,15 +44,13 @@ function WelcomeBanner({
       <div className="flex-1 min-w-0">
         <p className="text-lg font-bold leading-snug">
           {hasFamily && displayName
-            ? `Welcome back to ${displayName}`
+            ? t('welcomeBackTo', { name: displayName })
             : displayName
-            ? `Welcome back, ${displayName}`
-            : 'Welcome back'}
+            ? t('welcomeBackUser', { name: displayName })
+            : t('welcomeBackGeneric')}
         </p>
         <p className="text-sm text-blue-100 mt-0.5">
-          {hasFamily
-            ? "Here's your family's digital safety at a glance."
-            : 'Set up your family profile to get started.'}
+          {hasFamily ? t('safetyAtAGlance') : t('setupPrompt')}
         </p>
       </div>
       {!hasFamily && (
@@ -59,7 +59,7 @@ function WelcomeBanner({
           onClick={() => navigate('/family/new')}
           className="shrink-0 rounded-xl bg-white/20 hover:bg-white/30 transition-colors px-4 py-2.5 text-sm font-semibold backdrop-blur-sm"
         >
-          Create Family →
+          {t('createFamily')}
         </button>
       )}
     </motion.div>
@@ -93,6 +93,7 @@ function DashboardSkeleton() {
 
 function NoFamilyCard() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dashboard')
 
   return (
     <motion.div
@@ -104,16 +105,16 @@ function NoFamilyCard() {
       <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-100 mb-4">
         <ShieldOff className="w-8 h-8 text-blue-500" aria-hidden="true" />
       </div>
-      <h2 className="text-lg font-bold text-gray-900 mb-2">Set up your family profile</h2>
+      <h2 className="text-lg font-bold text-gray-900 mb-2">{t('setupFamilyTitle')}</h2>
       <p className="text-sm text-gray-500 max-w-sm mb-6">
-        Create a family to start tracking your digital safety, manage members, devices, accounts, and more.
+        {t('setupFamilyDescription')}
       </p>
       <button
         type="button"
         onClick={() => navigate('/family/new')}
         className="rounded-xl bg-blue-600 hover:bg-blue-700 transition-colors px-6 py-2.5 text-sm font-semibold text-white shadow-sm"
       >
-        Create Family →
+        {t('createFamily')}
       </button>
     </motion.div>
   )
@@ -138,6 +139,7 @@ function ErrorCard({ message }: { message: string }) {
  * and recent activity.
  */
 export function DashboardPage() {
+  const { t } = useTranslation('dashboard')
   const { data: user }         = useCurrentUser()
   const { data, isLoading, error } = useDashboard()
 
@@ -171,12 +173,12 @@ export function DashboardPage() {
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <SummaryCard index={0} label="Members"          value={counts.members}          icon={Users}          color="bg-blue-50 text-blue-600"    />
-        <SummaryCard index={1} label="Accounts"         value={counts.accounts}         icon={CreditCard}     color="bg-violet-50 text-violet-600" />
-        <SummaryCard index={2} label="Devices"          value={counts.devices}          icon={Smartphone}     color="bg-indigo-50 text-indigo-600" />
+        <SummaryCard index={0} label={t('members')}          value={counts.members}          icon={Users}          color="bg-blue-50 text-blue-600"    />
+        <SummaryCard index={1} label={t('accounts')}         value={counts.accounts}         icon={CreditCard}     color="bg-violet-50 text-violet-600" />
+        <SummaryCard index={2} label={t('devices')}          value={counts.devices}          icon={Smartphone}     color="bg-indigo-50 text-indigo-600" />
         <SummaryCard
           index={3}
-          label="Active Incidents"
+          label={t('activeIncidents')}
           value={counts.activeIncidents}
           icon={AlertTriangle}
           color={counts.activeIncidents > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'}

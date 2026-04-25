@@ -1,7 +1,9 @@
 import { Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
+import { useFeatureFlags } from '@/lib/featureFlags'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -37,6 +39,8 @@ export function LockedFeature({
   ctaPath  = '/bookings',
 }: LockedFeatureProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation('common')
+  const { bookingEnabled } = useFeatureFlags()
 
   return (
     <motion.div
@@ -59,17 +63,19 @@ export function LockedFeature({
       {/* Package label */}
       {packageName && (
         <p className="mt-1.5 text-sm font-medium text-blue-600">
-          Included with {packageName}
+          {t('includedWith', { name: packageName })}
         </p>
       )}
 
       {/* CTA */}
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-        <Button variant="primary" onClick={() => navigate(ctaPath)}>
-          {ctaLabel}
-        </Button>
+        {bookingEnabled && (
+          <Button variant="primary" onClick={() => navigate(ctaPath)}>
+            {ctaLabel}
+          </Button>
+        )}
         <Button variant="ghost" onClick={() => navigate('/dashboard')}>
-          Back to dashboard
+          {t('backToDashboardLabel')}
         </Button>
       </div>
     </motion.div>

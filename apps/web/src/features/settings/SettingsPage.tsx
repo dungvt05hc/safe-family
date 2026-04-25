@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bell,
+  Globe,
   Lock,
   Shield,
   ShieldCheck,
@@ -15,6 +16,7 @@ import { ProfileSettingsForm }       from './components/ProfileSettingsForm'
 import { PasswordSettingsForm }      from './components/PasswordSettingsForm'
 import { NotificationSettingsForm }  from './components/NotificationSettingsForm'
 import { PrivacySettingsPanel }      from './components/PrivacySettingsPanel'
+import { LanguageSettingsForm }      from './components/LanguageSettingsForm'
 import { DangerZone }               from './components/DangerZone'
 
 // ── Tab definitions ───────────────────────────────────────────────────────────
@@ -31,6 +33,7 @@ const TABS: TabDef[] = [
   { id: 'security',      label: 'Security',       icon: Lock       },
   { id: 'notifications', label: 'Notifications',  icon: Bell       },
   { id: 'privacy',       label: 'Privacy',        icon: ShieldCheck },
+  { id: 'preferences',   label: 'Preferences',    icon: Globe      },
   { id: 'danger',        label: 'Danger Zone',    icon: TriangleAlert, danger: true },
 ]
 
@@ -110,6 +113,7 @@ export function SettingsPage() {
               {activeTab === 'security'      && <SecuritySection />}
               {activeTab === 'notifications' && <NotificationsSection />}
               {activeTab === 'privacy'       && <PrivacySection />}
+              {activeTab === 'preferences'   && <PreferencesSection />}
               {activeTab === 'danger'        && <DangerSection />}
             </motion.div>
           </AnimatePresence>
@@ -169,6 +173,19 @@ function PrivacySection() {
         description="Control your data and understand how we use it."
       />
       <PrivacySettingsPanel />
+    </>
+  )
+}
+
+function PreferencesSection() {
+  return (
+    <>
+      <SectionIntro
+        icon={Globe}
+        title="Preferences"
+        description="Customise language and regional settings for your experience."
+      />
+      <LanguageSettingsForm />
     </>
   )
 }

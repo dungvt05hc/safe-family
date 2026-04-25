@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SafeFamily.Api.Common.FeatureFlags;
 using SafeFamily.Api.Common.Services;
 using SafeFamily.Api.Features.Bookings.Dtos;
 using SafeFamily.Api.Features.Payments.Dtos;
@@ -33,6 +34,7 @@ public class PaymentsController : ControllerBase
     // POST /api/bookings/{bookingId}/payment/initiate
     [HttpPost("api/bookings/{bookingId:guid}/payment/initiate")]
     [Authorize]
+    [RequireFeature(FeatureFlag.Payments)]
     [EnableRateLimiting("mutations")]
     [ProducesResponseType(typeof(PaymentInitiateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -53,6 +55,7 @@ public class PaymentsController : ControllerBase
     // POST /api/bookings/{bookingId}/payment/retry
     [HttpPost("api/bookings/{bookingId:guid}/payment/retry")]
     [Authorize]
+    [RequireFeature(FeatureFlag.Payments)]
     [EnableRateLimiting("mutations")]
     [ProducesResponseType(typeof(PaymentInitiateResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -73,6 +76,7 @@ public class PaymentsController : ControllerBase
     // GET /api/bookings/{bookingId}/payments
     [HttpGet("api/bookings/{bookingId:guid}/payments")]
     [Authorize]
+    [RequireFeature(FeatureFlag.Payments)]
     [ProducesResponseType(typeof(IReadOnlyList<PaymentOrderResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -91,6 +95,7 @@ public class PaymentsController : ControllerBase
     // any pending state transitions (Pending → Paid / Failed).
     [HttpPost("api/bookings/{bookingId:guid}/payment/sync")]
     [Authorize]
+    [RequireFeature(FeatureFlag.Payments)]
     [EnableRateLimiting("mutations")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

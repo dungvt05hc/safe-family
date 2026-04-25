@@ -4,6 +4,7 @@ import { CheckCircle2, CalendarPlus, ListChecks, ShieldAlert } from 'lucide-reac
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, Badge, Button, LoadingState } from '@/components/ui'
 import { fadeUpVariants } from '@/lib/motion'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import { useIncident } from '../hooks/useIncidentQueries'
 import {
   INCIDENT_TYPE_CONFIG,
@@ -15,6 +16,7 @@ import {
 export function IncidentResultPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { bookingEnabled } = useFeatureFlags()
   const { data: incident, isLoading, isError } = useIncident(id ?? '')
 
   if (isLoading) {
@@ -133,7 +135,7 @@ export function IncidentResultPage() {
         animate="visible"
         className="flex flex-wrap gap-3"
       >
-        {isHighSeverity && (
+        {isHighSeverity && bookingEnabled && (
           <Button variant="primary" onClick={() => navigate('/bookings')}>
             <CalendarPlus className="w-4 h-4" aria-hidden="true" />
             Book help

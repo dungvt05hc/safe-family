@@ -6,6 +6,7 @@ import {
   Package,
   ShieldOff,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import {
   Alert,
@@ -47,6 +48,7 @@ function PackHeader({
   hasReport:         boolean
   onDownload:        () => void
 }) {
+  const { t } = useTranslation('plans')
   const date = new Date(pack.createdAt).toLocaleDateString('en-AU', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
@@ -61,10 +63,10 @@ function PackHeader({
                 <Package className="h-6 w-6 text-red-500" aria-hidden="true" />
               </span>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Incident Recovery Pack</h1>
+                <h1 className="text-lg font-bold text-gray-900">{t('recoveryPack.title')}</h1>
                 <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
                   <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                  Generated {date}
+                  {t('recoveryPack.generatedOn', { date })}
                 </div>
               </div>
             </div>
@@ -85,7 +87,7 @@ function PackHeader({
                   className="flex items-center gap-1.5"
                 >
                   <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                  {reportDownloading ? 'Preparing…' : 'Download Report'}
+                  {reportDownloading ? t('recoveryPack.preparing') : t('recoveryPack.downloadReport')}
                 </Button>
               )}
             </div>
@@ -100,6 +102,7 @@ function PackHeader({
 
 export function IncidentRecoveryPackPage() {
   const { hasEntitlement, isLoading: entLoading } = useEntitlements()
+  const { t } = useTranslation('plans')
 
   const { data: packs,   isLoading: packsLoading,   isError, error   } = useIncidentRecoveryPacks()
   const { data: tasks,   isLoading: tasksLoading                      } = useSafetyTasks({ sourceType: 'IncidentRecoveryPack' })
@@ -113,7 +116,7 @@ export function IncidentRecoveryPackPage() {
 
   if (packsLoading || tasksLoading || entLoading) {
     return (
-      <PageLayout title="Incident Recovery Pack">
+      <PageLayout title={t('recoveryPack.title')}>
         <LoadingState />
       </PageLayout>
     )
@@ -121,10 +124,10 @@ export function IncidentRecoveryPackPage() {
 
   if (isError) {
     const msg = error?.isPaymentRequired
-      ? 'Access to Incident Recovery Packs requires an active subscription.'
-      : error?.message ?? 'Failed to load recovery pack.'
+      ? t('recoveryPack.error.subscription')
+      : error?.message ?? t('recoveryPack.error.generic')
     return (
-      <PageLayout title="Incident Recovery Pack">
+      <PageLayout title={t('recoveryPack.title')}>
         <Alert variant="error">
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           {msg}
@@ -137,11 +140,11 @@ export function IncidentRecoveryPackPage() {
 
   if (!pack) {
     return (
-      <PageLayout title="Incident Recovery Pack">
+      <PageLayout title={t('recoveryPack.title')}>
         <EmptyState
           icon={ShieldOff}
-          title="Your recovery pack is being prepared"
-          description="Our advisors are treating this as a priority. Your step-by-step recovery guide will be ready shortly — we'll notify you by email when it's available."
+          title={t('recoveryPack.empty.title')}
+          description={t('recoveryPack.empty.description')}
         />
       </PageLayout>
     )
@@ -167,8 +170,8 @@ export function IncidentRecoveryPackPage() {
 
   return (
     <PageLayout
-      title="Incident Recovery Pack"
-      description="Step-by-step recovery plan generated after your incident response session."
+      title={t('recoveryPack.title')}
+      description={t('recoveryPack.description')}
     >
       <div className="space-y-5">
         {/* Pack header */}

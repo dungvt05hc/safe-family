@@ -14,6 +14,7 @@ import {
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge, Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import {
   CATEGORY_LABEL,
   PRIORITY_BADGE,
@@ -44,6 +45,7 @@ interface ChecklistItemCardProps {
  */
 export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
   const navigate = useNavigate()
+  const { bookingEnabled } = useFeatureFlags()
   const { mutate: updateStatus, isPending } = useUpdateChecklistStatus()
 
   const isDone       = item.status === 'Completed'
@@ -189,14 +191,16 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
         )}
 
         {/* Book help */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/bookings')}
-        >
-          <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
-          Book help
-        </Button>
+        {bookingEnabled && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/bookings')}
+          >
+            <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
+            Book help
+          </Button>
+        )}
 
         {/* Open guide */}
         <Button

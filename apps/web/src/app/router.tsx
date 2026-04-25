@@ -6,6 +6,7 @@ import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute'
 import { GuestRoute } from '@/features/auth/components/GuestRoute'
+import { FeatureFlagRoute } from '@/features/auth/components/FeatureFlagRoute'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { FamilyOnboardingPage } from '@/features/families/pages/FamilyOnboardingPage'
@@ -101,16 +102,48 @@ export const router = createBrowserRouter([
       { path: 'tasks',              element: <SafetyTasksPage /> },
       { path: 'checklist',          element: <PremiumChecklistPage /> },
       { path: 'reports',            element: <ReportsPage /> },
-      { path: 'bookings',                element: <BookingFormPage /> },
-      { path: 'bookings/my',             element: <MyBookingsPage /> },
-      { path: 'bookings/:id',            element: <BookingDetailsPage /> },
-      { path: 'bookings/:id/unlocked',   element: <PaymentUnlockPage /> },
-      { path: 'plans/safety',            element: <FamilySafetyPlanPage /> },
-      { path: 'plans/incident-recovery', element: <IncidentRecoveryPackPage /> },
+      { path: 'bookings', element: (
+          <FeatureFlagRoute flag="bookingEnabled">
+            <BookingFormPage />
+          </FeatureFlagRoute>
+      )},
+      { path: 'bookings/my', element: (
+          <FeatureFlagRoute flag="bookingEnabled">
+            <MyBookingsPage />
+          </FeatureFlagRoute>
+      )},
+      { path: 'bookings/:id', element: (
+          <FeatureFlagRoute flag="bookingEnabled">
+            <BookingDetailsPage />
+          </FeatureFlagRoute>
+      )},
+      { path: 'bookings/:id/unlocked', element: (
+          <FeatureFlagRoute flag="paymentsEnabled">
+            <PaymentUnlockPage />
+          </FeatureFlagRoute>
+      )},
+      { path: 'plans/safety', element: (
+          <FeatureFlagRoute flag="plansEnabled">
+            <FamilySafetyPlanPage />
+          </FeatureFlagRoute>
+      )},
+      { path: 'plans/incident-recovery', element: (
+          <FeatureFlagRoute flag="plansEnabled">
+            <IncidentRecoveryPackPage />
+          </FeatureFlagRoute>
+      )},
       // Payment gateway redirect callbacks — must be inside ProtectedRoute so
       // the user session is available when the sync API call is made.
-      { path: 'bookings/payment/success', element: <PaymentCallbackPage /> },
-      { path: 'bookings/payment/cancel',  element: <PaymentCallbackPage /> },
+      { path: 'bookings/payment/success', element: (
+          <FeatureFlagRoute flag="paymentsEnabled">
+            <PaymentCallbackPage />
+          </FeatureFlagRoute>
+      )},
+      { path: 'bookings/payment/cancel', element: (
+          <FeatureFlagRoute flag="paymentsEnabled">
+            <PaymentCallbackPage />
+          </FeatureFlagRoute>
+      )},
       { path: 'settings',           element: <SettingsPage /> },
     ],
   },

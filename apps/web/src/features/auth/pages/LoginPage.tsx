@@ -1,21 +1,29 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import { useLogin } from '../hooks/useLogin'
 import type { LoginFormValues } from '../auth.types'
-
-const schema = z.object({
-  email: z.string().min(1, 'Email is required').email('Enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
-})
 
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: Location })?.from?.pathname ?? '/dashboard'
+  const { t } = useTranslation('auth')
+  const { t: tv } = useTranslation('validation')
 
   const login = useLogin()
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.string().min(1, tv('email.required')).email(tv('email.invalid')),
+        password: z.string().min(1, tv('password.required')),
+      }),
+    [tv],
+  )
 
   const {
     register,
@@ -30,8 +38,8 @@ export function LoginPage() {
       onError: (err) =>
         setError('root', {
           message: err.isUnauthorized
-            ? 'Invalid email or password.'
-            : (err.message ?? 'Something went wrong. Please try again.'),
+            ? t('invalidCredentials')
+            : (err.message ?? t('invalidCredentials')),
         }),
     })
   }
@@ -41,7 +49,7 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-blue-600">SafeFamily</h1>
-          <p className="mt-2 text-sm text-gray-500">Sign in to your account</p>
+          <p className="mt-2 text-sm text-gray-500">{t('signInTitle')}</p>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
@@ -49,7 +57,7 @@ export function LoginPage() {
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t('email')}
               </label>
               <input
                 {...register('email')}
@@ -67,7 +75,7 @@ export function LoginPage() {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('password')}
               </label>
               <input
                 {...register('password')}
@@ -94,15 +102,15 @@ export function LoginPage() {
               disabled={isSubmitting || login.isPending}
               className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
             >
-              {login.isPending ? 'Signing in…' : 'Sign in'}
+            {login.isPending ? t('loggingIn') : t('loginButton')}
             </button>
           </form>
         </div>
 
         <p className="mt-4 text-center text-sm text-gray-500">
-          Don&apos;t have an account?{' '}
+          {t('noAccount')}{' '}
           <Link to="/register" className="font-medium text-blue-600 hover:underline">
-            Sign up
+            {t('signUp')}
           </Link>
         </p>
       </div>

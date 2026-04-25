@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Download, FileText, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Badge, Button } from '@/components/ui'
 import type { Report } from '../reports.types'
 import { REPORT_TYPE_BADGE, REPORT_TYPE_LABEL } from '../reports.types'
@@ -23,15 +24,16 @@ const panelVariants = {
 // ── Subcomponents ─────────────────────────────────────────────────────────────
 
 function Placeholder() {
+  const { t } = useTranslation('reports')
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[320px] gap-4 text-center px-8">
       <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gray-100 text-gray-400">
         <FileText className="w-7 h-7" strokeWidth={1.5} />
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-600">No report selected</p>
+        <p className="text-sm font-medium text-gray-600">{t('preview.noReportSelected')}</p>
         <p className="text-xs text-gray-400 mt-1 max-w-[200px] leading-relaxed">
-          Choose a report from the list to view its full details here.
+          {t('preview.noReportHint')}
         </p>
       </div>
     </div>
@@ -48,6 +50,7 @@ function Placeholder() {
  */
 export function ReportPreviewPanel({ report, onClose }: ReportPreviewPanelProps) {
   const { mutate: download, isPending: isDownloading } = useDownloadReport()
+  const { t } = useTranslation('reports')
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col">
@@ -98,7 +101,7 @@ export function ReportPreviewPanel({ report, onClose }: ReportPreviewPanelProps)
                 type="button"
                 onClick={onClose}
                 className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                aria-label="Close preview"
+                aria-label={t('preview.closePreview')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -122,7 +125,7 @@ export function ReportPreviewPanel({ report, onClose }: ReportPreviewPanelProps)
                   className="w-full"
                 >
                   <Download className="w-4 h-4" aria-hidden="true" />
-                  {isDownloading ? 'Downloading…' : 'Download Report'}
+                  {isDownloading ? t('preview.downloading') : t('preview.downloadReport')}
                 </Button>
               </div>
             )}

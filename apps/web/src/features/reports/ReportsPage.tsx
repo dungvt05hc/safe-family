@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { AlertTriangle, BarChart2, CalendarCheck, FileText } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, LoadingState } from '@/components/ui'
 import { ApiError } from '@/types/api'
@@ -45,6 +46,7 @@ function StatCard({ index, label, value, icon: Icon, iconBg }: StatCardProps) {
 
 export function ReportsPage() {
   const { data: reports = [], isLoading, isError, error } = useReports()
+  const { t } = useTranslation('reports')
 
   const [selected,  setSelected]  = useState<Report | null>(null)
   const [filters,   setFilters]   = useState<ReportFilters>(DEFAULT_REPORT_FILTERS)
@@ -105,8 +107,8 @@ export function ReportsPage() {
 
   return (
     <PageLayout
-      title="Reports"
-      description="View and download safety reports generated from assessments, incidents, and family sessions."
+      title={t('title')}
+      description={t('description')}
     >
       {/* ── Loading ──────────────────────────────────────────────────────── */}
       {isLoading && <LoadingState />}
@@ -114,7 +116,7 @@ export function ReportsPage() {
       {/* ── Error ────────────────────────────────────────────────────────── */}
       {isError && (
         <Alert variant="error">
-          {error instanceof ApiError ? error.message : 'Failed to load reports.'}
+          {error instanceof ApiError ? error.message : t('loadError')}
         </Alert>
       )}
 
@@ -125,28 +127,28 @@ export function ReportsPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
               index={0}
-              label="Total Reports"
+              label={t('stats.totalReports')}
               value={String(reports.length)}
               icon={FileText}
               iconBg="bg-blue-50 text-blue-500"
             />
             <StatCard
               index={1}
-              label="Assessments"
+              label={t('stats.assessments')}
               value={String(assessmentCount)}
               icon={BarChart2}
               iconBg="bg-indigo-50 text-indigo-500"
             />
             <StatCard
               index={2}
-              label="Incidents"
+              label={t('stats.incidents')}
               value={String(incidentCount)}
               icon={AlertTriangle}
               iconBg="bg-red-50 text-red-500"
             />
             <StatCard
               index={3}
-              label="Last Report"
+              label={t('stats.lastReport')}
               value={latestDate}
               icon={CalendarCheck}
               iconBg="bg-emerald-50 text-emerald-600"

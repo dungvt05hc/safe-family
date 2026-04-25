@@ -9,7 +9,9 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
+import { useFeatureFlags } from '@/lib/featureFlags'
 
 // ── Product registry ──────────────────────────────────────────────────────────
 
@@ -148,6 +150,8 @@ export interface PremiumLockedStateProps {
  */
 export function PremiumLockedState({ product }: PremiumLockedStateProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation('common')
+  const { bookingEnabled } = useFeatureFlags()
   const cfg = PRODUCT_CONFIGS[product]
   const Icon = cfg.icon
 
@@ -208,11 +212,13 @@ export function PremiumLockedState({ product }: PremiumLockedStateProps) {
 
       {/* CTAs */}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Button variant="primary" onClick={() => navigate(cfg.ctaPath)}>
-          {cfg.ctaLabel}
-        </Button>
+        {bookingEnabled && (
+          <Button variant="primary" onClick={() => navigate(cfg.ctaPath)}>
+            {cfg.ctaLabel}
+          </Button>
+        )}
         <Button variant="ghost" onClick={() => navigate('/dashboard')}>
-          Back to dashboard
+          {t('backToDashboardLabel')}
         </Button>
       </div>
     </motion.div>

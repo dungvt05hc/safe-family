@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   type LucideIcon,
 } from 'lucide-react'
+import type { FeatureFlags } from '@/lib/featureFlags'
 
 export interface NavItem {
   label: string
@@ -21,6 +22,11 @@ export interface NavItem {
   icon: LucideIcon
   /** Show only for admin users */
   adminOnly?: boolean
+  /**
+   * Feature flag that must be enabled for this item to appear.
+   * When omitted the item is always visible.
+   */
+  featureFlag?: keyof FeatureFlags
 }
 
 export interface NavGroup {
@@ -30,42 +36,42 @@ export interface NavGroup {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Overview',
+    label: 'groups.overview',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { label: 'items.dashboard', href: '/dashboard', icon: LayoutDashboard },
     ],
   },
   {
-    label: 'Family',
+    label: 'groups.family',
     items: [
-      { label: 'Family Members', href: '/family/members', icon: Users },
-      { label: 'Accounts',       href: '/accounts',       icon: CreditCard },
-      { label: 'Devices',        href: '/devices',        icon: Smartphone },
+      { label: 'items.familyMembers', href: '/family/members', icon: Users },
+      { label: 'items.accounts',      href: '/accounts',       icon: CreditCard },
+      { label: 'items.devices',       href: '/devices',        icon: Smartphone },
     ],
   },
   {
-    label: 'Safety',
+    label: 'groups.safety',
     items: [
-      { label: 'Assessments',   href: '/assessment', icon: ClipboardCheck },
-      { label: 'Safety Tasks',  href: '/tasks',        icon: ShieldAlert },
-      { label: 'Checklist',     href: '/checklists',   icon: ListChecks },
-      { label: 'Premium Checklist', href: '/checklist', icon: ShieldCheck },
-      { label: 'Incidents',     href: '/incidents',   icon: AlertTriangle },
+      { label: 'items.assessments',      href: '/assessment', icon: ClipboardCheck },
+      { label: 'items.safetyTasks',      href: '/tasks',       icon: ShieldAlert },
+      { label: 'items.checklist',        href: '/checklists',  icon: ListChecks },
+      { label: 'items.premiumChecklist', href: '/checklist',   icon: ShieldCheck },
+      { label: 'items.incidents',        href: '/incidents',   icon: AlertTriangle },
     ],
   },
   {
-    label: 'Plans',
+    label: 'groups.plans',
     items: [
-      { label: 'Safety Plans',   href: '/plans/safety',            icon: ShieldCheck },
-      { label: 'Recovery Packs', href: '/plans/incident-recovery', icon: Package },
+      { label: 'items.safetyPlans',   href: '/plans/safety',            icon: ShieldCheck, featureFlag: 'plansEnabled' },
+      { label: 'items.recoveryPacks', href: '/plans/incident-recovery', icon: Package,     featureFlag: 'plansEnabled' },
     ],
   },
   {
-    label: 'Support',
+    label: 'groups.support',
     items: [
-      { label: 'Bookings', href: '/bookings/my', icon: CalendarDays },
-      { label: 'Reports',  href: '/reports',     icon: BarChart2 },
-      { label: 'Settings', href: '/settings',    icon: Settings },
+      { label: 'items.bookings', href: '/bookings/my', icon: CalendarDays, featureFlag: 'bookingEnabled' },
+      { label: 'items.reports',  href: '/reports',     icon: BarChart2 },
+      { label: 'items.settings', href: '/settings',    icon: Settings },
     ],
   },
 ]

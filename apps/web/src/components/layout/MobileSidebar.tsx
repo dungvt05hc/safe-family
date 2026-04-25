@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { NavContent } from './NavContent'
 import { type NavGroup } from './nav-items'
 
@@ -11,6 +12,7 @@ interface MobileSidebarProps {
 }
 
 export function MobileSidebar({ open, onClose, navGroups }: MobileSidebarProps) {
+  const { t } = useTranslation('common')
   // Close on Escape key
   useEffect(() => {
     if (!open) return
@@ -48,7 +50,7 @@ export function MobileSidebar({ open, onClose, navGroups }: MobileSidebarProps) 
             key="drawer"
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation"
+            aria-label={t('navigation')}
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
@@ -65,7 +67,7 @@ export function MobileSidebar({ open, onClose, navGroups }: MobileSidebarProps) 
               </div>
               <button
                 onClick={onClose}
-                aria-label="Close navigation"
+                aria-label={t('closeNavigation')}
                 className="p-1.5 rounded-md text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />

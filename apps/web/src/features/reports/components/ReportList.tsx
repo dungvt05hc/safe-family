@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { BarChart2, CalendarPlus, FileText } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button, EmptyState } from '@/components/ui'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import type { Report } from '../reports.types'
 import { ReportCard } from './ReportCard'
 
@@ -18,29 +20,34 @@ interface ReportListProps {
 
 function NoReports() {
   const navigate = useNavigate()
+  const { bookingEnabled } = useFeatureFlags()
+  const { t } = useTranslation('reports')
   return (
     <div className="flex flex-col items-center gap-3">
       <EmptyState
         icon={FileText}
-        title="No reports yet"
-        description="Reports are generated after completing a risk assessment or reporting an incident. Start below to create your first report."
-        actionLabel="Run Risk Check"
+        title={t('list.noReportsTitle')}
+        description={t('list.noReportsDescription')}
+        actionLabel={t('list.runRiskCheck')}
         onAction={() => navigate('/assessment')}
       />
-      <Button variant="outline" size="sm" onClick={() => navigate('/bookings')}>
-        <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
-        Book Family Reset
-      </Button>
+      {bookingEnabled && (
+        <Button variant="outline" size="sm" onClick={() => navigate('/bookings')}>
+          <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
+          {t('list.bookFamilyReset')}
+        </Button>
+      )}
     </div>
   )
 }
 
 function NoResults() {
+  const { t } = useTranslation('reports')
   return (
     <EmptyState
       icon={BarChart2}
-      title="No matching reports"
-      description="Try adjusting your search or filters to find what you're looking for."
+      title={t('list.noResultsTitle')}
+      description={t('list.noResultsDescription')}
     />
   )
 }

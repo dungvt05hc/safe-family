@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 
@@ -10,6 +11,7 @@ export function RootLayout() {
   const { data: user, isLoading } = useCurrentUser()
   const logout = useLogout()
   const navigate = useNavigate()
+  const { t } = useTranslation('common')
 
   function handleLogout() {
     logout.mutate(undefined, { onSuccess: () => navigate('/login', { replace: true }) })
@@ -31,7 +33,7 @@ export function RootLayout() {
                 isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900 transition-colors'
               }
             >
-              Home
+              {t('home')}
             </NavLink>
             {/* Add more nav links as features are built */}
           </nav>
@@ -47,19 +49,19 @@ export function RootLayout() {
                     disabled={logout.isPending}
                     className="font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
                   >
-                    Log out
+                    {t('logOut')}
                   </button>
                 </>
               ) : (
                 <>
                   <Link to="/login" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Sign in
+                    {t('signIn')}
                   </Link>
                   <Link
                     to="/register"
                     className="rounded-md bg-blue-600 px-3 py-1.5 font-medium text-white hover:bg-blue-700 transition-colors"
                   >
-                    Sign up
+                    {t('signUp')}
                   </Link>
                 </>
               )}

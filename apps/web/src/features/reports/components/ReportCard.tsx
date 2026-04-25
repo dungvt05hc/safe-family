@@ -5,6 +5,7 @@ import { fadeUpVariants } from '@/lib/motion'
 import { Badge, Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useEntitlements } from '@/features/entitlements/EntitlementProvider'
+import { useFeatureFlags } from '@/lib/featureFlags'
 import {
   REPORT_TYPE_BADGE,
   REPORT_TYPE_LABEL,
@@ -33,6 +34,7 @@ interface ReportCardProps {
 export function ReportCard({ report, isSelected, index, onSelect }: ReportCardProps) {
   const { mutate: download, isPending: isDownloading } = useDownloadReport()
   const { hasEntitlement } = useEntitlements()
+  const { bookingEnabled } = useFeatureFlags()
   const navigate = useNavigate()
 
   const isPremium = isPremiumReport(report.type)
@@ -49,13 +51,13 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
       initial="hidden"
       animate="visible"
       whileHover={{ y: -1 }}
-      onClick={() => isLocked ? navigate('/bookings') : onSelect(report)}
+      onClick={() => isLocked ? (bookingEnabled ? navigate('/bookings') : undefined) : onSelect(report)}
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          isLocked ? navigate('/bookings') : onSelect(report)
+          isLocked ? (bookingEnabled ? navigate('/bookings') : undefined) : onSelect(report)
         }
       }}
       className={cn(
@@ -134,14 +136,21 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
           onClick={(e) => e.stopPropagation()}
         >
           {isLocked ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/bookings')}
-            >
-              <Lock className="w-3.5 h-3.5" aria-hidden="true" />
-              Unlock
-            </Button>
+            bookingEnabled ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/bookings')}
+              >
+                <Lock className="w-3.5 h-3.5" aria-hidden="true" />
+                Unlock
+              </Button>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                <Lock className="w-3 h-3" aria-hidden="true" />
+                Premium
+              </span>
+            )
           ) : (
             <>
               <Button

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, EmptyState, LoadingState, PremiumLockedState, UpgradeCTACard } from '@/components/ui'
-import { ApiError } from '@/types/api'
+import { useApiError } from '@/lib/i18n/useApiError'
 import { useEntitlements } from '@/features/entitlements/EntitlementProvider'
 import {
   DEFAULT_TASK_FILTERS,
@@ -66,6 +66,7 @@ function NoResults() {
 export function PremiumChecklistPage() {
   const { hasEntitlement, isLoading: entitlementsLoading } = useEntitlements()
   const { data: tasks = [], isLoading, isError, error } = useSafetyTasks()
+  const loadError = useApiError(error, 'load.tasks')
   const [filters, setFilters] = useState<SafetyTaskFilters>(DEFAULT_TASK_FILTERS)
 
   // ── Premium gate ────────────────────────────────────────────────────────────
@@ -124,7 +125,7 @@ export function PremiumChecklistPage() {
       {/* Error */}
       {isError && !isLoading && (
         <Alert variant="error">
-          {error instanceof ApiError ? error.message : 'Failed to load your safety tasks.'}
+          {loadError}
         </Alert>
       )}
 
