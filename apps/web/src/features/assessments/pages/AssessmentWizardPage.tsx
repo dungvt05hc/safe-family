@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { useAssessmentQuestions } from '../hooks/useAssessmentQueries'
 import { useSubmitAssessment } from '../hooks/useAssessmentMutations'
-import { groupQuestionsByCategory, CATEGORY_LABELS } from '../assessments.types'
+import { groupQuestionsByCategory } from '../assessments.types'
 import { WizardProgress } from '../components/WizardProgress'
 import { QuestionCard } from '../components/QuestionCard'
 
@@ -31,6 +32,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 export function AssessmentWizardPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('assessments')
   const { data: questions, isLoading, isError } = useAssessmentQuestions()
   const submitMutation = useSubmitAssessment()
 
@@ -48,17 +50,17 @@ export function AssessmentWizardPage() {
 
   if (isLoading) {
     return (
-      <PageLayout title="Assessment">
-        <p className="text-sm text-gray-500">Loading questions…</p>
+      <PageLayout title={t('wizard.pageTitle')}>
+        <p className="text-sm text-gray-500">{t('wizard.loading')}</p>
       </PageLayout>
     )
   }
 
   if (isError || !questions) {
     return (
-      <PageLayout title="Assessment">
+      <PageLayout title={t('wizard.pageTitle')}>
         <div className="rounded-xl bg-red-50 px-5 py-4 text-sm text-red-600">
-          Failed to load questions. Please try again.
+          {t('wizard.loadError')}
         </div>
       </PageLayout>
     )
@@ -88,17 +90,17 @@ export function AssessmentWizardPage() {
     navigate('/assessment/result')
   }
 
-  const categoryLabel = CATEGORY_LABELS[currentStep.category] ?? currentStep.category
+  const categoryLabel = t(`categories.${currentStep.category}`, { defaultValue: currentStep.category })
   const categoryIcon  = CATEGORY_ICONS[currentStep.category] ?? '📋'
 
   return (
-    <PageLayout title="Digital Safety Assessment">
+    <PageLayout title={t('wizard.pageTitle')}>
       <div className="mx-auto max-w-xl">
         {/* Progress */}
         <WizardProgress
           currentStep={stepIndex + 1}
           totalSteps={totalSteps}
-          stepLabel={`Step ${stepIndex + 1}: ${categoryLabel}`}
+          stepLabel={t('wizard.stepLabel', { current: stepIndex + 1, label: categoryLabel })}
         />
 
         {/* Step header */}
@@ -107,7 +109,7 @@ export function AssessmentWizardPage() {
           <div>
             <h2 className="text-lg font-bold text-gray-900">{categoryLabel}</h2>
             <p className="text-xs text-gray-500">
-              {currentStep.questions.length} question{currentStep.questions.length !== 1 ? 's' : ''}
+              {t('wizard.questionCount', { count: currentStep.questions.length })}
             </p>
           </div>
         </div>
@@ -132,7 +134,7 @@ export function AssessmentWizardPage() {
                     )}
                   />
                   {fieldError && (
-                    <p className="mt-2 text-xs text-red-500">{fieldError.message}</p>
+                    <p className="mt-2 text-xs text-red-500">{t('wizard.pleaseSelectAnswer')}</p>
                   )}
                 </div>
               )
@@ -147,7 +149,7 @@ export function AssessmentWizardPage() {
               disabled={stepIndex === 0}
               className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              ← Back
+              ← {t('wizard.back')}
             </button>
 
             <button
@@ -156,16 +158,16 @@ export function AssessmentWizardPage() {
               className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {submitMutation.isPending
-                ? 'Submitting…'
+                ? t('wizard.submitting')
                 : isLastStep
-                  ? 'Submit assessment'
-                  : 'Next →'}
+                  ? t('wizard.submit')
+                  : `${t('wizard.next')} →`}
             </button>
           </div>
 
           {submitMutation.isError && (
             <p className="mt-4 text-center text-sm text-red-500">
-              Something went wrong. Please try again.
+              {t('wizard.submitError')}
             </p>
           )}
         </form>

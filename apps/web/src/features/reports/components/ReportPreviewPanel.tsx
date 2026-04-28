@@ -3,7 +3,7 @@ import { Download, FileText, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button } from '@/components/ui'
 import type { Report } from '../reports.types'
-import { REPORT_TYPE_BADGE, REPORT_TYPE_LABEL } from '../reports.types'
+import { REPORT_TYPE_BADGE } from '../reports.types'
 import { useDownloadReport } from '../reports.hooks'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -80,7 +80,7 @@ export function ReportPreviewPanel({ report, onClose }: ReportPreviewPanelProps)
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                   <Badge variant={REPORT_TYPE_BADGE[report.type]}>
-                    {REPORT_TYPE_LABEL[report.type]}
+                    {t(`types.${report.type}.label`, { defaultValue: report.type })}
                   </Badge>
                 </div>
                 <h2 className="text-base font-semibold text-gray-900 leading-snug">

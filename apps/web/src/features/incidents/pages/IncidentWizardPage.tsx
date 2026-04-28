@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Button } from '@/components/ui'
 import {
@@ -27,6 +28,7 @@ type FormValues = z.infer<typeof schema>
 export function IncidentWizardPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { t } = useTranslation('incidents')
   const preselectedType = (location.state as { type?: IncidentType } | null)?.type
 
   const { mutate: reportIncident, isPending } = useReportIncident()
@@ -63,14 +65,14 @@ export function IncidentWizardPage() {
 
   return (
     <PageLayout
-      title="Incident Details"
-      description="Provide details about the incident so we can generate a first action plan."
+      title={t('wizard.pageTitle')}
+      description={t('wizard.pageDescription')}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Incident type */}
         <div>
           <label className="mb-3 block text-sm font-medium text-gray-700">
-            Incident Type
+            {t('wizard.typeLabel')}
           </label>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(Object.keys(INCIDENT_TYPE_CONFIG) as IncidentType[]).map((type) => {
@@ -91,20 +93,20 @@ export function IncidentWizardPage() {
                     className="sr-only"
                   />
                   <span className="text-xl">{config.icon}</span>
-                  <span className="font-medium">{config.label}</span>
+                  <span className="font-medium">{t(`types.${type}.label`, { defaultValue: config.label })}</span>
                 </label>
               )
             })}
           </div>
           {errors.type && (
-            <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
+            <p className="mt-1 text-sm text-red-600">{t('wizard.errors.typeRequired')}</p>
           )}
         </div>
 
         {/* Severity */}
         <div>
           <label className="mb-3 block text-sm font-medium text-gray-700">
-            Severity
+            {t('wizard.severityLabel')}
           </label>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {(Object.keys(SEVERITY_CONFIG) as IncidentSeverity[]).map((sev) => {
@@ -127,15 +129,15 @@ export function IncidentWizardPage() {
                   <span
                     className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${config.color}`}
                   >
-                    {config.label}
+                    {t(`severity.${sev}.label`, { defaultValue: config.label })}
                   </span>
-                  <span className="text-gray-500">{config.description}</span>
+                  <span className="text-gray-500">{t(`severity.${sev}.description`, { defaultValue: config.description })}</span>
                 </label>
               )
             })}
           </div>
           {errors.severity && (
-            <p className="mt-1 text-sm text-red-600">{errors.severity.message}</p>
+            <p className="mt-1 text-sm text-red-600">{t('wizard.errors.severityRequired')}</p>
           )}
         </div>
 
@@ -145,17 +147,21 @@ export function IncidentWizardPage() {
             htmlFor="summary"
             className="mb-1 block text-sm font-medium text-gray-700"
           >
-            Summary
+            {t('wizard.summaryLabel')}
           </label>
           <textarea
             id="summary"
             rows={4}
-            placeholder="Briefly describe what happened…"
+            placeholder={t('wizard.summaryPlaceholder')}
             {...register('summary')}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           {errors.summary && (
-            <p className="mt-1 text-sm text-red-600">{errors.summary.message}</p>
+            <p className="mt-1 text-sm text-red-600">
+              {errors.summary.type === 'too_big'
+                ? t('wizard.errors.summaryMax')
+                : t('wizard.errors.summaryMin')}
+            </p>
           )}
         </div>
 
@@ -165,10 +171,10 @@ export function IncidentWizardPage() {
             variant="outline"
             onClick={() => navigate('/incidents')}
           >
-            Back
+            {t('wizard.backButton')}
           </Button>
           <Button type="submit" loading={isPending}>
-            Submit Incident
+            {t('wizard.submitButton')}
           </Button>
         </div>
       </form>

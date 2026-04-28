@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Download, Eye, FileText, Lock, Tag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge, Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
@@ -8,7 +9,6 @@ import { useEntitlements } from '@/features/entitlements/EntitlementProvider'
 import { useFeatureFlags } from '@/lib/featureFlags'
 import {
   REPORT_TYPE_BADGE,
-  REPORT_TYPE_LABEL,
   isPremiumReport,
   type Report,
 } from '../reports.types'
@@ -36,6 +36,7 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
   const { hasEntitlement } = useEntitlements()
   const { bookingEnabled } = useFeatureFlags()
   const navigate = useNavigate()
+  const { t } = useTranslation('reports')
 
   const isPremium = isPremiumReport(report.type)
   const isLocked  = isPremium && !hasEntitlement('PremiumReportAccess')
@@ -97,7 +98,7 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
               {report.title}
             </p>
             <p className="mt-0.5 text-xs text-gray-500 line-clamp-2 leading-relaxed">
-              {isLocked ? 'Purchase a qualifying package to unlock this report.' : report.description}
+              {isLocked ? t('card.lockedDescription') : report.description}
             </p>
           </div>
         </div>
@@ -107,11 +108,11 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
           {isLocked && (
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
               <Lock className="w-2.5 h-2.5" aria-hidden="true" />
-              Premium
+              {t('card.premiumLabel')}
             </span>
           )}
           <Badge variant={REPORT_TYPE_BADGE[report.type] ?? 'default'}>
-            {REPORT_TYPE_LABEL[report.type] ?? report.type}
+            {t(`types.${report.type}.label`, { defaultValue: report.type })}
           </Badge>
         </div>
       </div>
@@ -143,12 +144,12 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
                 onClick={() => navigate('/bookings')}
               >
                 <Lock className="w-3.5 h-3.5" aria-hidden="true" />
-                Unlock
+                {t('card.unlockButton')}
               </Button>
             ) : (
               <span className="inline-flex items-center gap-1 text-xs text-gray-400">
                 <Lock className="w-3 h-3" aria-hidden="true" />
-                Premium
+                {t('card.premiumLabel')}
               </span>
             )
           ) : (
@@ -160,7 +161,7 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
                 aria-label={`View ${report.title}`}
               >
                 <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-                View
+                {t('card.viewButton')}
               </Button>
               <Button
                 variant="outline"
@@ -170,7 +171,7 @@ export function ReportCard({ report, isSelected, index, onSelect }: ReportCardPr
                 aria-label={`Download ${report.title}`}
               >
                 <Download className="w-3.5 h-3.5" aria-hidden="true" />
-                Download
+                {t('card.downloadButton')}
               </Button>
             </>
           )}

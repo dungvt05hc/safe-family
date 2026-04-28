@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Package, CalendarDays, Link as LinkIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, Card, CardContent, EmptyState, LoadingState, LockedFeature } from '@/components/ui'
 import { fadeUpVariants } from '@/lib/motion'
@@ -20,6 +21,7 @@ const STATUS_BADGE: Record<string, string> = {
 // ── Single pack card ──────────────────────────────────────────────────────────
 
 function RecoveryPackCard({ pack, index }: { pack: IncidentRecoveryPack; index: number }) {
+  const { t } = useTranslation('plans')
   const date = new Date(pack.createdAt).toLocaleDateString('en-AU', {
     day: 'numeric', month: 'short', year: 'numeric',
   })
@@ -40,7 +42,7 @@ function RecoveryPackCard({ pack, index }: { pack: IncidentRecoveryPack; index: 
                 <Package className="h-5 w-5 text-red-500" aria-hidden="true" />
               </span>
               <div>
-                <p className="font-semibold text-gray-900 text-sm">Incident Recovery Pack</p>
+                <p className="font-semibold text-gray-900 text-sm">{t('incidentRecovery.cardTitle')}</p>
                 <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-400">
                   <CalendarDays className="h-3 w-3" aria-hidden="true" />
                   {date}
@@ -59,25 +61,25 @@ function RecoveryPackCard({ pack, index }: { pack: IncidentRecoveryPack; index: 
 
           {/* Content grid */}
           <div className="grid gap-4 sm:grid-cols-2">
-            <PackSection title="What Happened"   content={pack.whatHappened} />
-            <PackSection title="What To Do Now"  content={pack.whatToDoNow} />
-            <PackSection title="What Not To Do"  content={pack.whatNotToDo} />
-            <PackSection title="Next 24 Hours"   content={pack.next24Hours} />
+            <PackSection title={t('incidentRecovery.sections.whatHappened')}   content={pack.whatHappened} />
+            <PackSection title={t('incidentRecovery.sections.whatToDoNow')}    content={pack.whatToDoNow} />
+            <PackSection title={t('incidentRecovery.sections.whatNotToDo')}    content={pack.whatNotToDo} />
+            <PackSection title={t('incidentRecovery.sections.next24Hours')}    content={pack.next24Hours} />
           </div>
 
-          <PackSection title="Next 7 Days" content={pack.next7Days} />
+          <PackSection title={t('incidentRecovery.sections.next7Days')} content={pack.next7Days} />
 
           {/* Footer: linked entities */}
           <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 pt-1">
             <LinkIcon className="h-3 w-3" aria-hidden="true" />
             <Link to={`/bookings/${pack.bookingId}`} className="hover:text-blue-600 hover:underline">
-              View booking
+              {t('incidentRecovery.viewBooking')}
             </Link>
             {pack.linkedIncidentId && (
               <>
                 <span>·</span>
                 <Link to={`/incidents/${pack.linkedIncidentId}`} className="hover:text-blue-600 hover:underline">
-                  View incident
+                  {t('incidentRecovery.viewIncident')}
                 </Link>
               </>
             )}
@@ -100,20 +102,21 @@ function PackSection({ title, content }: { title: string; content: string }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function IncidentRecoveryPage() {
+  const { t } = useTranslation('plans')
   const { hasEntitlement, isLoading: entLoading } = useEntitlements()
   const { data: packs = [], isLoading, isError, error } = useIncidentRecoveryPacks()
 
   if (!entLoading && !hasEntitlement('IncidentRecoveryPackAccess')) {
     return (
       <PageLayout
-        title="Incident Recovery Packs"
-        description="Step-by-step recovery guides generated after an incident response session."
+        title={t('incidentRecovery.title')}
+        description={t('incidentRecovery.description')}
       >
         <LockedFeature
-          title="Incident Recovery Packs are locked"
-          description="Your personalised recovery pack — including containment steps, what to avoid, and a 7-day recovery guide — is generated after completing an Incident Response session."
-          packageName="Incident Response package"
-          ctaLabel="View packages"
+          title={t('incidentRecovery.lockedTitle')}
+          description={t('incidentRecovery.lockedDescription')}
+          packageName={t('incidentRecovery.lockedPackage')}
+          ctaLabel={t('incidentRecovery.lockedCta')}
           ctaPath="/bookings"
         />
       </PageLayout>
@@ -122,26 +125,26 @@ export function IncidentRecoveryPage() {
 
   return (
     <PageLayout
-      title="Incident Recovery Packs"
-      description="Step-by-step recovery guides generated after an incident response session."
+      title={t('incidentRecovery.title')}
+      description={t('incidentRecovery.description')}
     >
       {(isLoading || entLoading) && <LoadingState />}
 
       {isError && (
         <Alert variant="error">
           {error instanceof ApiError && error.isPaymentRequired
-            ? 'Access to Incident Recovery Packs requires an active subscription.'
+            ? t('incidentRecovery.error.subscription')
             : error instanceof ApiError
             ? error.message
-            : 'Failed to load recovery packs.'}
+            : t('incidentRecovery.error.generic')}
         </Alert>
       )}
 
       {!isLoading && !isError && packs.length === 0 && (
         <EmptyState
           icon={Package}
-          title="Your recovery pack is being prepared"
-          description="Our advisors are treating this as a priority. Your step-by-step recovery guide will be ready shortly. We'll notify you by email when it's available."
+          title={t('incidentRecovery.empty.title')}
+          description={t('incidentRecovery.empty.description')}
         />
       )}
 

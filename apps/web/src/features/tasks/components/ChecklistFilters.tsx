@@ -1,11 +1,8 @@
 import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import {
-  CATEGORY_LABEL,
   DEFAULT_TASK_FILTERS,
-  PHASE_LABEL,
-  PRIORITY_LABEL,
-  STATUS_LABEL,
   type SafetyTaskFilters,
   type TaskCategoryFilter,
   type TaskPhaseFilter,
@@ -46,37 +43,6 @@ function FilterSelect<T extends string>({ label, value, options, onChange }: Fil
   )
 }
 
-// ── Option constants ──────────────────────────────────────────────────────────
-
-const STATUS_OPTIONS: { value: TaskStatusFilter; label: string }[] = [
-  { value: 'All',        label: 'All statuses' },
-  { value: 'Pending',    label: STATUS_LABEL.Pending },
-  { value: 'InProgress', label: STATUS_LABEL.InProgress },
-  { value: 'Completed',  label: STATUS_LABEL.Completed },
-  { value: 'Dismissed',  label: STATUS_LABEL.Dismissed },
-]
-
-const PRIORITY_OPTIONS: { value: TaskPriorityFilter; label: string }[] = [
-  { value: 'All',    label: 'All priorities' },
-  { value: 'High',   label: PRIORITY_LABEL.High },
-  { value: 'Medium', label: PRIORITY_LABEL.Medium },
-  { value: 'Low',    label: PRIORITY_LABEL.Low },
-]
-
-const PHASE_OPTIONS: { value: TaskPhaseFilter; label: string }[] = [
-  { value: 'All',        label: 'All phases' },
-  { value: 'Immediate',  label: PHASE_LABEL.Immediate },
-  { value: 'Next7Days',  label: PHASE_LABEL.Next7Days },
-  { value: 'Next30Days', label: PHASE_LABEL.Next30Days },
-  { value: 'Ongoing',    label: PHASE_LABEL.Ongoing },
-  { value: 'Recurring',  label: PHASE_LABEL.Recurring },
-]
-
-const CATEGORY_OPTIONS: { value: TaskCategoryFilter; label: string }[] = [
-  { value: 'All', label: 'All categories' },
-  ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label })),
-]
-
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface ChecklistFiltersProps {
@@ -89,8 +55,44 @@ interface ChecklistFiltersProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFiltersProps) {
+  const { t } = useTranslation('tasks')
   const update = (partial: Partial<SafetyTaskFilters>) =>
     onChange({ ...filters, ...partial })
+
+  const statusOptions: { value: TaskStatusFilter; label: string }[] = [
+    { value: 'All',        label: t('filter.allStatuses') },
+    { value: 'Pending',    label: t('status.Pending') },
+    { value: 'InProgress', label: t('status.InProgress') },
+    { value: 'Completed',  label: t('status.Completed') },
+    { value: 'Dismissed',  label: t('status.Dismissed') },
+  ]
+
+  const priorityOptions: { value: TaskPriorityFilter; label: string }[] = [
+    { value: 'All',    label: t('filter.allPriorities') },
+    { value: 'High',   label: t('priority.High') },
+    { value: 'Medium', label: t('priority.Medium') },
+    { value: 'Low',    label: t('priority.Low') },
+  ]
+
+  const phaseOptions: { value: TaskPhaseFilter; label: string }[] = [
+    { value: 'All',        label: t('filter.allPhases') },
+    { value: 'Immediate',  label: t('phase.Immediate') },
+    { value: 'Next7Days',  label: t('phase.Next7Days') },
+    { value: 'Next30Days', label: t('phase.Next30Days') },
+    { value: 'Ongoing',    label: t('phase.Ongoing') },
+    { value: 'Recurring',  label: t('phase.Recurring') },
+  ]
+
+  const categoryOptions: { value: TaskCategoryFilter; label: string }[] = [
+    { value: 'All',             label: t('filter.allCategories') },
+    { value: 'AccountSecurity', label: t('category.AccountSecurity') },
+    { value: 'DeviceHygiene',   label: t('category.DeviceHygiene') },
+    { value: 'PrivacySharing',  label: t('category.PrivacySharing') },
+    { value: 'BackupRecovery',  label: t('category.BackupRecovery') },
+    { value: 'ScamReadiness',   label: t('category.ScamReadiness') },
+    { value: 'NetworkSecurity', label: t('category.NetworkSecurity') },
+    { value: 'FamilySafety',    label: t('category.FamilySafety') },
+  ]
 
   const isFiltered =
     filters.search   !== '' ||
@@ -114,7 +116,7 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-3.5 w-3.5 text-gray-400" aria-hidden="true" />
           <span className="text-xs font-semibold text-gray-600">
-            Filters
+            {t('filter.filtersLabel')}
             {activeFilterCount > 0 && (
               <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
                 {activeFilterCount}
@@ -122,7 +124,7 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
             )}
           </span>
           <span className="text-xs text-gray-400">
-            · {itemCount} task{itemCount !== 1 ? 's' : ''}
+            · {t('filter.taskCount', { count: itemCount })}
           </span>
         </div>
         {isFiltered && (
@@ -131,7 +133,7 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
             className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
           >
             <X className="h-3 w-3" aria-hidden="true" />
-            Clear
+            {t('filter.clearFilters')}
           </button>
         )}
       </div>
@@ -143,7 +145,7 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
           type="search"
           value={filters.search}
           onChange={(e) => update({ search: e.target.value })}
-          placeholder="Search tasks…"
+          placeholder={t('filter.searchPlaceholder')}
           className={cn(
             'h-9 w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-700',
             'placeholder:text-gray-400',
@@ -156,27 +158,27 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
       {/* Selects row */}
       <div className="flex flex-wrap gap-3">
         <FilterSelect
-          label="Status"
+          label={t('filter.statusLabel')}
           value={filters.status}
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           onChange={(status) => update({ status })}
         />
         <FilterSelect
-          label="Priority"
+          label={t('filter.priorityLabel')}
           value={filters.priority}
-          options={PRIORITY_OPTIONS}
+          options={priorityOptions}
           onChange={(priority) => update({ priority })}
         />
         <FilterSelect
-          label="Phase"
+          label={t('filter.phaseLabel')}
           value={filters.phase}
-          options={PHASE_OPTIONS}
+          options={phaseOptions}
           onChange={(phase) => update({ phase })}
         />
         <FilterSelect
-          label="Category"
+          label={t('filter.categoryLabel')}
           value={filters.category}
-          options={CATEGORY_OPTIONS}
+          options={categoryOptions}
           onChange={(category) => update({ category })}
         />
       </div>

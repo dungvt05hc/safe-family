@@ -102,7 +102,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
             {initials}
           </span>
           <span className="hidden md:block text-sm font-medium text-gray-700 max-w-[140px] truncate">
-            {user?.displayName ?? 'Account'}
+            {user?.displayName ?? t('account')}
           </span>
           <ChevronDown
             className={cn(

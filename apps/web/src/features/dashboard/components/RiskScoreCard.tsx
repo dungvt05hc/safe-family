@@ -1,22 +1,22 @@
 import { motion } from 'framer-motion'
 import { TrendingUp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import type { DashboardRiskSummary, RiskLevel } from '../dashboard.types'
 
 // ── Risk level display config ─────────────────────────────────────────────────
 
 const RISK_CONFIG: Record<RiskLevel, {
-  label:  string
   bar:    string
   text:   string
   bg:     string
   border: string
 }> = {
-  Low:      { label: 'Low Risk',      bar: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200' },
-  Medium:   { label: 'Medium Risk',   bar: 'bg-amber-400',   text: 'text-amber-700',   bg: 'bg-amber-50',    border: 'border-amber-200'   },
-  High:     { label: 'High Risk',     bar: 'bg-orange-500',  text: 'text-orange-700',  bg: 'bg-orange-50',   border: 'border-orange-200'  },
-  Critical: { label: 'Critical Risk', bar: 'bg-red-500',     text: 'text-red-700',     bg: 'bg-red-50',      border: 'border-red-200'     },
+  Low:      { bar: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50',  border: 'border-emerald-200' },
+  Medium:   { bar: 'bg-amber-400',   text: 'text-amber-700',   bg: 'bg-amber-50',    border: 'border-amber-200'   },
+  High:     { bar: 'bg-orange-500',  text: 'text-orange-700',  bg: 'bg-orange-50',   border: 'border-orange-200'  },
+  Critical: { bar: 'bg-red-500',     text: 'text-red-700',     bg: 'bg-red-50',      border: 'border-red-200'     },
 }
 
 interface RiskScoreCardProps {
@@ -29,6 +29,7 @@ interface RiskScoreCardProps {
  */
 export function RiskScoreCard({ riskSummary }: RiskScoreCardProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation('dashboard')
   const cfg = riskSummary.riskLevel ? RISK_CONFIG[riskSummary.riskLevel] : null
   const hasAssessment = riskSummary.overallScore !== null && cfg !== null
 
@@ -46,7 +47,7 @@ export function RiskScoreCard({ riskSummary }: RiskScoreCardProps) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
-            Family Risk Score
+            {t('riskScore')}
           </p>
           {hasAssessment ? (
             <p className={cn('text-4xl font-black', cfg!.text)}>
@@ -77,10 +78,14 @@ export function RiskScoreCard({ riskSummary }: RiskScoreCardProps) {
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className={cn('text-sm font-semibold', cfg!.text)}>{cfg!.label}</span>
+            <span className={cn('text-sm font-semibold', cfg!.text)}>
+              {t(`riskLevel.${riskSummary.riskLevel!}` as const)}
+            </span>
             {riskSummary.lastAssessedAt && (
               <span className="text-xs text-gray-500">
-                Assessed {new Date(riskSummary.lastAssessedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                {t('lastAssessed', {
+                  date: new Date(riskSummary.lastAssessedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                })}
               </span>
             )}
           </div>
@@ -89,20 +94,20 @@ export function RiskScoreCard({ riskSummary }: RiskScoreCardProps) {
             onClick={() => navigate('/assessment')}
             className={cn('mt-3 text-xs font-semibold underline underline-offset-2 transition-opacity hover:opacity-70', cfg!.text)}
           >
-            Re-run assessment →
+            {t('rerunAssessment')}
           </button>
         </>
       ) : (
         <div className="mt-2">
           <p className="text-sm text-gray-500 mb-3">
-            No assessment yet. Run a risk check to see your score.
+            {t('noAssessmentYet')}
           </p>
           <button
             type="button"
             onClick={() => navigate('/assessment')}
             className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
           >
-            Run Risk Check →
+            {t('runRiskCheck')} →
           </button>
         </div>
       )}

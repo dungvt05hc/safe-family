@@ -1,8 +1,10 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useRef } from 'react'
-import { SUPPORT_STATUSES, SUPPORT_STATUS_LABELS, type DeviceFormValues } from '../devices.types'
-import { deviceSchema, DEVICE_FORM_DEFAULTS } from '../devices.schema'
+import { useEffect, useMemo, useRef } from 'react'
+import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
+import { SUPPORT_STATUSES, type DeviceFormValues } from '../devices.types'
+import { DEVICE_FORM_DEFAULTS } from '../devices.schema'
 import {
   useDeviceTypes,
   useBrands,
@@ -47,6 +49,29 @@ export function DeviceForm({
   submitLabel = 'Save',
   serverError,
 }: Props) {
+  const { t } = useTranslation('devices')
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        memberId: z.string().optional().default(''),
+        deviceTypeCode: z.string().min(1, t('validation.deviceType')),
+        brandCode: z.string().min(1, t('validation.brand')),
+        modelCode: z.string().min(1, t('validation.model')),
+        osFamilyCode: z.string().min(1, t('validation.osFamily')),
+        osVersionCode: z.string().min(1, t('validation.osVersion')),
+        supportStatus: z.enum(
+          ['Unknown', 'Supported', 'EndOfLife', 'NoLongerReceivingUpdates'] as const,
+          { errorMap: () => ({ message: t('validation.supportStatus') }) },
+        ),
+        screenLockEnabled: z.boolean().default(false),
+        biometricEnabled: z.boolean().default(false),
+        backupEnabled: z.boolean().default(false),
+        findMyDeviceEnabled: z.boolean().default(false),
+        notes: z.string().max(1000, t('validation.notesMax')).optional().default(''),
+      }),
+    [t],
+)
   const {
     register,
     handleSubmit,
@@ -55,7 +80,7 @@ export function DeviceForm({
     setValue,
     formState: { errors },
   } = useForm<DeviceFormValues>({
-    resolver: zodResolver(deviceSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       ...DEVICE_FORM_DEFAULTS,
       ...defaultValues,
@@ -130,31 +155,31 @@ export function DeviceForm({
   // ── Placeholder helpers ──────────────────────────────────────────────────
 
   function brandPlaceholder() {
-    if (!deviceTypeCode) return 'Choose a device type first'
-    if (loadingBrands) return 'Loading brands…'
-    if (brands.length === 0) return 'No brands for this type'
-    return 'Select brand…'
+    if (!deviceTypeCode) return t('placeholder.brandNoType')
+    if (loadingBrands) return t('placeholder.brandLoading')
+    if (brands.length === 0) return t('placeholder.brandNone')
+    return t('placeholder.brandDefault')
   }
 
   function modelPlaceholder() {
-    if (!brandCode) return 'Choose a brand first'
-    if (loadingModels) return 'Loading models…'
-    if (models.length === 0) return 'No models for this brand'
-    return 'Select model…'
+    if (!brandCode) return t('placeholder.modelNoBrand')
+    if (loadingModels) return t('placeholder.modelLoading')
+    if (models.length === 0) return t('placeholder.modelNone')
+    return t('placeholder.modelDefault')
   }
 
   function osFamilyPlaceholder() {
-    if (!modelCode) return 'Choose a model first'
-    if (loadingOsFamilies) return 'Loading operating systems…'
-    if (osFamilies.length === 0) return 'No operating systems available'
-    return 'Select operating system…'
+    if (!modelCode) return t('placeholder.osFamilyNoModel')
+    if (loadingOsFamilies) return t('placeholder.osFamilyLoading')
+    if (osFamilies.length === 0) return t('placeholder.osFamilyNone')
+    return t('placeholder.osFamilyDefault')
   }
 
   function osVersionPlaceholder() {
-    if (!osFamilyCode) return 'Choose an OS first'
-    if (loadingOsVersions) return 'Loading versions…'
-    if (osVersions.length === 0) return 'No versions available'
-    return 'Select version…'
+    if (!osFamilyCode) return t('placeholder.osVersionNoFamily')
+    if (loadingOsVersions) return t('placeholder.osVersionLoading')
+    if (osVersions.length === 0) return t('placeholder.osVersionNone')
+    return t('placeholder.osVersionDefault')
   }
 
   return (
@@ -165,28 +190,28 @@ export function DeviceForm({
       {members.length > 0 && (
         <div>
           <label htmlFor="memberId" className={labelClass}>
-            Assign to family member
+            {t('form.memberLabel')}
           </label>
           <select id="memberId" {...register('memberId')} className={selectClass}>
-            <option value="">Shared device (no specific owner)</option>
+            <option value="">{t('form.memberPlaceholder')}</option>
             {members.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.displayName}
               </option>
             ))}
           </select>
-          <p className={hintClass}>Leave unassigned for devices shared by the whole family</p>
+          <p className={hintClass}>{t('form.memberHint')}</p>
         </div>
       )}
 
       {/* ── Device identification ───────────────────────────────────────── */}
       <fieldset className="space-y-4">
-        <legend className={sectionHeadingClass}>Device identification</legend>
+        <legend className={sectionHeadingClass}>{t('form.sectionIdentification')}</legend>
 
         {/* Device type */}
         <div>
           <label htmlFor="deviceTypeCode" className={labelClass}>
-            Device type <span className="text-red-500">*</span>
+            {t('form.deviceType')} <span className="text-red-500">*</span>
             {loadingTypes && <> <InlineSpinner /></>}
           </label>
           <Controller
@@ -198,11 +223,11 @@ export function DeviceForm({
                 options={deviceTypeOptions}
                 value={field.value}
                 onChange={field.onChange}
-                placeholder={loadingTypes ? 'Loading…' : 'Select device type…'}
+                placeholder={loadingTypes ? t('form.deviceTypeLoading') : t('form.deviceTypePlaceholder')}
               />
             )}
           />
-          <p className={hintClass}>Narrows the available brands and models below</p>
+          <p className={hintClass}>{t('form.deviceTypeHint')}</p>
           {errors.deviceTypeCode && <p className={errorClass}>{errors.deviceTypeCode.message}</p>}
         </div>
 
@@ -210,7 +235,7 @@ export function DeviceForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="brandCode" className={labelClass}>
-              Brand <span className="text-red-500">*</span>
+              {t('form.brand')} <span className="text-red-500">*</span>
               {loadingBrands && <> <InlineSpinner /></>}
             </label>
             <Controller
@@ -231,7 +256,7 @@ export function DeviceForm({
           </div>
           <div>
             <label htmlFor="modelCode" className={labelClass}>
-              Model <span className="text-red-500">*</span>
+              {t('form.model')} <span className="text-red-500">*</span>
               {loadingModels && <> <InlineSpinner /></>}
             </label>
             <Controller
@@ -255,12 +280,12 @@ export function DeviceForm({
 
       {/* ── Operating system ────────────────────────────────────────────── */}
       <fieldset className="space-y-4">
-        <legend className={sectionHeadingClass}>Operating system</legend>
+        <legend className={sectionHeadingClass}>{t('form.sectionOs')}</legend>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="osFamilyCode" className={labelClass}>
-              OS family <span className="text-red-500">*</span>
+              {t('form.osFamily')} <span className="text-red-500">*</span>
               {loadingOsFamilies && <> <InlineSpinner /></>}
             </label>
             <Controller
@@ -277,12 +302,12 @@ export function DeviceForm({
                 />
               )}
             />
-            <p className={hintClass}>Auto-selected based on the chosen model</p>
+            <p className={hintClass}>{t('form.osFamilyHint')}</p>
             {errors.osFamilyCode && <p className={errorClass}>{errors.osFamilyCode.message}</p>}
           </div>
           <div>
             <label htmlFor="osVersionCode" className={labelClass}>
-              Version <span className="text-red-500">*</span>
+              {t('form.osVersion')} <span className="text-red-500">*</span>
               {loadingOsVersions && <> <InlineSpinner /></>}
             </label>
             <Controller
@@ -306,31 +331,31 @@ export function DeviceForm({
 
       {/* ── Status & security ───────────────────────────────────────────── */}
       <fieldset className="space-y-4">
-        <legend className={sectionHeadingClass}>Status &amp; security</legend>
+        <legend className={sectionHeadingClass}>{t('form.sectionStatusSecurity')}</legend>
 
         {/* Support status */}
         <div>
           <label htmlFor="supportStatus" className={labelClass}>
-            Support status
+            {t('form.supportStatus')}
           </label>
           <select id="supportStatus" {...register('supportStatus')} className={selectClass}>
             {SUPPORT_STATUSES.map((s) => (
-              <option key={s} value={s}>{SUPPORT_STATUS_LABELS[s]}</option>
+              <option key={s} value={s}>{t(`supportStatus.${s}` as const)}</option>
             ))}
           </select>
-          <p className={hintClass}>Whether the manufacturer still provides security updates</p>
+          <p className={hintClass}>{t('form.supportStatusHint')}</p>
         </div>
 
         {/* Security checkboxes */}
         <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-4">
-          <p className="mb-3 text-sm font-medium text-gray-700">Security features enabled</p>
+          <p className="mb-3 text-sm font-medium text-gray-700">{t('form.securityFeaturesLabel')}</p>
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             {(
               [
-                { name: 'screenLockEnabled', label: 'Screen lock', desc: 'PIN, password, or pattern' },
-                { name: 'biometricEnabled', label: 'Biometrics', desc: 'Fingerprint or face unlock' },
-                { name: 'backupEnabled', label: 'Cloud backup', desc: 'Automatic data backup' },
-                { name: 'findMyDeviceEnabled', label: 'Find My Device', desc: 'Remote locate & wipe' },
+                { name: 'screenLockEnabled', label: t('form.screenLock'), desc: t('form.screenLockDesc') },
+                { name: 'biometricEnabled', label: t('form.biometric'), desc: t('form.biometricDesc') },
+                { name: 'backupEnabled', label: t('form.backup'), desc: t('form.backupDesc') },
+                { name: 'findMyDeviceEnabled', label: t('form.findMyDevice'), desc: t('form.findMyDeviceDesc') },
               ] as const
             ).map(({ name, label, desc }) => (
               <label
@@ -355,14 +380,14 @@ export function DeviceForm({
       {/* ── Notes ───────────────────────────────────────────────────────── */}
       <div>
         <label htmlFor="notes" className={labelClass}>
-          Notes <span className="text-xs font-normal text-gray-400">(optional)</span>
+          {t('form.notes')} <span className="text-xs font-normal text-gray-400">{t('form.notesOptional')}</span>
         </label>
         <textarea
           id="notes"
           rows={3}
           {...register('notes')}
           className={`${selectClass} resize-none placeholder:text-gray-400`}
-          placeholder="e.g. Company-issued laptop, case serial #12345…"
+          placeholder={t('form.notesPlaceholder')}
           maxLength={1000}
         />
         {errors.notes && <p className={errorClass}>{errors.notes.message}</p>}
@@ -371,10 +396,10 @@ export function DeviceForm({
       {/* ── Actions ─────────────────────────────────────────────────────── */}
       <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          {t('form.cancel')}
         </Button>
         <Button type="submit" loading={isSubmitting}>
-          {submitLabel}
+          {isSubmitting ? t('form.saving') : (submitLabel ?? t('form.save'))}
         </Button>
       </div>
     </form>

@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ShieldCheck } from 'lucide-react'
 import { EmptyState } from '@/components/ui'
 import type { SafetyTask } from '../safety-tasks.types'
@@ -10,21 +11,23 @@ interface SafetyTaskListProps {
 }
 
 function NoTasks() {
+  const { t } = useTranslation('tasks')
   return (
     <EmptyState
       icon={ShieldCheck}
-      title="No safety tasks"
-      description="SafeFamily generates tasks from your accounts, devices, and bookings. Connect your accounts and devices to get started."
+      title={t('empty.noTasksTitle')}
+      description={t('empty.noTasksDesc')}
     />
   )
 }
 
 function NoResults() {
+  const { t } = useTranslation('tasks')
   return (
     <EmptyState
       icon={ShieldCheck}
-      title="No matching tasks"
-      description="Try adjusting your filters or search to find what you're looking for."
+      title={t('empty.noResultsTitle')}
+      description={t('empty.noResultsDesc')}
     />
   )
 }

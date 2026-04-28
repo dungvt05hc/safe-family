@@ -1,14 +1,17 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { useFeatureFlags } from '@/lib/featureFlags'
 import { useLatestAssessment } from '../hooks/useAssessmentQueries'
-import { CATEGORY_LABELS, RISK_LEVEL_CONFIG } from '../assessments.types'
+import { RISK_LEVEL_CONFIG } from '../assessments.types'
 import type { AssessmentResult } from '../assessments.types'
 
 // ── Score ring ────────────────────────────────────────────────────────────────
 
 function ScoreRing({ score, riskLevel }: { score: number; riskLevel: AssessmentResult['riskLevel'] }) {
+  const { t } = useTranslation('assessments')
   const config = RISK_LEVEL_CONFIG[riskLevel]
+  const label = t(`riskLevels.${riskLevel}`, { defaultValue: config.label })
   const radius = 54
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (score / 100) * circumference
@@ -37,7 +40,7 @@ function ScoreRing({ score, riskLevel }: { score: number; riskLevel: AssessmentR
       </svg>
       <div className="absolute flex flex-col items-center">
         <span className="text-3xl font-bold text-gray-900">{score}</span>
-        <span className={`text-xs font-semibold ${config.color}`}>{config.label}</span>
+        <span className={`text-xs font-semibold ${config.color}`}>{label}</span>
       </div>
     </div>
   )
@@ -54,7 +57,8 @@ const CATEGORY_ICONS: Record<string, string> = {
 }
 
 function CategoryBar({ category, score }: { category: string; score: number }) {
-  const label = CATEGORY_LABELS[category] ?? category
+  const { t } = useTranslation('assessments')
+  const label = t(`categories.${category}`, { defaultValue: category })
   const icon  = CATEGORY_ICONS[category] ?? '📋'
   const color =
     score >= 75 ? 'bg-green-500' :
@@ -84,27 +88,28 @@ function CategoryBar({ category, score }: { category: string; score: number }) {
 
 export function AssessmentResultPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('assessments')
   const { bookingEnabled } = useFeatureFlags()
   const { data: result, isLoading, isError } = useLatestAssessment()
 
   if (isLoading) {
     return (
-      <PageLayout title="Your Safety Score">
-        <p className="text-sm text-gray-500">Loading results…</p>
+      <PageLayout title={t('result.pageTitle')}>
+        <p className="text-sm text-gray-500">{t('result.loadingResults')}</p>
       </PageLayout>
     )
   }
 
   if (isError || !result) {
     return (
-      <PageLayout title="Your Safety Score">
+      <PageLayout title={t('result.pageTitle')}>
         <div className="rounded-xl bg-amber-50 px-5 py-8 text-center">
-          <p className="text-sm text-amber-700">No assessment found. Take the assessment first.</p>
+          <p className="text-sm text-amber-700">{t('result.noAssessment')}</p>
           <button
             onClick={() => navigate('/assessment')}
             className="mt-4 rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            Start assessment
+            {t('result.startAssessment')}
           </button>
         </div>
       </PageLayout>
@@ -120,8 +125,8 @@ export function AssessmentResultPage() {
 
   return (
     <PageLayout
-      title="Your Safety Score"
-      description={`Assessed on ${assessedAt}`}
+      title={t('result.pageTitle')}
+      description={t('result.assessedOn', { date: assessedAt })}
     >
       <div className="mx-auto max-w-2xl space-y-6">
 
@@ -129,14 +134,13 @@ export function AssessmentResultPage() {
         <div className={`rounded-2xl border ${riskConfig.border} ${riskConfig.bg} px-8 py-8 text-center shadow-sm`}>
           <ScoreRing score={result.overallScore} riskLevel={result.riskLevel} />
           <p className="mt-4 text-sm text-gray-600">
-            Your family's digital safety score is{' '}
-            <strong className={riskConfig.color}>{result.overallScore}/100</strong>.
+            {t(`result.riskMessage.${result.riskLevel}` as const)}
           </p>
         </div>
 
         {/* Category breakdown */}
         <section>
-          <h2 className="mb-4 text-base font-bold text-gray-900">Category Breakdown</h2>
+          <h2 className="mb-4 text-base font-bold text-gray-900">{t('result.categoryBreakdown')}</h2>
           <div className="rounded-2xl border border-gray-200 bg-white px-6 py-5 shadow-sm">
             <div className="space-y-4">
               {result.categoryScores.map(({ category, score }) => (
@@ -150,7 +154,7 @@ export function AssessmentResultPage() {
         {result.immediateActions.length > 0 && (
           <section>
             <h2 className="mb-4 text-base font-bold text-gray-900">
-              ⚡ Immediate Actions
+              {t('result.immediateActions')}
             </h2>
             <div className="rounded-2xl border border-orange-200 bg-orange-50 px-6 py-5 shadow-sm">
               <ul className="space-y-3">
@@ -169,23 +173,20 @@ export function AssessmentResultPage() {
 
         {/* CTA buttons */}
         <section className="rounded-2xl border border-gray-200 bg-white px-6 py-6 shadow-sm">
-          <h2 className="mb-1 text-base font-bold text-gray-900">What's next?</h2>
-          <p className="mb-5 text-sm text-gray-500">
-            Improve your score by working through your security checklist or talking to
-            an expert.
-          </p>
+          <h2 className="mb-1 text-base font-bold text-gray-900">{t('result.whatsNext')}</h2>
+          <p className="mb-5 text-sm text-gray-500">{t('result.whatsNextDescription')}</p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => navigate('/checklists')}
               className="flex-1 rounded-xl border border-gray-200 bg-white px-5 py-3 text-center text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
             >
-              ✅ View security checklist
+              {t('result.viewChecklist')}
             </button>
             <button
               onClick={() => navigate('/assessment/wizard')}
               className="flex-1 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-center text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
             >
-              🔄 Retake assessment
+              {t('result.retakeAssessment')}
             </button>
           </div>
           <div className="mt-4 flex justify-between text-sm">
@@ -194,14 +195,14 @@ export function AssessmentResultPage() {
                 onClick={() => navigate('/bookings')}
                 className="font-medium text-gray-500 hover:text-gray-700 hover:underline"
               >
-                📅 Book a consultation
+                {t('result.bookConsultation')}
               </button>
             )}
             <button
               onClick={() => navigate('/assessment/history')}
               className="font-medium text-blue-600 hover:underline"
             >
-              View history →
+              {t('result.viewHistory')}
             </button>
           </div>
         </section>

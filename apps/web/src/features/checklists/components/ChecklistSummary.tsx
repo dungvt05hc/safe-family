@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { ListChecks, Flame, Clock, CheckCircle2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import type { ChecklistItem } from '../checklist.types'
 
@@ -45,6 +46,7 @@ function StatCard({ icon, label, value, colorClass, index }: StatCardProps) {
  * ChecklistSummary — four at-a-glance stat cards shown at the top of the page.
  */
 export function ChecklistSummary({ items }: ChecklistSummaryProps) {
+  const { t } = useTranslation('checklist')
   const total     = items.length
   const highPrio  = items.filter((i) => i.priority === 1).length
   const toDo      = items.filter((i) => i.status === 'Pending').length
@@ -53,25 +55,25 @@ export function ChecklistSummary({ items }: ChecklistSummaryProps) {
   const stats = [
     {
       icon:       <ListChecks className="w-5 h-5 text-blue-600" />,
-      label:      'Total tasks',
+      label:      t('summary.total'),
       value:      total,
       colorClass: 'bg-blue-50',
     },
     {
       icon:       <Flame className="w-5 h-5 text-red-500" />,
-      label:      'High priority',
+      label:      t('summary.highPriority'),
       value:      highPrio,
       colorClass: 'bg-red-50',
     },
     {
       icon:       <Clock className="w-5 h-5 text-amber-500" />,
-      label:      'To do',
+      label:      t('summary.toDo'),
       value:      toDo,
       colorClass: 'bg-amber-50',
     },
     {
       icon:       <CheckCircle2 className="w-5 h-5 text-green-600" />,
-      label:      'Completed',
+      label:      t('summary.completed'),
       value:      completed,
       colorClass: 'bg-green-50',
     },

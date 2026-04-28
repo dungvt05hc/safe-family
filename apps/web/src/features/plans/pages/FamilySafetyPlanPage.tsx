@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   ShieldOff,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import {
   Alert,
@@ -54,6 +55,7 @@ function PlanHeader({
   onDownload:        () => void
   hasReport:         boolean
 }) {
+  const { t } = useTranslation('plans')
   const date = new Date(createdAt).toLocaleDateString('en-AU', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
@@ -68,15 +70,15 @@ function PlanHeader({
                 <ShieldCheck className="h-6 w-6 text-blue-500" aria-hidden="true" />
               </span>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Family Safety Plan</h1>
+                <h1 className="text-lg font-bold text-gray-900">{t('familySafetyPlan.title')}</h1>
                 <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-400">
                   <span className="flex items-center gap-1">
                     <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                    Generated {date}
+                    {t('familySafetyPlan.generatedOn', { date })}
                   </span>
                   {overallScore !== null && (
                     <span className="font-medium text-gray-500">
-                      Score: {overallScore}/100
+                      {t('familySafetyPlan.score', { score: overallScore })}
                     </span>
                   )}
                 </div>
@@ -115,6 +117,7 @@ function PlanHeader({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function FamilySafetyPlanPage() {
+  const { t } = useTranslation('plans')
   const { hasEntitlement } = useEntitlements()
 
   const { data: plans,   isLoading: plansLoading,   error: plansError  } = useSafetyPlans()
@@ -131,7 +134,7 @@ export function FamilySafetyPlanPage() {
   // Loading state
   if (plansLoading || tasksLoading || membersLoading) {
     return (
-      <PageLayout title="Family Safety Plan">
+      <PageLayout title={t('familySafetyPlan.title')}>
         <LoadingState />
       </PageLayout>
     )
@@ -140,10 +143,10 @@ export function FamilySafetyPlanPage() {
   // API error
   if (plansError) {
     const msg = plansError.isPaymentRequired
-      ? 'This feature requires an active plan.'
-      : 'Could not load your safety plan. Please try again.'
+      ? t('familySafetyPlan.error.paymentRequired')
+      : t('familySafetyPlan.error.generic')
     return (
-      <PageLayout title="Family Safety Plan">
+      <PageLayout title={t('familySafetyPlan.title')}>
         <Alert variant="error">
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           {msg}
@@ -157,11 +160,11 @@ export function FamilySafetyPlanPage() {
 
   if (!plan) {
     return (
-      <PageLayout title="Family Safety Plan">
+      <PageLayout title={t('familySafetyPlan.title')}>
         <EmptyState
           icon={ShieldOff}
-          title="No safety plan yet"
-          description="Book a safety assessment to generate your personalised family safety plan."
+          title={t('familySafetyPlan.empty.title')}
+          description={t('familySafetyPlan.empty.description')}
         />
       </PageLayout>
     )
@@ -171,13 +174,13 @@ export function FamilySafetyPlanPage() {
   const allMembers   = members ?? []
 
   // Derive task groups
-  const immediateTasks = allTasks.filter(t => t.phase === 'Immediate')
-  const highTasks      = allTasks.filter(t => t.priority === 'High')
-  const memberTasks    = allTasks.filter(t => t.targetType === 'FamilyMember')
-  const assetTasks     = allTasks.filter(t => t.targetType === 'Device' || t.targetType === 'Account')
+  const immediateTasks = allTasks.filter(task => task.phase === 'Immediate')
+  const highTasks      = allTasks.filter(task => task.priority === 'High')
+  const memberTasks    = allTasks.filter(task => task.targetType === 'FamilyMember')
+  const assetTasks     = allTasks.filter(task => task.targetType === 'Device' || task.targetType === 'Account')
 
   // Task completion counts for CTA banner
-  const completedTasks = allTasks.filter(t => t.status === 'Completed').length
+  const completedTasks = allTasks.filter(task => task.status === 'Completed').length
   const totalTasks     = allTasks.length
 
   // SafetyPlan report download
@@ -187,7 +190,7 @@ export function FamilySafetyPlanPage() {
   }
 
   return (
-    <PageLayout title="Family Safety Plan">
+    <PageLayout title={t('familySafetyPlan.title')}>
       <div className="space-y-6">
         {/* Plan header */}
         <PlanHeader

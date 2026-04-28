@@ -1,7 +1,7 @@
 const bookings = {
   // ── Booking form page ──────────────────────────────────────────────────────
   form: {
-    title: 'Nhận Tư Vấn An Toàn Cá Nhân',
+    title: 'Nhận tư vấn an toàn cá nhân',
     description:
       'Chọn gói dịch vụ, cho chúng tôi biết tình hình, và chúng tôi sẽ chuẩn bị tài liệu an toàn cá nhân hóa cho bạn.',
     myBookings: 'Lịch đặt của tôi',
@@ -45,12 +45,12 @@ const bookings = {
       tip: 'Mẹo: mô tả điều gì đã xảy ra, khi nào, và ai trong gia đình bạn bị ảnh hưởng.',
     },
     summary: {
-      title: 'Tóm tắt đơn hàng',
+      title: 'Tóm tắt yêu cầu',
       readyToSubmit: 'Sẵn sàng gửi',
       package: 'Gói dịch vụ',
       helpTopic: 'Chủ đề hỗ trợ',
       urgency: 'Mức khẩn cấp',
-      delivery: 'Thời gian giao hàng',
+      delivery: 'Thời gian nhận',
       totalDue: 'Tổng cộng',
     },
     whatsUnlocked: {
@@ -65,7 +65,7 @@ const bookings = {
     },
     validation: {
       selectPackage: 'Vui lòng chọn một gói dịch vụ',
-      helpTopicRequired: 'Vui lòng cho chúng tôi biết bạn cần hỗ trợ về vấn đề gì',
+      helpTopicRequired: 'Vui lòng chọn chủ đề cần hỗ trợ',
       notesLength: 'Ghi chú không được vượt quá 1000 ký tự',
     },
     bestFor: 'Phù hợp nhất với:',
@@ -124,7 +124,7 @@ const bookings = {
       tagline: 'Biết chính xác mức độ rủi ro của bạn trong vài phút',
       bestFor: 'Gia đình mới bắt đầu với an toàn số, muốn có điểm xuất phát rõ ràng, không tốn phí',
       highlights: [
-        'Báo cáo tóm tắt bảo mật có thể tải về',
+        'Báo cáo tóm tắt bảo mật số có thể tải về',
         '3 hành động cá nhân hóa',
         'Danh sách kiểm tra an toàn cơ bản',
       ],
@@ -184,24 +184,25 @@ const bookings = {
       '4 lần cập nhật kế hoạch an toàn hàng quý',
       'Phản hồi sự cố ưu tiên (SLA 24 giờ)',
       'Lộ trình bảo mật gia đình đầy đủ (PDF)',
+      'Truy cập tư vấn không giới hạn trong 12 tháng',
     ],
   },
 
   // ── My Bookings page ──────────────────────────────────────────────────────
   myBookings: {
     title: 'Lịch đặt của tôi',
-    description: 'Các buổi an toàn sắp tới và đã qua của bạn.',
+    description: 'Các buổi tư vấn sắp tới và đã hoàn thành của bạn.',
     bookSession: 'Đặt buổi tư vấn',
     loadError: 'Không thể tải lịch đặt. Vui lòng làm mới và thử lại.',
   },
 
   // ── Payment action strip ──────────────────────────────────────────────────
   payment: {
-    required: 'Cần thanh toán để xác nhận lịch đặt của bạn',
+    required: 'Vui lòng thanh toán để hoàn tất đặt lịch',
     payNow: 'Thanh toán ngay',
     waitingConfirmation: 'Đang chờ xác nhận thanh toán',
     failedRetry: 'Thanh toán bị từ chối — bạn có thể thử lại',
-    expired: 'Phiên thanh toán đã hết hạn — bắt đầu phiên mới',
+    expired: 'Phiên thanh toán đã hết hạn — vui lòng thử lại',
     failedAction: 'Thất bại — thử lại',
     retry: 'Thử lại',
     free: 'Miễn phí',

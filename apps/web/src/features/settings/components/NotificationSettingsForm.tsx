@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { Bell, CalendarCheck, Mail, ShieldAlert } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Alert, Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui'
 import { useSettings, useUpdateNotificationSettings } from '../settings.hooks'
 import type { NotificationSettings } from '../settings.types'
@@ -68,6 +69,7 @@ interface FormProps { defaults: NotificationSettings }
 
 function NotificationForm({ defaults }: FormProps) {
   const update = useUpdateNotificationSettings()
+  const { t } = useTranslation('settings')
   const [saved, setSaved] = useState(false)
 
   const { control, handleSubmit, reset, formState: { isDirty } } = useForm<NotificationSettings>({
@@ -86,26 +88,26 @@ function NotificationForm({ defaults }: FormProps) {
   const toggles: { field: keyof NotificationSettings; label: string; description: string; icon: React.ElementType }[] = [
     {
       field:       'emailNotifications',
-      label:       'Email notifications',
-      description: 'Receive a weekly safety digest and important account updates by email.',
+      label:       t('notifications.email.label'),
+      description: t('notifications.email.description'),
       icon:        Mail,
     },
     {
       field:       'bookingUpdates',
-      label:       'Booking updates',
-      description: 'Get notified when a session is confirmed, rescheduled, or cancelled.',
+      label:       t('notifications.bookingUpdates.label'),
+      description: t('notifications.bookingUpdates.description'),
       icon:        CalendarCheck,
     },
     {
       field:       'incidentAlerts',
-      label:       'Incident alerts',
-      description: 'Immediate alerts when a new incident report is submitted for your family.',
+      label:       t('notifications.incidentAlerts.label'),
+      description: t('notifications.incidentAlerts.description'),
       icon:        ShieldAlert,
     },
     {
       field:       'reminders',
-      label:       'Safety reminders',
-      description: 'Periodic nudges to complete your safety checklist and run risk checks.',
+      label:       t('notifications.reminders.label'),
+      description: t('notifications.reminders.description'),
       icon:        Bell,
     },
   ]
@@ -114,10 +116,10 @@ function NotificationForm({ defaults }: FormProps) {
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <CardContent className="space-y-1 py-3">
         {saved && !isDirty && (
-          <Alert variant="success" className="mb-2">Notification preferences saved.</Alert>
+          <Alert variant="success" className="mb-2">{t('notifications.saved')}</Alert>
         )}
         {update.isError && (
-          <Alert variant="error" className="mb-2">Failed to save preferences. Please try again.</Alert>
+          <Alert variant="error" className="mb-2">{t('notifications.error')}</Alert>
         )}
 
         {toggles.map(({ field, label, description, icon }) => (
@@ -147,7 +149,7 @@ function NotificationForm({ defaults }: FormProps) {
           disabled={!isDirty}
           loading={update.isPending}
         >
-          Save preferences
+          {t('notifications.savePreferences')}
         </Button>
       </CardFooter>
     </form>
@@ -162,13 +164,14 @@ function NotificationForm({ defaults }: FormProps) {
  */
 export function NotificationSettingsForm() {
   const { data, isLoading } = useSettings()
+  const { t } = useTranslation('settings')
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          <CardTitle>Notification preferences</CardTitle>
+          <CardTitle>{t('notifications.cardTitle')}</CardTitle>
         </div>
       </CardHeader>
 

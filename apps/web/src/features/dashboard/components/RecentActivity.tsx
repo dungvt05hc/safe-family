@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Activity, AlertTriangle, Calendar, ChevronRight, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useFeatureFlags } from '@/lib/featureFlags'
 import type { DashboardRecentIncident, DashboardRecentBooking } from '../dashboard.types'
@@ -47,6 +48,7 @@ interface RecentActivityProps {
  */
 export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
   const navigate  = useNavigate()
+  const { t } = useTranslation('dashboard')
   const { bookingEnabled } = useFeatureFlags()
   const hasItems  = incidents.length > 0 || (bookingEnabled && bookings.length > 0)
 
@@ -55,7 +57,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
       {/* Header */}
       <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
         <Activity className="w-4 h-4 text-gray-400" aria-hidden="true" />
-        <h2 className="text-sm font-semibold text-gray-700">Recent Activity</h2>
+        <h2 className="text-sm font-semibold text-gray-700">{t('recentActivity')}</h2>
       </div>
 
       {/* Content */}
@@ -65,7 +67,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
             <Info className="w-5 h-5 text-gray-400" aria-hidden="true" />
           </div>
           <p className="text-sm text-gray-500 mb-4">
-            No recent activity yet. Incidents and bookings will appear here.
+            {t('noRecentActivity')}
           </p>
           <div className="flex gap-3">
             <button
@@ -73,7 +75,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
               onClick={() => navigate('/incidents/report')}
               className="text-xs font-semibold text-orange-600 hover:text-orange-700 transition-colors"
             >
-              Report an incident →
+              {t('reportIncidentCta')}
             </button>
             {bookingEnabled && (
               <button
@@ -81,7 +83,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
                 onClick={() => navigate('/bookings')}
                 className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
               >
-                Book a session →
+                {t('bookSessionCta')}
               </button>
             )}
           </div>
@@ -112,7 +114,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-semibold', SEVERITY_CLS[incident.severity] ?? 'bg-gray-100 text-gray-600')}>
-                    {incident.severity}
+                    {t(`severity.${incident.severity}` as const, { defaultValue: incident.severity })}
                   </span>
                   <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden="true" />
                 </div>
@@ -141,12 +143,12 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{booking.packageName}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    Booked {formatDate(booking.createdAt)}
+                    {t('bookedOn', { date: formatDate(booking.createdAt) })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-semibold', STATUS_CLS[booking.status] ?? 'bg-gray-100 text-gray-600')}>
-                    {booking.status}
+                    {t(`bookingStatus.${booking.status}` as const, { defaultValue: booking.status })}
                   </span>
                   <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden="true" />
                 </div>
@@ -164,7 +166,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
             onClick={() => navigate('/incidents')}
             className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
           >
-            All incidents →
+            {t('allIncidents')}
           </button>
           {bookingEnabled && (
             <button
@@ -172,7 +174,7 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
               onClick={() => navigate('/bookings/my')}
               className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
-              All bookings →
+              {t('allBookings')}
             </button>
           )}
         </div>
@@ -180,3 +182,4 @@ export function RecentActivity({ incidents, bookings }: RecentActivityProps) {
     </div>
   )
 }
+

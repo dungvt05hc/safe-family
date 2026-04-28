@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, LoadingState } from '@/components/ui'
 import { useApiError } from '@/lib/i18n/useApiError'
@@ -9,6 +10,7 @@ import { SafetyTaskFilters as SafetyTaskFilterBar } from './components/SafetyTas
 import { SafetyTaskList } from './components/SafetyTaskList'
 
 export function SafetyTasksPage() {
+  const { t } = useTranslation('tasks')
   const { data: tasks = [], isLoading, isError, error } = useSafetyTasks()
   const loadError = useApiError(error, 'load.tasks')
 
@@ -37,8 +39,8 @@ export function SafetyTasksPage() {
 
   return (
     <PageLayout
-      title="Safety Tasks"
-      description="Actionable steps to improve your family's digital safety."
+      title={t('safetyTasks.pageTitle')}
+      description={t('safetyTasks.pageDescription')}
     >
       {/* Loading */}
       {isLoading && <LoadingState />}

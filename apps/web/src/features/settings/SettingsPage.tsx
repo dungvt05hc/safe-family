@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bell,
@@ -22,19 +23,18 @@ import { DangerZone }               from './components/DangerZone'
 // ── Tab definitions ───────────────────────────────────────────────────────────
 
 interface TabDef {
-  id:    SettingsTab
-  label: string
-  icon:  React.ElementType
+  id:      SettingsTab
+  icon:    React.ElementType
   danger?: boolean
 }
 
 const TABS: TabDef[] = [
-  { id: 'profile',       label: 'Profile',        icon: User       },
-  { id: 'security',      label: 'Security',       icon: Lock       },
-  { id: 'notifications', label: 'Notifications',  icon: Bell       },
-  { id: 'privacy',       label: 'Privacy',        icon: ShieldCheck },
-  { id: 'preferences',   label: 'Preferences',    icon: Globe      },
-  { id: 'danger',        label: 'Danger Zone',    icon: TriangleAlert, danger: true },
+  { id: 'profile',       icon: User        },
+  { id: 'security',      icon: Lock        },
+  { id: 'notifications', icon: Bell        },
+  { id: 'privacy',       icon: ShieldCheck },
+  { id: 'preferences',   icon: Globe       },
+  { id: 'danger',        icon: TriangleAlert, danger: true },
 ]
 
 // ── Slide animation ───────────────────────────────────────────────────────────
@@ -48,24 +48,25 @@ const contentVariants = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function SettingsPage() {
+  const { t } = useTranslation('settings')
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
 
   return (
     <PageLayout
-      title="Settings"
-      description="Manage your account, notifications, and privacy preferences."
+      title={t('title')}
+      description={t('description')}
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
 
         {/* ── Left: Tab nav ───────────────────────────────────────────────── */}
         <nav
-          aria-label="Settings sections"
+          aria-label={t('nav')}
           className="
             flex flex-row flex-wrap gap-1
             lg:flex-col lg:flex-nowrap lg:w-48 lg:shrink-0 lg:sticky lg:top-6
           "
         >
-          {TABS.map(({ id, label, icon: Icon, danger }) => {
+          {TABS.map(({ id, icon: Icon, danger }) => {
             const isActive = activeTab === id
             return (
               <button
@@ -92,7 +93,7 @@ export function SettingsPage() {
                   )}
                   aria-hidden="true"
                 />
-                {label}
+                {t(`tabs.${id}`)}
               </button>
             )
           })}
@@ -126,12 +127,13 @@ export function SettingsPage() {
 // ── Sections ──────────────────────────────────────────────────────────────────
 
 function ProfileSection() {
+  const { t } = useTranslation('settings')
   return (
     <>
       <SectionIntro
         icon={User}
-        title="Profile"
-        description="Update your name, email address, and phone number."
+        title={t('profile.tabTitle')}
+        description={t('profile.tabDescription')}
       />
       <ProfileSettingsForm />
     </>
@@ -139,12 +141,13 @@ function ProfileSection() {
 }
 
 function SecuritySection() {
+  const { t } = useTranslation('settings')
   return (
     <>
       <SectionIntro
         icon={Lock}
-        title="Password &amp; Security"
-        description="Keep your account secure with a strong, unique password."
+        title={t('security.tabTitle')}
+        description={t('security.tabDescription')}
       />
       <PasswordSettingsForm />
     </>
@@ -152,12 +155,13 @@ function SecuritySection() {
 }
 
 function NotificationsSection() {
+  const { t } = useTranslation('settings')
   return (
     <>
       <SectionIntro
         icon={Bell}
-        title="Notifications"
-        description="Choose which updates you'd like to receive by email."
+        title={t('notifications.tabTitle')}
+        description={t('notifications.tabDescription')}
       />
       <NotificationSettingsForm />
     </>
@@ -165,12 +169,13 @@ function NotificationsSection() {
 }
 
 function PrivacySection() {
+  const { t } = useTranslation('settings')
   return (
     <>
       <SectionIntro
         icon={Shield}
-        title="Privacy"
-        description="Control your data and understand how we use it."
+        title={t('privacy.tabTitle')}
+        description={t('privacy.tabDescription')}
       />
       <PrivacySettingsPanel />
     </>
@@ -178,12 +183,13 @@ function PrivacySection() {
 }
 
 function PreferencesSection() {
+  const { t } = useTranslation('settings')
   return (
     <>
       <SectionIntro
         icon={Globe}
-        title="Preferences"
-        description="Customise language and regional settings for your experience."
+        title={t('preferences.tabTitle')}
+        description={t('preferences.tabDescription')}
       />
       <LanguageSettingsForm />
     </>
@@ -191,12 +197,13 @@ function PreferencesSection() {
 }
 
 function DangerSection() {
+  const { t } = useTranslation('settings')
   return (
     <>
       <SectionIntro
         icon={TriangleAlert}
-        title="Danger Zone"
-        description="Destructive actions that permanently affect your account."
+        title={t('danger.tabTitle')}
+        description={t('danger.tabDescription')}
         variant="danger"
       />
       <DangerZone />

@@ -3,12 +3,18 @@ import { z } from 'zod'
 // ── Profile ───────────────────────────────────────────────────────────────────
 // Email is display-only — the backend does not allow email changes here.
 
-export const profileSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  phone:    z.string().min(8, 'Enter a valid phone number').or(z.literal('')).optional(),
-})
+export interface ProfileSchemaMessages {
+  fullNameMin:  string
+  phoneInvalid: string
+}
 
-export type ProfileFormValues = z.infer<typeof profileSchema>
+export const makeProfileSchema = (m: ProfileSchemaMessages) =>
+  z.object({
+    fullName: z.string().min(2, m.fullNameMin),
+    phone:    z.string().min(8, m.phoneInvalid).or(z.literal('')).optional(),
+  })
+
+export type ProfileFormValues = z.infer<ReturnType<typeof makeProfileSchema>>
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
@@ -23,19 +29,29 @@ export type NotificationsFormValues = z.infer<typeof notificationsSchema>
 
 // ── Password ──────────────────────────────────────────────────────────────────
 
-export const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Include at least one uppercase letter')
-      .regex(/[0-9]/, 'Include at least one number'),
-    confirmPassword: z.string().min(1, 'Please confirm your new password'),
-  })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: 'Passwords do not match',
-    path:    ['confirmPassword'],
-  })
+export interface PasswordSchemaMessages {
+  currentRequired: string
+  newMin:          string
+  newUppercase:    string
+  newNumber:       string
+  confirmRequired: string
+  mismatch:        string
+}
 
-export type PasswordFormValues = z.infer<typeof passwordSchema>
+export const makePasswordSchema = (m: PasswordSchemaMessages) =>
+  z
+    .object({
+      currentPassword: z.string().min(1, m.currentRequired),
+      newPassword: z
+        .string()
+        .min(8, m.newMin)
+        .regex(/[A-Z]/, m.newUppercase)
+        .regex(/[0-9]/, m.newNumber),
+      confirmPassword: z.string().min(1, m.confirmRequired),
+    })
+    .refine((d) => d.newPassword === d.confirmPassword, {
+      message: m.mismatch,
+      path:    ['confirmPassword'],
+    })
+
+export type PasswordFormValues = z.infer<ReturnType<typeof makePasswordSchema>>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   CheckCircle2,
   RotateCcw,
@@ -16,11 +17,8 @@ import { Badge, Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useFeatureFlags } from '@/lib/featureFlags'
 import {
-  CATEGORY_LABEL,
   PRIORITY_BADGE,
-  PRIORITY_LABEL,
   STATUS_BADGE,
-  STATUS_LABEL,
   type ChecklistItem,
 } from '../checklist.types'
 import { useUpdateChecklistStatus } from '../checklist.hooks'
@@ -44,6 +42,7 @@ interface ChecklistItemCardProps {
  * - Open guide    (navigates to relevant help; opens /bookings for "Book help")
  */
 export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
+  const { t } = useTranslation('checklist')
   const navigate = useNavigate()
   const { bookingEnabled } = useFeatureFlags()
   const { mutate: updateStatus, isPending } = useUpdateChecklistStatus()
@@ -53,9 +52,9 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
   const isPending_   = item.status === 'Pending'
   const isInProgress = item.status === 'InProgress'
 
-  const categoryLabel = CATEGORY_LABEL[item.category] ?? item.category
-  const priorityLabel = PRIORITY_LABEL[item.priority as 1 | 2 | 3] ?? 'Medium'
-  const statusLabel   = STATUS_LABEL[item.status]
+  const categoryLabel = t(`category.${item.category}`, { defaultValue: item.category })
+  const priorityLabel = t(`priority.${item.priority}`, { defaultValue: 'Medium' })
+  const statusLabel   = t(`status.${item.status}`)
 
   // Due date helpers
   const dueDate = item.dueAt ? new Date(item.dueAt) : null
@@ -120,7 +119,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
             isOverdue ? 'text-red-500 font-medium' : 'text-gray-400',
           )}>
             <Clock className="w-3 h-3" aria-hidden="true" />
-            {isOverdue ? 'Overdue · ' : 'Due · '}{dueDateLabel}
+            {isOverdue ? t('card.overduePrefix') : t('card.duePrefix')}{dueDateLabel}
           </span>
         )}
         {item.helpUrl && (
@@ -131,7 +130,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
             className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700 hover:underline"
           >
             <ExternalLink className="w-3 h-3" aria-hidden="true" />
-            Guide
+            {t('card.guide')}
           </a>
         )}
       </div>
@@ -147,7 +146,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
             onClick={() => updateStatus({ id: item.id, status: 'Completed' })}
           >
             <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-            Mark done
+            {t('card.markDone')}
           </Button>
         )}
 
@@ -160,7 +159,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
             onClick={() => updateStatus({ id: item.id, status: 'InProgress' })}
           >
             <PlayCircle className="w-3.5 h-3.5" aria-hidden="true" />
-            Start
+            {t('card.start')}
           </Button>
         )}
 
@@ -173,7 +172,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
             onClick={() => updateStatus({ id: item.id, status: 'Pending' })}
           >
             <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-            Reopen
+            {t('card.reopen')}
           </Button>
         )}
 
@@ -186,7 +185,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
             onClick={() => updateStatus({ id: item.id, status: 'Dismissed' })}
           >
             <XCircle className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
-            Skip
+            {t('card.skip')}
           </Button>
         )}
 
@@ -198,7 +197,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
             onClick={() => navigate('/bookings')}
           >
             <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
-            Book help
+            {t('card.bookHelp')}
           </Button>
         )}
 
@@ -209,7 +208,7 @@ export function ChecklistItemCard({ item, index }: ChecklistItemCardProps) {
           onClick={() => navigate('/assessment')}
         >
           <BookOpen className="w-3.5 h-3.5" aria-hidden="true" />
-          Open guide
+          {t('card.openGuide')}
         </Button>
       </div>
     </motion.div>

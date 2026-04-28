@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Crown, CalendarCheck, ShieldCheck, Package } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useEntitlements } from '@/features/entitlements/EntitlementProvider'
 import { useFeatureFlags } from '@/lib/featureFlags'
 
@@ -8,6 +9,7 @@ import { useFeatureFlags } from '@/lib/featureFlags'
 
 function SubscriberCard() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dashboard')
   const { plansEnabled } = useFeatureFlags()
 
   return (
@@ -23,23 +25,23 @@ function SubscriberCard() {
           <Crown className="h-4 w-4 text-indigo-600" aria-hidden="true" />
         </span>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Annual Plan</p>
-          <p className="text-sm font-bold text-gray-900">Active subscription</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">{t('annualPlan.badge')}</p>
+          <p className="text-sm font-bold text-gray-900">{t('annualPlan.activeSubscription')}</p>
         </div>
       </div>
 
       {/* Benefits */}
       <ul className="space-y-2.5">
         {[
-          { icon: ShieldCheck, label: 'Family Safety Plans — unlimited access' },
-          { icon: Package,     label: 'Priority Incident Response (24-hour SLA)' },
-          { icon: CalendarCheck, label: '4× quarterly safety plan updates per year' },
-        ].map(({ icon: Icon, label }) => (
-          <li key={label} className="flex items-center gap-2.5 text-sm text-indigo-800">
+          { icon: ShieldCheck,   key: 'benefit1' as const },
+          { icon: Package,       key: 'benefit2' as const },
+          { icon: CalendarCheck, key: 'benefit3' as const },
+        ].map(({ icon: Icon, key }) => (
+          <li key={key} className="flex items-center gap-2.5 text-sm text-indigo-800">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-100">
               <Icon className="h-3 w-3 text-indigo-500" aria-hidden="true" />
             </span>
-            {label}
+            {t(`annualPlan.${key}`)}
           </li>
         ))}
       </ul>
@@ -53,7 +55,7 @@ function SubscriberCard() {
               onClick={() => navigate('/plans/safety')}
               className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
             >
-              View Safety Plans →
+              {t('annualPlan.viewSafetyPlans')}
             </button>
             <span className="text-indigo-300">·</span>
             <button
@@ -61,7 +63,7 @@ function SubscriberCard() {
               onClick={() => navigate('/plans/incident-recovery')}
               className="text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
             >
-              Recovery Packs →
+              {t('annualPlan.recoveryPacks')}
             </button>
           </>
         )}
@@ -74,6 +76,7 @@ function SubscriberCard() {
 
 function UpgradeCard() {
   const navigate = useNavigate()
+  const { t } = useTranslation('dashboard')
   const { bookingEnabled } = useFeatureFlags()
 
   return (
@@ -88,9 +91,9 @@ function UpgradeCard() {
           <Crown className="h-4 w-4 text-gray-400" aria-hidden="true" />
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-700">Unlock Annual Plan benefits</p>
+          <p className="text-sm font-semibold text-gray-700">{t('annualPlan.upgradeTitle')}</p>
           <p className="mt-0.5 text-xs text-gray-500 leading-relaxed">
-            Get unlimited Safety Plans, priority incident response, and quarterly updates for your entire family.
+            {t('annualPlan.upgradeBody')}
           </p>
           {bookingEnabled && (
             <button
@@ -98,7 +101,7 @@ function UpgradeCard() {
               onClick={() => navigate('/bookings')}
               className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
             >
-              View packages →
+              {t('annualPlan.viewPackages')}
             </button>
           )}
         </div>

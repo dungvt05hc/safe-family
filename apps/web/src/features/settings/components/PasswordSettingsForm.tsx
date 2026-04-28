@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, Info, Lock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Alert, Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui'
 import { useChangePassword } from '../settings.hooks'
-import { passwordSchema, type PasswordFormValues } from '../settings.schema'
+import { makePasswordSchema, type PasswordFormValues } from '../settings.schema'
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement>
 
 function PasswordInput({ label, htmlFor, error, ...rest }: PasswordInputProps) {
   const [show, setShow] = useState(false)
+  const { t } = useTranslation('settings')
   return (
     <div>
       <label htmlFor={htmlFor} className={labelCls}>
@@ -41,7 +43,7 @@ function PasswordInput({ label, htmlFor, error, ...rest }: PasswordInputProps) {
           type="button"
           onClick={() => setShow((v) => !v)}
           className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
-          aria-label={show ? 'Hide password' : 'Show password'}
+          aria-label={show ? t('security.hidePassword') : t('security.showPassword')}
         >
           {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
@@ -59,14 +61,24 @@ function PasswordInput({ label, htmlFor, error, ...rest }: PasswordInputProps) {
  */
 export function PasswordSettingsForm() {
   const changePassword = useChangePassword()
+  const { t } = useTranslation('settings')
   const [succeeded, setSucceeded] = useState(false)
+
+  const schema = useMemo(() => makePasswordSchema({
+    currentRequired: t('validation.security.currentPasswordRequired'),
+    newMin:          t('validation.security.newPasswordMin'),
+    newUppercase:    t('validation.security.newPasswordUppercase'),
+    newNumber:       t('validation.security.newPasswordNumber'),
+    confirmRequired: t('validation.security.confirmPasswordRequired'),
+    mismatch:        t('validation.security.passwordsMismatch'),
+  }), [t])
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<PasswordFormValues>({ resolver: zodResolver(passwordSchema) })
+  } = useForm<PasswordFormValues>({ resolver: zodResolver(schema) })
 
   async function onSubmit(data: PasswordFormValues) {
     setSucceeded(false)
@@ -80,24 +92,24 @@ export function PasswordSettingsForm() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Lock className="w-4 h-4 text-gray-500" aria-hidden="true" />
-          <CardTitle>Change password</CardTitle>
+          <CardTitle>{t('security.cardTitle')}</CardTitle>
         </div>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <CardContent className="space-y-5">
           {succeeded && (
-            <Alert variant="success">Password changed successfully.</Alert>
+            <Alert variant="success">{t('security.saved')}</Alert>
           )}
           {changePassword.isError && (
             <Alert variant="error">
-              Failed to change password. Please check your current password and try again.
+              {t('security.error')}
             </Alert>
           )}
 
           <PasswordInput
             {...register('currentPassword')}
-            label="Current password"
+            label={t('security.currentPassword')}
             htmlFor="pwd-current"
             autoComplete="current-password"
             placeholder="••••••••"
@@ -106,7 +118,7 @@ export function PasswordSettingsForm() {
 
           <PasswordInput
             {...register('newPassword')}
-            label="New password"
+            label={t('security.newPassword')}
             htmlFor="pwd-new"
             autoComplete="new-password"
             placeholder="••••••••"
@@ -115,7 +127,7 @@ export function PasswordSettingsForm() {
 
           <PasswordInput
             {...register('confirmPassword')}
-            label="Confirm new password"
+            label={t('security.confirmPassword')}
             htmlFor="pwd-confirm"
             autoComplete="new-password"
             placeholder="••••••••"
@@ -126,8 +138,7 @@ export function PasswordSettingsForm() {
           <div className="flex items-start gap-2 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
             <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" aria-hidden="true" />
             <p className="text-xs text-blue-700 leading-relaxed">
-              Use at least 8 characters, one uppercase letter, and one number.
-              Never share your password with anyone — SafeFamily staff will never ask for it.
+              {t('security.tip')}
             </p>
           </div>
         </CardContent>
@@ -140,7 +151,7 @@ export function PasswordSettingsForm() {
             disabled={!isDirty}
             loading={changePassword.isPending}
           >
-            Update password
+            {t('security.updatePassword')}
           </Button>
         </CardFooter>
       </form>

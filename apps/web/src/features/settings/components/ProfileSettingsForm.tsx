@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Mail, Phone, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Alert, Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui'
 import { useSettings, useUpdateProfileSettings } from '../settings.hooks'
-import { profileSchema, type ProfileFormValues } from '../settings.schema'
+import { makeProfileSchema, type ProfileFormValues } from '../settings.schema'
 import type { ProfileSettings } from '../settings.types'
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -23,7 +24,13 @@ interface FormProps { defaults: ProfileSettings }
 
 function ProfileForm({ defaults }: FormProps) {
   const update = useUpdateProfileSettings()
+  const { t } = useTranslation('settings')
   const [saved, setSaved] = useState(false)
+
+  const schema = useMemo(() => makeProfileSchema({
+    fullNameMin:  t('validation.profile.fullNameMin'),
+    phoneInvalid: t('validation.profile.phoneInvalid'),
+  }), [t])
 
   const {
     register,
@@ -31,7 +38,7 @@ function ProfileForm({ defaults }: FormProps) {
     reset,
     formState: { errors, isDirty },
   } = useForm<ProfileFormValues>({
-    resolver:      zodResolver(profileSchema),
+    resolver:      zodResolver(schema),
     defaultValues: { fullName: defaults.fullName, phone: defaults.phone },
   })
 
@@ -52,11 +59,11 @@ function ProfileForm({ defaults }: FormProps) {
       <CardContent className="space-y-5">
         {/* Success banner */}
         {saved && !isDirty && (
-          <Alert variant="success">Profile updated successfully.</Alert>
+          <Alert variant="success">{t('profile.saved')}</Alert>
         )}
         {/* Server error */}
         {update.isError && (
-          <Alert variant="error">Failed to save profile. Please try again.</Alert>
+          <Alert variant="error">{t('profile.error')}</Alert>
         )}
 
         {/* Full name */}
@@ -64,7 +71,7 @@ function ProfileForm({ defaults }: FormProps) {
           <label htmlFor="prof-fullName" className={labelCls}>
             <span className="flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
-              Full name
+              {t('profile.fullName')}
             </span>
           </label>
           <input
@@ -72,7 +79,7 @@ function ProfileForm({ defaults }: FormProps) {
             id="prof-fullName"
             type="text"
             autoComplete="name"
-            placeholder="Your full name"
+            placeholder={t('profile.fullName')}
             className={inputCls}
           />
           {errors.fullName && <p className={errorCls}>{errors.fullName.message}</p>}
@@ -83,7 +90,7 @@ function ProfileForm({ defaults }: FormProps) {
           <label htmlFor="prof-email" className={labelCls}>
             <span className="flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
-              Email address
+              {t('profile.email')}
             </span>
           </label>
           <input
@@ -94,7 +101,7 @@ function ProfileForm({ defaults }: FormProps) {
             disabled
             className={`${inputCls} cursor-not-allowed`}
           />
-          <p className="mt-1 text-xs text-gray-400">Email address cannot be changed here.</p>
+          <p className="mt-1 text-xs text-gray-400">{t('profile.emailReadonly')}</p>
         </div>
 
         {/* Phone */}
@@ -102,7 +109,7 @@ function ProfileForm({ defaults }: FormProps) {
           <label htmlFor="prof-phone" className={labelCls}>
             <span className="flex items-center gap-1.5">
               <Phone className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
-              Phone number
+              {t('profile.phone')}
             </span>
           </label>
           <input
@@ -125,7 +132,7 @@ function ProfileForm({ defaults }: FormProps) {
           disabled={!isDirty}
           loading={update.isPending}
         >
-          Save changes
+          {t('profile.saveChanges')}
         </Button>
       </CardFooter>
     </form>
@@ -139,11 +146,12 @@ function ProfileForm({ defaults }: FormProps) {
  */
 export function ProfileSettingsForm() {
   const { data, isLoading } = useSettings()
+  const { t } = useTranslation('settings')
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile information</CardTitle>
+        <CardTitle>{t('profile.cardTitle')}</CardTitle>
       </CardHeader>
 
       {isLoading || !data ? (

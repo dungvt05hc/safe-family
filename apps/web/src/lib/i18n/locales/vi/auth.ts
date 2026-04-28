@@ -1,6 +1,6 @@
 const auth = {
   // Login
-  signInTitle: 'Đăng nhập vào tài khoản',
+  signInTitle: 'Đăng nhập',
   email: 'Email',
   password: 'Mật khẩu',
   forgotPassword: 'Quên mật khẩu?',

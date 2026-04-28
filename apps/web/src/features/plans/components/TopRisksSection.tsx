@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { AlertTriangle, Shield } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge } from '@/components/ui'
 import type { SafetyTask } from '@/features/tasks/safety-tasks.types'
@@ -33,6 +34,7 @@ interface TopRisksSectionProps {
 }
 
 export function TopRisksSection({ topRisks, immediateTasks }: TopRisksSectionProps) {
+  const { t } = useTranslation('plans')
   const risks = parseRisks(topRisks)
 
   const criticalTasks = immediateTasks.filter(
@@ -54,7 +56,7 @@ export function TopRisksSection({ topRisks, immediateTasks }: TopRisksSectionPro
             <AlertTriangle className="h-4 w-4 text-red-500" aria-hidden="true" />
           </span>
           <h2 id="top-risks-heading" className="text-base font-semibold text-red-900">
-            Top Risks Identified
+            {t('familySafetyPlan.sections.topRisksHeading')}
           </h2>
         </div>
 
@@ -68,7 +70,7 @@ export function TopRisksSection({ topRisks, immediateTasks }: TopRisksSectionPro
         )}
 
         {risks.length === 0 && (
-          <p className="text-sm text-red-600 italic">No specific risks listed in this plan.</p>
+          <p className="text-sm text-red-600 italic">{t('familySafetyPlan.sections.noRisksListed')}</p>
         )}
 
         {/* Cross-referenced critical tasks */}
@@ -76,7 +78,7 @@ export function TopRisksSection({ topRisks, immediateTasks }: TopRisksSectionPro
           <div className="border-t border-red-200 pt-4 space-y-2">
             <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-red-600">
               <Shield className="h-3.5 w-3.5" aria-hidden="true" />
-              Immediate actions required ({criticalTasks.length})
+              {t('familySafetyPlan.sections.immediateActionsRequired', { count: criticalTasks.length })}
             </p>
             <ul className="space-y-1.5">
               {criticalTasks.slice(0, 5).map(task => (
@@ -89,7 +91,7 @@ export function TopRisksSection({ topRisks, immediateTasks }: TopRisksSectionPro
               ))}
               {criticalTasks.length > 5 && (
                 <li className="text-xs text-red-600 pl-1">
-                  +{criticalTasks.length - 5} more immediate actions — see full checklist
+                  {t('familySafetyPlan.sections.moreImmediateActions', { count: criticalTasks.length - 5 })}
                 </li>
               )}
             </ul>

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ListChecks } from 'lucide-react'
 import { EmptyState } from '@/components/ui'
 import type { ChecklistItem } from '../checklist.types'
+import { useTranslation } from 'react-i18next'
 import { ChecklistItemCard } from './ChecklistItemCard'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -14,21 +15,23 @@ interface ChecklistListProps {
 // ── Empty states ──────────────────────────────────────────────────────────────
 
 function NoItems() {
+  const { t } = useTranslation('checklist')
   return (
     <EmptyState
       icon={ListChecks}
-      title="Your checklist is clear"
-      description="SafeFamily automatically generates tasks from your accounts and devices. Add some and we'll surface the most important actions here."
+      title={t('empty.noItemsTitle')}
+      description={t('empty.noItemsDesc')}
     />
   )
 }
 
 function NoResults() {
+  const { t } = useTranslation('checklist')
   return (
     <EmptyState
       icon={ListChecks}
-      title="No matching items"
-      description="Try adjusting your filters or search to find what you're looking for."
+      title={t('empty.noResultsTitle')}
+      description={t('empty.noResultsDesc')}
     />
   )
 }

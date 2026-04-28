@@ -1,25 +1,26 @@
 import { Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useLanguagePreference } from '../settings.hooks'
 
 export function LanguageSettingsForm() {
   const { currentCode, setLanguage, languages } = useLanguagePreference()
+  const { t } = useTranslation('settings')
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Language</CardTitle>
+        <CardTitle>{t('preferences.language.cardTitle')}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="mb-4 text-sm text-gray-500">
-          Choose the language used throughout the app. Your preference is saved
-          locally and will be remembered on this device.
+          {t('preferences.language.description')}
         </p>
 
         <div
           role="radiogroup"
-          aria-label="App language"
+          aria-label={t('preferences.language.ariaLabel')}
           className="flex flex-col gap-2 sm:flex-row"
         >
           {languages.map((lang) => {

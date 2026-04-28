@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Menu, Bell, ChevronDown, LogOut, ExternalLink } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useLogout } from '@/features/auth/hooks/useLogout'
 
@@ -22,6 +23,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
   const { data: user } = useCurrentUser()
   const logout = useLogout()
   const navigate = useNavigate()
+  const { t } = useTranslation('topbar')
 
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -54,7 +56,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
       {/* Mobile hamburger */}
       <button
         onClick={onMenuClick}
-        aria-label="Open navigation"
+        aria-label={t('openNavigation')}
         className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >
         <Menu className="w-5 h-5" />
@@ -70,7 +72,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
 
       {/* Notification bell */}
       <button
-        aria-label="Notifications"
+        aria-label={t('notifications')}
         className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
       >
         <Bell className="w-5 h-5" />
@@ -82,7 +84,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
           onClick={() => setDropdownOpen((v) => !v)}
           aria-haspopup="menu"
           aria-expanded={dropdownOpen}
-          aria-label="Account menu"
+          aria-label={t('accountMenu')}
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors"
         >
           <span
@@ -92,7 +94,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
             {initials}
           </span>
           <span className="hidden md:block text-sm font-medium text-gray-700 max-w-[140px] truncate">
-            {user?.displayName ?? 'Admin'}
+            {user?.displayName ?? t('account')}
           </span>
           <ChevronDown className="w-4 h-4 text-gray-400 hidden md:block shrink-0" aria-hidden="true" />
         </button>
@@ -115,7 +117,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
               className="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <ExternalLink className="w-4 h-4 shrink-0" aria-hidden="true" />
-              Customer Portal
+              {t('customerPortal')}
             </button>
 
             {/* Sign out */}
@@ -125,7 +127,7 @@ export function AdminTopbar({ title, onMenuClick }: AdminTopbarProps) {
               className="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
-              Sign out
+              {t('signOut')}
             </button>
           </div>
         )}

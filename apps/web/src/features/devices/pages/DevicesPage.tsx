@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import {
   Badge, Button, LoadingState, Alert, NoDevicesEmpty,
@@ -12,7 +13,7 @@ import { EditDeviceModal } from '../components/EditDeviceModal'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 import { useApiError } from '@/lib/i18n/useApiError'
 import type { Device, DeviceFilters, SupportStatus } from '../devices.types'
-import { SUPPORT_STATUSES, SUPPORT_STATUS_LABELS } from '../devices.types'
+import { SUPPORT_STATUSES } from '../devices.types'
 import { useDeviceTypes } from '../deviceCatalog.hooks'
 
 function supportVariant(status: SupportStatus): BadgeVariant {
@@ -22,10 +23,10 @@ function supportVariant(status: SupportStatus): BadgeVariant {
   return 'neutral'
 }
 
-function BoolIcon({ value }: { value: boolean }) {
+function BoolIcon({ value, labelOn, labelOff }: { value: boolean; labelOn: string; labelOff: string }) {
   return value
-    ? <span className="text-green-600 font-bold" title="Enabled">✓</span>
-    : <span className="text-gray-300" title="Disabled">✗</span>
+    ? <span className="text-green-600 font-bold" title={labelOn}>✓</span>
+    : <span className="text-gray-300" title={labelOff}>✗</span>
 }
 
 const selectClass =
@@ -41,6 +42,7 @@ export function DevicesPage() {
   const { mutate: archive } = useArchiveDevice()
   const [showAdd, setShowAdd] = useState(false)
   const [editTarget, setEditTarget] = useState<Device | null>(null)
+  const { t } = useTranslation('devices')
   const loadError = useApiError(error, 'load.devices')
 
   function memberName(memberId: string | null) {
@@ -49,15 +51,15 @@ export function DevicesPage() {
   }
 
   function handleArchive(id: string) {
-    if (!confirm('Archive this device? It will be hidden but not permanently deleted.')) return
+    if (!confirm(t('archiveConfirm'))) return
     archive(id)
   }
 
   return (
     <PageLayout
-      title="Devices"
-      description="Track family devices and their security configuration."
-      action={<Button onClick={() => setShowAdd(true)}>+ Add device</Button>}
+      title={t('pageTitle')}
+      description={t('pageDescription')}
+      action={<Button onClick={() => setShowAdd(true)}>{t('addDevice')}</Button>}
     >
       {/* Filter bar */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -66,7 +68,7 @@ export function DevicesPage() {
           onChange={(e) => setFilters((f) => ({ ...f, memberId: e.target.value || undefined }))}
           className={selectClass}
         >
-          <option value="">All members</option>
+          <option value="">{t('filter.allMembers')}</option>
           {members.map((m) => (
             <option key={m.id} value={m.id}>{m.displayName}</option>
           ))}
@@ -79,7 +81,7 @@ export function DevicesPage() {
           }
           className={selectClass}
         >
-          <option value="">All types</option>
+          <option value="">{t('filter.allTypes')}</option>
           {catalogTypes.map((t) => (
             <option key={t.code} value={t.code}>{t.name}</option>
           ))}
@@ -92,15 +94,15 @@ export function DevicesPage() {
           }
           className={selectClass}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('filter.allStatuses')}</option>
           {SUPPORT_STATUSES.map((s) => (
-            <option key={s} value={s}>{SUPPORT_STATUS_LABELS[s]}</option>
+            <option key={s} value={s}>{t(`supportStatus.${s}` as const)}</option>
           ))}
         </select>
 
         <input
           type="search"
-          placeholder="Search brand, model, OS…"
+          placeholder={t('filter.searchPlaceholder')}
           value={filters.search ?? ''}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
           className={inputClass}
@@ -112,7 +114,7 @@ export function DevicesPage() {
             onClick={() => setFilters({})}
             className="text-sm text-gray-500 underline hover:text-gray-700"
           >
-            Clear filters
+            {t('filter.clearFilters')}
           </button>
         )}
       </div>
@@ -136,15 +138,15 @@ export function DevicesPage() {
             <Table>
               <Thead>
                 <tr>
-                  <Th>Type</Th>
-                  <Th>Device</Th>
-                  <Th>Member</Th>
-                  <Th>OS</Th>
-                  <Th>Support</Th>
-                  <Th align="center" title="Screen lock">🔒</Th>
-                  <Th align="center" title="Biometric">👆</Th>
-                  <Th align="center" title="Backup">☁</Th>
-                  <Th align="center" title="Find my device">📍</Th>
+                  <Th>{t('col.type')}</Th>
+                  <Th>{t('col.device')}</Th>
+                  <Th>{t('col.member')}</Th>
+                  <Th>{t('col.os')}</Th>
+                  <Th>{t('col.support')}</Th>
+                  <Th align="center" title={t('col.screenLock')}>🔒</Th>
+                  <Th align="center" title={t('col.biometric')}>👆</Th>
+                  <Th align="center" title={t('col.backup')}>☁</Th>
+                  <Th align="center" title={t('col.findMyDevice')}>📍</Th>
                   <Th />
                 </tr>
               </Thead>
@@ -156,21 +158,21 @@ export function DevicesPage() {
                     </Td>
                     <Td>{device.brandName} {device.modelName}</Td>
                     <Td className="text-gray-600">
-                      {memberName(device.memberId) ?? <span className="text-gray-400 italic">Unassigned</span>}
+                      {memberName(device.memberId) ?? <span className="text-gray-400 italic">{t('unassigned')}</span>}
                     </Td>
                     <Td className="whitespace-nowrap text-gray-600">{device.osFamilyName} {device.osVersionName}</Td>
                     <Td className="whitespace-nowrap">
                       <Badge variant={supportVariant(device.supportStatus)}>
-                        {SUPPORT_STATUS_LABELS[device.supportStatus]}
+                        {t(`supportStatus.${device.supportStatus}` as const)}
                       </Badge>
                     </Td>
-                    <Td align="center"><BoolIcon value={device.screenLockEnabled} /></Td>
-                    <Td align="center"><BoolIcon value={device.biometricEnabled} /></Td>
-                    <Td align="center"><BoolIcon value={device.backupEnabled} /></Td>
-                    <Td align="center"><BoolIcon value={device.findMyDeviceEnabled} /></Td>
+                    <Td align="center"><BoolIcon value={device.screenLockEnabled} labelOn={t('securityEnabled')} labelOff={t('securityDisabled')} /></Td>
+                    <Td align="center"><BoolIcon value={device.biometricEnabled} labelOn={t('securityEnabled')} labelOff={t('securityDisabled')} /></Td>
+                    <Td align="center"><BoolIcon value={device.backupEnabled} labelOn={t('securityEnabled')} labelOff={t('securityDisabled')} /></Td>
+                    <Td align="center"><BoolIcon value={device.findMyDeviceEnabled} labelOn={t('securityEnabled')} labelOff={t('securityDisabled')} /></Td>
                     <Td align="right" className="whitespace-nowrap">
                       <Button variant="ghost" size="sm" onClick={() => setEditTarget(device)}>
-                        Edit
+                        {t('action.edit')}
                       </Button>
                       <Button
                         variant="ghost"
@@ -178,7 +180,7 @@ export function DevicesPage() {
                         className="ml-1 text-red-600 hover:text-red-700"
                         onClick={() => handleArchive(device.id)}
                       >
-                        Archive
+                        {t('action.archive')}
                       </Button>
                     </Td>
                   </Tr>
@@ -207,17 +209,17 @@ export function DevicesPage() {
                     )}
                     <div className="mt-2 flex flex-wrap gap-1">
                       <Badge variant={supportVariant(device.supportStatus)}>
-                        {SUPPORT_STATUS_LABELS[device.supportStatus]}
+                        {t(`supportStatus.${device.supportStatus}` as const)}
                       </Badge>
-                      {device.screenLockEnabled && <Badge variant="info">Screen lock</Badge>}
-                      {device.biometricEnabled && <Badge variant="info">Biometric</Badge>}
-                      {device.backupEnabled && <Badge variant="info">Backup</Badge>}
-                      {device.findMyDeviceEnabled && <Badge variant="info">Find my device</Badge>}
+                      {device.screenLockEnabled && <Badge variant="info">{t('badge.screenLock')}</Badge>}
+                      {device.biometricEnabled && <Badge variant="info">{t('badge.biometric')}</Badge>}
+                      {device.backupEnabled && <Badge variant="info">{t('badge.backup')}</Badge>}
+                      {device.findMyDeviceEnabled && <Badge variant="info">{t('badge.findMyDevice')}</Badge>}
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-col gap-1">
                     <Button variant="ghost" size="sm" onClick={() => setEditTarget(device)}>
-                      Edit
+                      {t('action.edit')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -225,7 +227,7 @@ export function DevicesPage() {
                       className="text-red-600 hover:text-red-700"
                       onClick={() => handleArchive(device.id)}
                     >
-                      Archive
+                      {t('action.archive')}
                     </Button>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { CheckCircle2, Circle, Clock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge } from '@/components/ui'
 import type { SafetyTask } from '@/features/tasks/safety-tasks.types'
@@ -9,6 +10,7 @@ import { useUpdateSafetyTaskStatus } from '@/features/tasks/safety-tasks.hooks'
 // ── Task row ──────────────────────────────────────────────────────────────────
 
 function TaskRow({ task }: { task: SafetyTask }) {
+  const { t } = useTranslation('plans')
   const { mutate, isPending } = useUpdateSafetyTaskStatus()
 
   const isDone      = task.status === 'Completed'
@@ -42,7 +44,7 @@ function TaskRow({ task }: { task: SafetyTask }) {
           <p className="mt-0.5 text-xs text-gray-500 leading-relaxed">{task.description}</p>
         )}
         {task.targetLabel && (
-          <p className="mt-0.5 text-xs text-gray-400">For: {task.targetLabel}</p>
+          <p className="mt-0.5 text-xs text-gray-400">{t('incidentRecovery.sections.forTarget', { target: task.targetLabel })}</p>
         )}
       </div>
 
@@ -61,7 +63,8 @@ interface Next24HoursSectionProps {
 }
 
 export function Next24HoursSection({ next24Hours, tasks }: Next24HoursSectionProps) {
-  const completedCount = tasks.filter(t => t.status === 'Completed').length
+  const { t } = useTranslation('plans')
+  const completedCount = tasks.filter(task => task.status === 'Completed').length
 
   return (
     <motion.section
@@ -79,13 +82,13 @@ export function Next24HoursSection({ next24Hours, tasks }: Next24HoursSectionPro
               <Clock className="h-4 w-4 text-orange-600" aria-hidden="true" />
             </span>
             <h2 id="next-24h-heading" className="text-base font-semibold text-orange-900">
-              Next 24 Hours
+              {t('incidentRecovery.sections.next24Hours')}
             </h2>
           </div>
 
           {tasks.length > 0 && (
             <span className="text-xs text-orange-600 font-medium">
-              {completedCount}/{tasks.length} complete
+              {t('incidentRecovery.sections.completionCount', { done: completedCount, total: tasks.length })}
             </span>
           )}
         </div>

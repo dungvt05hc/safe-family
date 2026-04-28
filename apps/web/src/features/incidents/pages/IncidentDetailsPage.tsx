@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, CalendarClock, CalendarPlus, ListChecks } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, Badge, Button, LoadingState } from '@/components/ui'
@@ -10,7 +11,6 @@ import {
   INCIDENT_TYPE_CONFIG,
   SEVERITY_BADGE,
   STATUS_BADGE,
-  STATUS_LABEL,
 } from '../incidents.types'
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -18,12 +18,13 @@ import {
 export function IncidentDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation('incidents')
   const { bookingEnabled } = useFeatureFlags()
   const { data: incident, isLoading, isError } = useIncident(id ?? '')
 
   if (isLoading) {
     return (
-      <PageLayout title="Incident Details">
+      <PageLayout title={t('detail.pageTitle')}>
         <LoadingState />
       </PageLayout>
     )
@@ -31,15 +32,15 @@ export function IncidentDetailsPage() {
 
   if (isError || !incident) {
     return (
-      <PageLayout title="Incident Details">
-        <Alert variant="error">Incident not found or failed to load.</Alert>
+      <PageLayout title={t('detail.pageTitle')}>
+        <Alert variant="error">{t('detail.loadError')}</Alert>
         <Button
           variant="ghost"
           className="mt-4"
           onClick={() => navigate('/incidents')}
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-          Back to incidents
+          {t('detail.backButton')}
         </Button>
       </PageLayout>
     )
@@ -55,11 +56,11 @@ export function IncidentDetailsPage() {
 
   return (
     <PageLayout
-      title="Incident Details"
+      title={t('detail.pageTitle')}
       action={
         <Button variant="ghost" onClick={() => navigate('/incidents')}>
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-          All incidents
+          {t('detail.backButton')}
         </Button>
       }
     >
@@ -74,11 +75,11 @@ export function IncidentDetailsPage() {
         <div className="flex flex-wrap items-start gap-4">
           <span className="text-4xl" aria-hidden="true">{typeConfig.icon}</span>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-gray-900">{typeConfig.label}</h2>
+            <h2 className="text-base font-semibold text-gray-900">{t(`types.${incident.type}.label`, { defaultValue: typeConfig.label })}</h2>
             <p className="mt-1 text-sm text-gray-600">{incident.summary}</p>
             <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-gray-400">
               <CalendarClock className="w-3 h-3" aria-hidden="true" />
-              Reported{' '}
+              {t('detail.reported')}{' '}
               {new Date(incident.createdAt).toLocaleDateString(undefined, {
                 weekday: 'short',
                 month:   'short',
@@ -89,10 +90,10 @@ export function IncidentDetailsPage() {
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
             <Badge variant={SEVERITY_BADGE[incident.severity]} dot>
-              {incident.severity}
+              {t(`severity.${incident.severity}.label`, { defaultValue: incident.severity })}
             </Badge>
             <Badge variant={STATUS_BADGE[incident.status]}>
-              {STATUS_LABEL[incident.status]}
+              {t(`status.${incident.status}`, { defaultValue: incident.status })}
             </Badge>
           </div>
         </div>
@@ -108,10 +109,9 @@ export function IncidentDetailsPage() {
           className="mb-5"
         >
           <Alert variant="warning">
-            This is a <strong>{incident.severity.toLowerCase()}-severity</strong> incident.
-            {bookingEnabled
-              ? ' Book a session with a SafeFamily advisor for personalised support.'
-              : ' Contact a SafeFamily advisor for personalised support.'}
+            {t('detail.highSeverityAlert', { severity: t(`severity.${incident.severity}.label`) })}
+            {' '}
+            {bookingEnabled ? t('detail.highSeverityBook') : t('detail.highSeverityContact')}
           </Alert>
         </motion.div>
       )}
@@ -125,7 +125,7 @@ export function IncidentDetailsPage() {
           animate="visible"
           className="mb-5 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-5"
         >
-          <h3 className="mb-4 text-sm font-semibold text-indigo-800">Action Plan</h3>
+          <h3 className="mb-4 text-sm font-semibold text-indigo-800">{t('detail.actionPlan')}</h3>
           <ol className="space-y-3">
             {actionSteps.map((step, i) => (
               <li key={i} className="flex gap-3 text-sm text-gray-800">
@@ -150,12 +150,12 @@ export function IncidentDetailsPage() {
         {bookingEnabled && (
           <Button variant="primary" onClick={() => navigate('/bookings')}>
             <CalendarPlus className="w-4 h-4" aria-hidden="true" />
-            Book help
+            {t('detail.cta.bookHelp')}
           </Button>
         )}
         <Button variant="outline" onClick={() => navigate('/checklists')}>
           <ListChecks className="w-4 h-4" aria-hidden="true" />
-          View checklist
+          {t('detail.cta.viewChecklist')}
         </Button>
       </motion.div>
     </PageLayout>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCreateAccount } from '../hooks/useAccountMutations'
 import { AccountForm } from './AccountForm'
 import type { AccountFormValues } from '../accounts.types'
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function AddAccountModal({ onClose }: Props) {
+  const { t } = useTranslation('accounts')
   const { mutate, isPending } = useCreateAccount()
   const { data: members = [] } = useFamilyMembers()
   const [mutationError, setMutationError] = useState<unknown>(null)
@@ -32,14 +34,14 @@ export function AddAccountModal({ onClose }: Props) {
     >
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <h2 id="add-account-title" className="mb-4 text-lg font-semibold text-gray-900">
-          Add account
+          {t('modal.addTitle')}
         </h2>
         <AccountForm
           members={members}
           onSubmit={handleSubmit}
           onCancel={onClose}
           isSubmitting={isPending}
-          submitLabel="Add account"
+          submitLabel={t('modal.addSubmit')}
           serverError={serverError}
         />
       </div>

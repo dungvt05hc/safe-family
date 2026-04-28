@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, Laptop, Smartphone } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import type { SafetyTask } from '@/features/tasks/safety-tasks.types'
 import { PRIORITY_BADGE, PRIORITY_LABEL } from '@/features/tasks/safety-tasks.types'
@@ -9,11 +10,12 @@ import { Badge } from '@/components/ui'
 // ── Per-asset group ───────────────────────────────────────────────────────────
 
 function AssetGroup({ label, tasks }: { label: string; tasks: SafetyTask[] }) {
+  const { t } = useTranslation('plans')
   const [open, setOpen] = useState(true)
 
-  const isDevice        = tasks.some(t => t.targetType === 'Device')
-  const completedCount  = tasks.filter(t => t.status === 'Completed').length
-  const activeCount     = tasks.filter(t => t.status !== 'Dismissed').length
+  const isDevice        = tasks.some(task => task.targetType === 'Device')
+  const completedCount  = tasks.filter(task => task.status === 'Completed').length
+  const activeCount     = tasks.filter(task => task.status !== 'Dismissed').length
 
   const Icon = isDevice ? Laptop : Smartphone
 
@@ -34,7 +36,7 @@ function AssetGroup({ label, tasks }: { label: string; tasks: SafetyTask[] }) {
 
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-gray-500">
-            {completedCount}/{activeCount} done
+            {t('familySafetyPlan.sections.completionDone', { done: completedCount, total: activeCount })}
           </span>
           <ChevronDown
             className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
@@ -98,9 +100,11 @@ export function AssetActionPlanSection({
   actionPlanByDevice,
   assetTasks,
 }: AssetActionPlanSectionProps) {
+  const { t } = useTranslation('plans')
+  const unknownLabel = t('familySafetyPlan.sections.unknownAsset')
   // Group tasks by targetLabel (device/account name); fall back to targetId
   const grouped = assetTasks.reduce<Record<string, SafetyTask[]>>((acc, task) => {
-    const key = task.targetLabel ?? task.targetId ?? 'Unknown Asset'
+    const key = task.targetLabel ?? task.targetId ?? unknownLabel
     ;(acc[key] ??= []).push(task)
     return acc
   }, {})
@@ -122,7 +126,7 @@ export function AssetActionPlanSection({
             <Laptop className="h-4 w-4 text-teal-600" aria-hidden="true" />
           </span>
           <h2 id="asset-plan-heading" className="text-base font-semibold text-gray-900">
-            Action Plan by Device &amp; Account
+            {t('familySafetyPlan.sections.assetActionPlanHeading')}
           </h2>
         </div>
 
@@ -141,7 +145,7 @@ export function AssetActionPlanSection({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 italic">No device or account tasks generated yet.</p>
+          <p className="text-sm text-gray-400 italic">{t('familySafetyPlan.sections.noAssetTasks')}</p>
         )}
       </div>
     </motion.section>

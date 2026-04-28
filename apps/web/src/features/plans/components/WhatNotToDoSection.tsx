@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 
 // ── Text parser ───────────────────────────────────────────────────────────────
@@ -18,6 +19,7 @@ interface WhatNotToDoSectionProps {
 }
 
 export function WhatNotToDoSection({ whatNotToDo }: WhatNotToDoSectionProps) {
+  const { t } = useTranslation('plans')
   const lines = parseLines(whatNotToDo)
 
   return (
@@ -35,12 +37,12 @@ export function WhatNotToDoSection({ whatNotToDo }: WhatNotToDoSectionProps) {
             <XCircle className="h-4 w-4 text-red-600" aria-hidden="true" />
           </span>
           <h2 id="what-not-to-do-heading" className="text-base font-semibold text-red-900">
-            What NOT to Do
+            {t('incidentRecovery.sections.whatNotToDoHeading')}
           </h2>
         </div>
 
         <p className="text-xs text-red-600 font-medium">
-          Avoid these actions — they can worsen the situation or destroy evidence.
+          {t('incidentRecovery.sections.whatNotToDoWarning')}
         </p>
 
         {lines.length > 0 ? (

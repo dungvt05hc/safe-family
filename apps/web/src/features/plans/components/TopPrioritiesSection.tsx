@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { CheckCircle2, Circle, ListChecks } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge } from '@/components/ui'
 import type { SafetyTask } from '@/features/tasks/safety-tasks.types'
@@ -88,6 +89,7 @@ interface TopPrioritiesSectionProps {
 }
 
 export function TopPrioritiesSection({ topPriorities, highTasks }: TopPrioritiesSectionProps) {
+  const { t } = useTranslation('plans')
   const priorities = parsePriorities(topPriorities)
 
   const activeTasks = highTasks
@@ -109,7 +111,7 @@ export function TopPrioritiesSection({ topPriorities, highTasks }: TopPriorities
             <ListChecks className="h-4 w-4 text-blue-600" aria-hidden="true" />
           </span>
           <h2 id="top-priorities-heading" className="text-base font-semibold text-blue-900">
-            Top Priorities
+            {t('familySafetyPlan.sections.topPrioritiesHeading')}
           </h2>
         </div>
 
@@ -126,7 +128,7 @@ export function TopPrioritiesSection({ topPriorities, highTasks }: TopPriorities
         {activeTasks.length > 0 && (
           <div className="border-t border-blue-200 pt-4 space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-              Recommended tasks
+              {t('familySafetyPlan.sections.recommendedTasks')}
             </p>
             <ul className="space-y-1.5">
               {activeTasks.map(task => (

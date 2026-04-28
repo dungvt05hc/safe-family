@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useUpdateAccount } from '../hooks/useAccountMutations'
 import { AccountForm } from './AccountForm'
 import type { Account, AccountFormValues } from '../accounts.types'
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function EditAccountModal({ account, onClose }: Props) {
+  const { t } = useTranslation('accounts')
   const { mutate, isPending } = useUpdateAccount(account.id)
   const { data: members = [] } = useFamilyMembers()
   const [mutationError, setMutationError] = useState<unknown>(null)
@@ -44,7 +46,7 @@ export function EditAccountModal({ account, onClose }: Props) {
     >
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <h2 id="edit-account-title" className="mb-4 text-lg font-semibold text-gray-900">
-          Edit account
+          {t('modal.editTitle')}
         </h2>
         <AccountForm
           members={members}
@@ -52,7 +54,7 @@ export function EditAccountModal({ account, onClose }: Props) {
           onSubmit={handleSubmit}
           onCancel={onClose}
           isSubmitting={isPending}
-          submitLabel="Save changes"
+          submitLabel={t('modal.editSubmit')}
           serverError={serverError}
         />
       </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useUpdateDevice } from '../hooks/useDeviceMutations'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 import { DeviceForm } from './DeviceForm'
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function EditDeviceModal({ device, onClose }: Props) {
+  const { t } = useTranslation('devices')
   const { data: members = [] } = useFamilyMembers()
   const { mutate, isPending } = useUpdateDevice(device.id)
   const [mutationError, setMutationError] = useState<unknown>(null)
@@ -60,7 +62,7 @@ export function EditDeviceModal({ device, onClose }: Props) {
         <div className="flex items-start justify-between border-b border-gray-100 px-6 pb-4 pt-5">
           <div>
             <h2 id="edit-device-title" className="text-lg font-semibold text-gray-900">
-              Edit device
+              {t('modal.editTitle')}
             </h2>
             <p className="mt-0.5 text-sm text-gray-500">
               {device.brandName} {device.modelName}
@@ -84,7 +86,7 @@ export function EditDeviceModal({ device, onClose }: Props) {
             onSubmit={handleSubmit}
             onCancel={onClose}
             isSubmitting={isPending}
-            submitLabel="Save changes"
+            submitLabel={t('modal.editSubmit')}
             serverError={serverError}
           />
         </div>

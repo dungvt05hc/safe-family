@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ShieldAlert, ChevronRight, CalendarClock } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, Badge, Button, LoadingState } from '@/components/ui'
@@ -11,7 +12,6 @@ import {
   INCIDENT_TYPE_CONFIG,
   SEVERITY_BADGE,
   STATUS_BADGE,
-  STATUS_LABEL,
   type IncidentResult,
 } from '../incidents.types'
 import { useIncidents } from '../hooks/useIncidentQueries'
@@ -27,6 +27,7 @@ function IncidentCard({
   index: number
   onClick: () => void
 }) {
+  const { t } = useTranslation('incidents')
   const typeConfig = INCIDENT_TYPE_CONFIG[incident.type]
 
   return (
@@ -56,9 +57,9 @@ function IncidentCard({
         {/* content */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-semibold text-gray-900">{typeConfig.label}</p>
-            <Badge variant={SEVERITY_BADGE[incident.severity]}>{incident.severity}</Badge>
-            <Badge variant={STATUS_BADGE[incident.status]}>{STATUS_LABEL[incident.status]}</Badge>
+            <p className="text-sm font-semibold text-gray-900">{t(`types.${incident.type}.label`, { defaultValue: typeConfig.label })}</p>
+            <Badge variant={SEVERITY_BADGE[incident.severity]}>{t(`severity.${incident.severity}.label`, { defaultValue: incident.severity })}</Badge>
+            <Badge variant={STATUS_BADGE[incident.status]}>{t(`status.${incident.status}`, { defaultValue: incident.status })}</Badge>
           </div>
           <p className="mt-1 text-xs text-gray-500 truncate">{incident.summary}</p>
           <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-gray-400">
@@ -81,17 +82,18 @@ function IncidentCard({
 
 export function IncidentSelectPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('incidents')
   const { data: incidents = [], isLoading, isError, error } = useIncidents()
   const loadError = useApiError(error, 'load.incidents')
 
   return (
     <PageLayout
-      title="Incidents"
-      description="Report and track security incidents for your family."
+      title={t('list.pageTitle')}
+      description={t('list.pageDescription')}
       action={
         <Button onClick={() => navigate('/incidents/report')}>
           <ShieldAlert className="w-4 h-4" aria-hidden="true" />
-          Report Incident
+          {t('list.reportButton')}
         </Button>
       }
     >

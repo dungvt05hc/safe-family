@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown, User, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import type { SafetyTask } from '@/features/tasks/safety-tasks.types'
 import { PRIORITY_BADGE, PRIORITY_LABEL } from '@/features/tasks/safety-tasks.types'
@@ -17,15 +18,16 @@ function MemberGroup({
   member: FamilyMember | undefined
   tasks:  SafetyTask[]
 }) {
+  const { t } = useTranslation('plans')
   const [open, setOpen] = useState(true)
 
-  const displayName = member?.displayName ?? 'Family Member'
+  const displayName = member?.displayName ?? t('familySafetyPlan.sections.unknownMember')
   const subtitle    = member
     ? `${RELATIONSHIP_LABEL[member.relationship] ?? member.relationship} · ${member.ageGroup}`
     : ''
 
-  const completedCount = tasks.filter(t => t.status === 'Completed').length
-  const activeCount    = tasks.filter(t => t.status !== 'Dismissed').length
+  const completedCount = tasks.filter(task => task.status === 'Completed').length
+  const activeCount    = tasks.filter(task => task.status !== 'Dismissed').length
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -49,7 +51,7 @@ function MemberGroup({
 
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-gray-500">
-            {completedCount}/{activeCount} done
+            {t('familySafetyPlan.sections.completionDone', { done: completedCount, total: activeCount })}
           </span>
           <ChevronDown
             className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
@@ -115,6 +117,7 @@ export function MemberActionPlanSection({
   memberTasks,
   members,
 }: MemberActionPlanSectionProps) {
+  const { t } = useTranslation('plans')
   // Group tasks by targetId
   const grouped = memberTasks.reduce<Record<string, SafetyTask[]>>((acc, task) => {
     const key = task.targetId ?? 'unknown'
@@ -139,7 +142,7 @@ export function MemberActionPlanSection({
             <Users className="h-4 w-4 text-indigo-600" aria-hidden="true" />
           </span>
           <h2 id="member-plan-heading" className="text-base font-semibold text-gray-900">
-            Action Plan by Family Member
+            {t('familySafetyPlan.sections.memberActionPlanHeading')}
           </h2>
         </div>
 
@@ -161,7 +164,7 @@ export function MemberActionPlanSection({
             })}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 italic">No member-specific tasks generated yet.</p>
+          <p className="text-sm text-gray-400 italic">{t('familySafetyPlan.sections.noMemberTasks')}</p>
         )}
       </div>
     </motion.section>

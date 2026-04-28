@@ -5,11 +5,8 @@ import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import {
   ACCOUNT_TYPES,
-  ACCOUNT_TYPE_LABELS,
   TWO_FACTOR_STATUSES,
-  TWO_FACTOR_LABELS,
   RECOVERY_STATUSES,
-  RECOVERY_LABELS,
   type AccountFormValues,
 } from '../accounts.types'
 import type { FamilyMember } from '@/features/families/families.types'
@@ -45,6 +42,7 @@ export function AccountForm({
   submitLabel = 'Save',
   serverError,
 }: Props) {
+  const { t } = useTranslation('accounts')
   const { t: tv } = useTranslation('validation')
 
   const schema = useMemo(
@@ -98,10 +96,10 @@ export function AccountForm({
       {members.length > 0 && (
         <div>
           <label htmlFor="memberId" className={labelClass}>
-            Family member
+            {t('form.memberLabel')}
           </label>
           <select id="memberId" {...register('memberId')} className={selectClass}>
-            <option value="">— None (shared / unassigned) —</option>
+            <option value="">{t('form.memberPlaceholder')}</option>
             {members.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.displayName}
@@ -114,12 +112,12 @@ export function AccountForm({
       {/* Account type */}
       <div>
         <label htmlFor="accountType" className={labelClass}>
-          Account type <span className="text-red-500">*</span>
+          {t('form.accountType')} <span className="text-red-500">*</span>
         </label>
         <select id="accountType" {...register('accountType')} className={selectClass}>
-          {ACCOUNT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {ACCOUNT_TYPE_LABELS[t]}
+          {ACCOUNT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {t(`accountType.${type}` as const)}
             </option>
           ))}
         </select>
@@ -129,17 +127,17 @@ export function AccountForm({
       {/* Masked identifier */}
       <div>
         <label htmlFor="maskedIdentifier" className={labelClass}>
-          Masked identifier <span className="text-red-500">*</span>
+          {t('form.maskedIdentifier')} <span className="text-red-500">*</span>
         </label>
         <input
           id="maskedIdentifier"
           type="text"
-          placeholder="e.g. ****@gmail.com or Chase ****4321"
+          placeholder={t('form.maskedIdentifierPlaceholder')}
           {...register('maskedIdentifier')}
           className={inputClass}
         />
         <p className="mt-1 text-xs text-gray-400">
-          Do not enter passwords or secrets — only a display-safe label.
+          {t('form.maskedIdentifierHint')}
         </p>
         {errors.maskedIdentifier && (
           <p className={errorClass}>{errors.maskedIdentifier.message}</p>
@@ -149,12 +147,12 @@ export function AccountForm({
       {/* Two-factor status */}
       <div>
         <label htmlFor="twoFactorStatus" className={labelClass}>
-          Two-factor authentication
+          {t('form.twoFactor')}
         </label>
         <select id="twoFactorStatus" {...register('twoFactorStatus')} className={selectClass}>
           {TWO_FACTOR_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {TWO_FACTOR_LABELS[s]}
+              {t(`twoFactor.${s}` as const)}
             </option>
           ))}
         </select>
@@ -163,12 +161,12 @@ export function AccountForm({
       {/* Recovery email status */}
       <div>
         <label htmlFor="recoveryEmailStatus" className={labelClass}>
-          Recovery email
+          {t('form.recoveryEmail')}
         </label>
         <select id="recoveryEmailStatus" {...register('recoveryEmailStatus')} className={selectClass}>
           {RECOVERY_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {RECOVERY_LABELS[s]}
+              {t(`recovery.${s}` as const)}
             </option>
           ))}
         </select>
@@ -177,12 +175,12 @@ export function AccountForm({
       {/* Recovery phone status */}
       <div>
         <label htmlFor="recoveryPhoneStatus" className={labelClass}>
-          Recovery phone
+          {t('form.recoveryPhone')}
         </label>
         <select id="recoveryPhoneStatus" {...register('recoveryPhoneStatus')} className={selectClass}>
           {RECOVERY_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {RECOVERY_LABELS[s]}
+              {t(`recovery.${s}` as const)}
             </option>
           ))}
         </select>
@@ -197,21 +195,21 @@ export function AccountForm({
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <label htmlFor="suspiciousActivityFlag" className="text-sm text-gray-700">
-          Flag as suspicious activity
+          {t('form.suspiciousFlag')}
         </label>
       </div>
 
       {/* Notes */}
       <div>
         <label htmlFor="notes" className={labelClass}>
-          Notes
+          {t('form.notes')}
         </label>
         <textarea
           id="notes"
           rows={3}
           {...register('notes')}
           className={inputClass}
-          placeholder="Any additional context…"
+          placeholder={t('form.notesPlaceholder')}
         />
         {errors.notes && <p className={errorClass}>{errors.notes.message}</p>}
       </div>
@@ -223,14 +221,14 @@ export function AccountForm({
           onClick={onCancel}
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
         >
-          Cancel
+          {t('form.cancel')}
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          {isSubmitting ? 'Saving…' : submitLabel}
+          {isSubmitting ? t('form.saving') : (submitLabel ?? t('form.save'))}
         </button>
       </div>
     </form>

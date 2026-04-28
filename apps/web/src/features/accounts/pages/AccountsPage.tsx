@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import {
   Badge, Button, LoadingState, Alert, NoAccountsEmpty,
@@ -12,7 +13,7 @@ import { EditAccountModal } from '../components/EditAccountModal'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 import { useApiError } from '@/lib/i18n/useApiError'
 import type { Account, AccountType, AccountFilters } from '../accounts.types'
-import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABELS, TWO_FACTOR_LABELS, RECOVERY_LABELS } from '../accounts.types'
+import { ACCOUNT_TYPES } from '../accounts.types'
 
 function twoFactorVariant(status: string): BadgeVariant {
   if (status === 'Enabled') return 'success'
@@ -38,6 +39,7 @@ export function AccountsPage() {
   const { mutate: archive } = useArchiveAccount()
   const [showAdd, setShowAdd] = useState(false)
   const [editTarget, setEditTarget] = useState<Account | null>(null)
+  const { t } = useTranslation('accounts')
   const loadError = useApiError(error, 'load.accounts')
 
   function memberName(memberId: string | null) {
@@ -46,15 +48,15 @@ export function AccountsPage() {
   }
 
   function handleArchive(id: string) {
-    if (!confirm('Archive this account? It will be hidden but not permanently deleted.')) return
+    if (!confirm(t('archiveConfirm'))) return
     archive(id)
   }
 
   return (
     <PageLayout
-      title="Accounts"
-      description="Track family accounts and their security status."
-      action={<Button onClick={() => setShowAdd(true)}>+ Add account</Button>}
+      title={t('pageTitle')}
+      description={t('pageDescription')}
+      action={<Button onClick={() => setShowAdd(true)}>{t('addAccount')}</Button>}
     >
       {/* Filter bar */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -63,7 +65,7 @@ export function AccountsPage() {
           onChange={(e) => setFilters((f) => ({ ...f, memberId: e.target.value || undefined }))}
           className={selectClass}
         >
-          <option value="">All members</option>
+          <option value="">{t('filter.allMembers')}</option>
           {members.map((m) => (
             <option key={m.id} value={m.id}>{m.displayName}</option>
           ))}
@@ -76,15 +78,15 @@ export function AccountsPage() {
           }
           className={selectClass}
         >
-          <option value="">All types</option>
-          {ACCOUNT_TYPES.map((t) => (
-            <option key={t} value={t}>{ACCOUNT_TYPE_LABELS[t]}</option>
+          <option value="">{t('filter.allTypes')}</option>
+          {ACCOUNT_TYPES.map((type) => (
+            <option key={type} value={type}>{t(`accountType.${type}` as const)}</option>
           ))}
         </select>
 
         <input
           type="search"
-          placeholder="Search identifier or notes…"
+          placeholder={t('filter.searchPlaceholder')}
           value={filters.search ?? ''}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
           className={inputClass}
@@ -95,7 +97,7 @@ export function AccountsPage() {
             onClick={() => setFilters({})}
             className="text-sm text-gray-500 underline hover:text-gray-700"
           >
-            Clear filters
+            {t('filter.clearFilters')}
           </button>
         )}
       </div>
@@ -119,13 +121,13 @@ export function AccountsPage() {
             <Table>
               <Thead>
                 <tr>
-                  <Th>Member</Th>
-                  <Th>Type</Th>
-                  <Th>Identifier</Th>
-                  <Th>2FA</Th>
-                  <Th>Recovery email</Th>
-                  <Th>Recovery phone</Th>
-                  <Th>Suspicious</Th>
+                  <Th>{t('col.member')}</Th>
+                  <Th>{t('col.type')}</Th>
+                  <Th>{t('col.identifier')}</Th>
+                  <Th>{t('col.twoFactor')}</Th>
+                  <Th>{t('col.recoveryEmail')}</Th>
+                  <Th>{t('col.recoveryPhone')}</Th>
+                  <Th>{t('col.suspicious')}</Th>
                   <Th />
                 </tr>
               </Thead>
@@ -136,37 +138,37 @@ export function AccountsPage() {
                       {memberName(account.memberId) ?? <span className="text-gray-300">—</span>}
                     </Td>
                     <Td className="whitespace-nowrap font-medium text-gray-900">
-                      {ACCOUNT_TYPE_LABELS[account.accountType]}
+                      {t(`accountType.${account.accountType}` as const)}
                     </Td>
                     <Td>{account.maskedIdentifier}</Td>
                     <Td className="whitespace-nowrap">
                       <Badge variant={twoFactorVariant(account.twoFactorStatus)}>
-                        {TWO_FACTOR_LABELS[account.twoFactorStatus]}
+                        {t(`twoFactor.${account.twoFactorStatus}` as const)}
                       </Badge>
                     </Td>
                     <Td className="whitespace-nowrap">
                       <Badge variant={recoveryVariant(account.recoveryEmailStatus)}>
-                        {RECOVERY_LABELS[account.recoveryEmailStatus]}
+                        {t(`recovery.${account.recoveryEmailStatus}` as const)}
                       </Badge>
                     </Td>
                     <Td className="whitespace-nowrap">
                       <Badge variant={recoveryVariant(account.recoveryPhoneStatus)}>
-                        {RECOVERY_LABELS[account.recoveryPhoneStatus]}
+                        {t(`recovery.${account.recoveryPhoneStatus}` as const)}
                       </Badge>
                     </Td>
                     <Td className="whitespace-nowrap">
                       {account.suspiciousActivityFlag
-                        ? <Badge variant="danger">⚠ Yes</Badge>
+                        ? <Badge variant="danger">{t('suspiciousYes')}</Badge>
                         : <span className="text-gray-400">—</span>}
                     </Td>
                     <Td align="right" className="whitespace-nowrap">
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" size="sm" onClick={() => setEditTarget(account)}>
-                          Edit
+                          {t('action.edit')}
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleArchive(account.id)}
                           className="text-red-500 hover:text-red-700">
-                          Archive
+                          {t('action.archive')}
                         </Button>
                       </div>
                     </Td>
@@ -189,28 +191,28 @@ export function AccountsPage() {
                       <p className="text-xs text-gray-500 mb-0.5">{memberName(account.memberId)}</p>
                     )}
                     <p className="font-medium text-gray-900">
-                      {ACCOUNT_TYPE_LABELS[account.accountType]}
+                      {t(`accountType.${account.accountType}` as const)}
                     </p>
                     <p className="mt-0.5 text-sm text-gray-500">{account.maskedIdentifier}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       <Badge variant={twoFactorVariant(account.twoFactorStatus)}>
-                        {TWO_FACTOR_LABELS[account.twoFactorStatus]}
+                        {t(`twoFactor.${account.twoFactorStatus}` as const)}
                       </Badge>
                       <Badge variant={recoveryVariant(account.recoveryEmailStatus)}>
-                        {RECOVERY_LABELS[account.recoveryEmailStatus]}
+                        {t(`recovery.${account.recoveryEmailStatus}` as const)}
                       </Badge>
                       {account.suspiciousActivityFlag && (
-                        <Badge variant="danger">⚠ Suspicious</Badge>
+                        <Badge variant="danger">{t('suspiciousBadge')}</Badge>
                       )}
                     </div>
                   </div>
                   <div className="flex flex-col gap-1 shrink-0">
                     <Button variant="ghost" size="sm" onClick={() => setEditTarget(account)}>
-                      Edit
+                      {t('action.edit')}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleArchive(account.id)}
                       className="text-red-500 hover:text-red-700">
-                      Archive
+                      {t('action.archive')}
                     </Button>
                   </div>
                 </div>

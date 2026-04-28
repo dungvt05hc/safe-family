@@ -157,7 +157,7 @@ export function DashboardPage() {
   if (error) {
     const message = error instanceof ApiError
       ? error.message
-      : 'Failed to load dashboard. Please try again.'
+      : t('loadError')
     return <ErrorCard message={message} />
   }
 

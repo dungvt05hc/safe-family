@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { FamilyMemberForm } from './FamilyMemberForm'
 import { useUpdateFamilyMember } from '../hooks/useFamilyMemberMutations'
 import type { FamilyMember, FamilyMemberFormValues } from '../families.types'
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function EditMemberModal({ member, onClose }: Props) {
+  const { t } = useTranslation('families')
   const update = useUpdateFamilyMember(member.id)
 
   const defaultValues: FamilyMemberFormValues = {
@@ -25,9 +27,9 @@ export function EditMemberModal({ member, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-        <h2 className="mb-5 text-lg font-semibold text-gray-800">Edit {member.displayName}</h2>
+        <h2 className="mb-5 text-lg font-semibold text-gray-800">{t('modal.editTitle', { name: member.displayName })}</h2>
         <FamilyMemberForm
-          submitLabel="Save changes"
+          submitLabel={t('modal.editSubmit')}
           defaultValues={defaultValues}
           isSubmitting={update.isPending}
           serverError={update.error?.message ?? null}

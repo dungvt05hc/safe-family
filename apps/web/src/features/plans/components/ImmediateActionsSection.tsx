@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { CheckCircle2, Circle, Zap } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge } from '@/components/ui'
 import type { SafetyTask } from '@/features/tasks/safety-tasks.types'
@@ -58,7 +59,8 @@ interface ImmediateActionsSectionProps {
 }
 
 export function ImmediateActionsSection({ whatToDoNow, tasks }: ImmediateActionsSectionProps) {
-  const completedCount = tasks.filter(t => t.status === 'Completed').length
+  const { t } = useTranslation('plans')
+  const completedCount = tasks.filter(task => task.status === 'Completed').length
 
   return (
     <motion.section
@@ -76,13 +78,13 @@ export function ImmediateActionsSection({ whatToDoNow, tasks }: ImmediateActions
               <Zap className="h-4 w-4 text-amber-600" aria-hidden="true" />
             </span>
             <h2 id="immediate-actions-heading" className="text-base font-semibold text-amber-900">
-              What to Do Right Now
+              {t('incidentRecovery.sections.whatToDoNowHeading')}
             </h2>
           </div>
 
           {tasks.length > 0 && (
             <span className="text-xs text-amber-600 font-medium">
-              {completedCount}/{tasks.length} complete
+              {t('incidentRecovery.sections.completionCount', { done: completedCount, total: tasks.length })}
             </span>
           )}
         </div>

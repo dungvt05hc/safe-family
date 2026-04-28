@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { CalendarDays, CheckCircle2, Circle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import { Badge } from '@/components/ui'
 import type { SafetyTask } from '@/features/tasks/safety-tasks.types'
@@ -9,6 +10,7 @@ import { useUpdateSafetyTaskStatus } from '@/features/tasks/safety-tasks.hooks'
 // ── Task row ──────────────────────────────────────────────────────────────────
 
 function TaskRow({ task }: { task: SafetyTask }) {
+  const { t } = useTranslation('plans')
   const { mutate, isPending } = useUpdateSafetyTaskStatus()
 
   const isDone      = task.status === 'Completed'
@@ -42,7 +44,7 @@ function TaskRow({ task }: { task: SafetyTask }) {
           <p className="mt-0.5 text-xs text-gray-500 leading-relaxed">{task.description}</p>
         )}
         {task.targetLabel && (
-          <p className="mt-0.5 text-xs text-gray-400">For: {task.targetLabel}</p>
+          <p className="mt-0.5 text-xs text-gray-400">{t('incidentRecovery.sections.forTarget', { target: task.targetLabel })}</p>
         )}
       </div>
 
@@ -61,7 +63,8 @@ interface Next7DaysSectionProps {
 }
 
 export function Next7DaysSection({ next7Days, tasks }: Next7DaysSectionProps) {
-  const completedCount = tasks.filter(t => t.status === 'Completed').length
+  const { t } = useTranslation('plans')
+  const completedCount = tasks.filter(task => task.status === 'Completed').length
 
   return (
     <motion.section
@@ -79,13 +82,13 @@ export function Next7DaysSection({ next7Days, tasks }: Next7DaysSectionProps) {
               <CalendarDays className="h-4 w-4 text-teal-600" aria-hidden="true" />
             </span>
             <h2 id="next-7d-heading" className="text-base font-semibold text-teal-900">
-              Recovery Plan — Next 7 Days
+              {t('incidentRecovery.sections.next7DaysHeading')}
             </h2>
           </div>
 
           {tasks.length > 0 && (
             <span className="text-xs text-teal-600 font-medium">
-              {completedCount}/{tasks.length} complete
+              {t('incidentRecovery.sections.completionCount', { done: completedCount, total: tasks.length })}
             </span>
           )}
         </div>
@@ -108,7 +111,7 @@ export function Next7DaysSection({ next7Days, tasks }: Next7DaysSectionProps) {
 
         {tasks.length === 0 && !next7Days.trim() && (
           <p className="text-sm text-teal-600 italic">
-            Your advisor will add recovery steps here after your session.
+            {t('incidentRecovery.sections.advisorWillAdd')}
           </p>
         )}
       </div>

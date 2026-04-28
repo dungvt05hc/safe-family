@@ -20,7 +20,7 @@ const emptyStates = {
   incidents: {
     title: 'Chưa có sự cố nào',
     description:
-      'Tất cả ổn! Nếu gia đình bạn gặp phải lừa đảo, đăng nhập đáng ngờ hay bất kỳ mối đe dọa nào, hãy báo cáo ở đây để chúng tôi hướng dẫn bạn các bước tiếp theo.',
+      'Hiện tại mọi thứ đều ổn. Nếu gia đình gặp phải lừa đảo, đăng nhập lạ hay bất kỳ mối đe dọa nào, hãy báo cáo để chúng tôi hướng dẫn bạn từng bước xử lý.',
     action: 'Báo cáo sự cố',
   },
   bookings: {
@@ -28,6 +28,44 @@ const emptyStates = {
     description:
       'Đặt buổi tư vấn an toàn riêng với chuyên gia của chúng tôi. Chúng tôi sẽ giúp gia đình bạn tăng cường mật khẩu, kiểm tra bảo mật thiết bị và bảo vệ trước các mối đe dọa trực tuyến.',
     action: 'Đặt buổi tư vấn',
+  },
+  reports: {
+    title: 'Chưa có báo cáo nào',
+    description:
+      'Báo cáo được tạo sau khi bạn hoàn thành kiểm tra rủi ro hoặc báo cáo sự cố.',
+    action: 'Kiểm tra rủi ro',
+  },
+  tasks: {
+    title: 'Chưa có việc nào cần làm',
+    description:
+      'SafeFamily tạo danh sách việc cần làm từ tài khoản và thiết bị của bạn. Hãy thêm chúng để bắt đầu.',
+    action: 'Thêm tài khoản',
+  },
+  checklist: {
+    title: 'Danh sách đang trống',
+    description:
+      'SafeFamily tự động tạo danh sách kiểm tra từ tài khoản và thiết bị của bạn.',
+  },
+  assessments: {
+    title: 'Chưa có kết quả kiểm tra',
+    description:
+      'Hoàn thành bài kiểm tra an toàn để xem điểm bảo vệ và những việc cần làm.',
+    action: 'Bắt đầu kiểm tra',
+  },
+  plans: {
+    title: 'Chưa có kế hoạch an toàn',
+    description:
+      'Kế hoạch an toàn được tạo sau khi bạn đặt lịch tư vấn với chuyên gia của chúng tôi.',
+  },
+  members: {
+    title: 'Chưa có thành viên',
+    description:
+      'Thêm các thành viên trong gia đình để bắt đầu theo dõi an toàn kỹ thuật số.',
+    action: 'Thêm thành viên',
+  },
+  noResults: {
+    title: 'Không tìm thấy kết quả',
+    description: 'Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm.',
   },
 } as const
 

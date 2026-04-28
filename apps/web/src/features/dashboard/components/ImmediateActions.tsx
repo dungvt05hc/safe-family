@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { CheckCircle2, Flame, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 interface ImmediateActionsProps {
   actions:       string[]
@@ -13,6 +14,7 @@ interface ImmediateActionsProps {
  */
 export function ImmediateActions({ actions, hasAssessment }: ImmediateActionsProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation('dashboard')
 
   const fadeUp = {
     hidden:  { opacity: 0, y: 10 },
@@ -27,7 +29,7 @@ export function ImmediateActions({ actions, hasAssessment }: ImmediateActionsPro
       {/* Header */}
       <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100">
         <Flame className="w-4 h-4 text-orange-500" aria-hidden="true" />
-        <h2 className="text-sm font-semibold text-gray-700">Immediate Actions</h2>
+        <h2 className="text-sm font-semibold text-gray-700">{t('immediateActions')}</h2>
       </div>
 
       {/* Content */}
@@ -61,9 +63,7 @@ export function ImmediateActions({ actions, hasAssessment }: ImmediateActionsPro
             </div>
           )}
           <p className="text-sm text-gray-500">
-            {hasAssessment
-              ? 'No immediate actions — great job! Your scores are all healthy.'
-              : 'Run a risk assessment to get personalised action items.'}
+            {hasAssessment ? t('allClear') : t('runAssessmentPrompt')}
           </p>
         </div>
       )}
@@ -77,7 +77,7 @@ export function ImmediateActions({ actions, hasAssessment }: ImmediateActionsPro
             className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
           >
             <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-            View full assessment
+            {t('viewFullAssessment')}
           </button>
         </div>
       )}

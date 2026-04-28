@@ -16,6 +16,12 @@ const errors = {
     tasks: 'Failed to load your safety tasks.',
     family: 'Failed to load family data.',
     dashboard: 'Failed to load dashboard.',
+    bookings: 'Failed to load bookings.',
+    reports: 'Failed to load reports.',
+    checklist: 'Failed to load checklist.',
+    members: 'Failed to load members.',
+    plans: 'Failed to load safety plans.',
+    assessments: 'Failed to load assessment history.',
   },
   // Mutation errors
   mutation: {

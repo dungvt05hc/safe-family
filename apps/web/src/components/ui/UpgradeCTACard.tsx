@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, X, type LucideIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
 import type { PremiumProduct } from './PremiumLockedState'
 import { PRODUCT_CONFIGS } from './PremiumLockedState'
@@ -39,11 +40,14 @@ export function UpgradeCTACard({
   dismissible = false,
 }: UpgradeCTACardProps) {
   const navigate = useNavigate()
+  const { t } = useTranslation('plans')
   const [dismissed, setDismissed] = useState(false)
 
-  const cfg  = PRODUCT_CONFIGS[product]
+  const cfg    = PRODUCT_CONFIGS[product]
   const Icon: LucideIcon = cfg.icon
-  const pitch = pitchOverride ?? cfg.pitch
+  const title  = t(`products.${product}.title`)
+  const pitch  = pitchOverride ?? t(`products.${product}.pitch`)
+  const ctaLabel = t(`products.${product}.ctaLabel`)
 
   return (
     <AnimatePresence>
@@ -56,7 +60,7 @@ export function UpgradeCTACard({
           transition={{ duration: 0.25, ease: 'easeOut' }}
           className={`relative flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:gap-5 ${cfg.containerStyle}`}
           role="region"
-          aria-label={`Upgrade to ${cfg.title}`}
+          aria-label={`Upgrade to ${title}`}
         >
           {/* Icon */}
           <span
@@ -67,7 +71,7 @@ export function UpgradeCTACard({
 
           {/* Text */}
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-semibold ${cfg.iconColor}`}>{cfg.title}</p>
+            <p className={`text-sm font-semibold ${cfg.iconColor}`}>{title}</p>
             <p className="mt-0.5 text-xs text-gray-500 leading-relaxed line-clamp-2">{pitch}</p>
           </div>
 
@@ -78,7 +82,7 @@ export function UpgradeCTACard({
             onClick={() => navigate(cfg.ctaPath)}
             className="shrink-0 flex items-center gap-1.5"
           >
-            {cfg.ctaLabel}
+            {ctaLabel}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
 
@@ -86,7 +90,7 @@ export function UpgradeCTACard({
           {dismissible && (
             <button
               onClick={() => setDismissed(true)}
-              aria-label={`Dismiss upgrade prompt for ${cfg.title}`}
+              aria-label={`Dismiss upgrade prompt for ${title}`}
               className="absolute right-3 top-3 rounded p-0.5 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
             >
               <X className="h-4 w-4" aria-hidden="true" />

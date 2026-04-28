@@ -1,11 +1,8 @@
 import { Search, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import {
-  CATEGORY_LABEL,
   DEFAULT_TASK_FILTERS,
-  PHASE_LABEL,
-  PRIORITY_LABEL,
-  STATUS_LABEL,
   type SafetyTaskFilters,
   type TaskCategoryFilter,
   type TaskPhaseFilter,
@@ -49,38 +46,45 @@ function FilterSelect<T extends string>({ label, value, options, onChange }: Fil
   )
 }
 
-const STATUS_OPTIONS: { value: TaskStatusFilter; label: string }[] = [
-  { value: 'All',        label: 'All statuses' },
-  { value: 'Pending',    label: STATUS_LABEL.Pending },
-  { value: 'InProgress', label: STATUS_LABEL.InProgress },
-  { value: 'Completed',  label: STATUS_LABEL.Completed },
-  { value: 'Dismissed',  label: STATUS_LABEL.Dismissed },
-]
-
-const PRIORITY_OPTIONS: { value: TaskPriorityFilter; label: string }[] = [
-  { value: 'All',    label: 'All priorities' },
-  { value: 'High',   label: PRIORITY_LABEL.High },
-  { value: 'Medium', label: PRIORITY_LABEL.Medium },
-  { value: 'Low',    label: PRIORITY_LABEL.Low },
-]
-
-const PHASE_OPTIONS: { value: TaskPhaseFilter; label: string }[] = [
-  { value: 'All',        label: 'All phases' },
-  { value: 'Immediate',  label: PHASE_LABEL.Immediate },
-  { value: 'Next7Days',  label: PHASE_LABEL.Next7Days },
-  { value: 'Next30Days', label: PHASE_LABEL.Next30Days },
-  { value: 'Ongoing',    label: PHASE_LABEL.Ongoing },
-  { value: 'Recurring',  label: PHASE_LABEL.Recurring },
-]
-
-const CATEGORY_OPTIONS: { value: TaskCategoryFilter; label: string }[] = [
-  { value: 'All', label: 'All categories' },
-  ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label })),
-]
-
 export function SafetyTaskFilters({ filters, onChange, itemCount }: SafetyTaskFiltersProps) {
+  const { t } = useTranslation('tasks')
   const update = (partial: Partial<SafetyTaskFilters>) =>
     onChange({ ...filters, ...partial })
+
+  const statusOptions: { value: TaskStatusFilter; label: string }[] = [
+    { value: 'All',        label: t('filter.allStatuses') },
+    { value: 'Pending',    label: t('status.Pending') },
+    { value: 'InProgress', label: t('status.InProgress') },
+    { value: 'Completed',  label: t('status.Completed') },
+    { value: 'Dismissed',  label: t('status.Dismissed') },
+  ]
+
+  const priorityOptions: { value: TaskPriorityFilter; label: string }[] = [
+    { value: 'All',    label: t('filter.allPriorities') },
+    { value: 'High',   label: t('priority.High') },
+    { value: 'Medium', label: t('priority.Medium') },
+    { value: 'Low',    label: t('priority.Low') },
+  ]
+
+  const phaseOptions: { value: TaskPhaseFilter; label: string }[] = [
+    { value: 'All',        label: t('filter.allPhases') },
+    { value: 'Immediate',  label: t('phase.Immediate') },
+    { value: 'Next7Days',  label: t('phase.Next7Days') },
+    { value: 'Next30Days', label: t('phase.Next30Days') },
+    { value: 'Ongoing',    label: t('phase.Ongoing') },
+    { value: 'Recurring',  label: t('phase.Recurring') },
+  ]
+
+  const categoryOptions: { value: TaskCategoryFilter; label: string }[] = [
+    { value: 'All',             label: t('filter.allCategories') },
+    { value: 'AccountSecurity', label: t('category.AccountSecurity') },
+    { value: 'DeviceHygiene',   label: t('category.DeviceHygiene') },
+    { value: 'PrivacySharing',  label: t('category.PrivacySharing') },
+    { value: 'BackupRecovery',  label: t('category.BackupRecovery') },
+    { value: 'ScamReadiness',   label: t('category.ScamReadiness') },
+    { value: 'NetworkSecurity', label: t('category.NetworkSecurity') },
+    { value: 'FamilySafety',    label: t('category.FamilySafety') },
+  ]
 
   const isFiltered =
     filters.search !== '' ||
@@ -94,13 +98,13 @@ export function SafetyTaskFilters({ filters, onChange, itemCount }: SafetyTaskFi
       {/* Search */}
       <div className="flex flex-col gap-1">
         <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-          Search
+          {t('filter.searchLabel')}
         </label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search tasks…"
+            placeholder={t('filter.searchPlaceholder')}
             value={filters.search}
             onChange={(e) => update({ search: e.target.value })}
             className={cn(
@@ -116,34 +120,34 @@ export function SafetyTaskFilters({ filters, onChange, itemCount }: SafetyTaskFi
       {/* Filter row */}
       <div className="flex flex-wrap gap-3">
         <FilterSelect
-          label="Status"
+          label={t('filter.statusLabel')}
           value={filters.status}
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           onChange={(v) => update({ status: v })}
         />
         <FilterSelect
-          label="Priority"
+          label={t('filter.priorityLabel')}
           value={filters.priority}
-          options={PRIORITY_OPTIONS}
+          options={priorityOptions}
           onChange={(v) => update({ priority: v })}
         />
         <FilterSelect
-          label="Phase"
+          label={t('filter.phaseLabel')}
           value={filters.phase}
-          options={PHASE_OPTIONS}
+          options={phaseOptions}
           onChange={(v) => update({ phase: v })}
         />
         <FilterSelect
-          label="Category"
+          label={t('filter.categoryLabel')}
           value={filters.category}
-          options={CATEGORY_OPTIONS}
+          options={categoryOptions}
           onChange={(v) => update({ category: v })}
         />
 
         {/* Count + clear */}
         <div className="flex items-end gap-2 ml-auto">
           <span className="text-xs text-gray-400 pb-1">
-            {itemCount} {itemCount === 1 ? 'task' : 'tasks'}
+            {t('filter.taskCount', { count: itemCount })}
           </span>
           {isFiltered && (
             <button
@@ -152,7 +156,7 @@ export function SafetyTaskFilters({ filters, onChange, itemCount }: SafetyTaskFi
               className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 pb-1 transition-colors"
             >
               <X className="w-3 h-3" />
-              Clear
+              {t('filter.clearFilters')}
             </button>
           )}
         </div>

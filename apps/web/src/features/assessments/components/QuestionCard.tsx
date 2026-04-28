@@ -1,5 +1,5 @@
+import { useTranslation } from 'react-i18next'
 import type { AssessmentQuestion, QuestionOption } from '../assessments.types'
-import { CATEGORY_LABELS } from '../assessments.types'
 
 interface QuestionCardProps {
   question: AssessmentQuestion
@@ -8,10 +8,11 @@ interface QuestionCardProps {
 }
 
 export function QuestionCard({ question, selectedValue, onChange }: QuestionCardProps) {
+  const { t } = useTranslation('assessments')
   return (
     <div>
       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-600">
-        {CATEGORY_LABELS[question.category] ?? question.category}
+        {t(`categories.${question.category}`, { defaultValue: question.category })}
       </p>
       <p className="mb-5 text-base font-medium leading-snug text-gray-900">{question.text}</p>
 

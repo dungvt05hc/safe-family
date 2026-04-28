@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { CheckCircle2, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { PHASE_COLOR, PHASE_LABEL, type SafetyTask, type TaskPhase } from '../safety-tasks.types'
+import { PHASE_COLOR, type SafetyTask, type TaskPhase } from '../safety-tasks.types'
 import { ChecklistTaskCard } from './ChecklistTaskCard'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -18,11 +19,12 @@ interface ChecklistTaskGroupProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function ChecklistTaskGroup({ phase, tasks, index }: ChecklistTaskGroupProps) {
+  const { t } = useTranslation('tasks')
   const [collapsed, setCollapsed] = useState(false)
 
   if (tasks.length === 0) return null
 
-  const phaseLabel     = PHASE_LABEL[phase] ?? phase
+  const phaseLabel     = t(`phase.${phase}`, { defaultValue: phase })
   const phaseColor     = PHASE_COLOR[phase] ?? 'text-gray-600 bg-gray-100'
   const completedCount = tasks.filter((t) => t.status === 'Completed').length
   const allDone        = completedCount === tasks.length && tasks.length > 0
@@ -54,7 +56,7 @@ export function ChecklistTaskGroup({ phase, tasks, index }: ChecklistTaskGroupPr
           {allDone && (
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600">
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              All done
+              {t('card.allDone')}
             </span>
           )}
         </div>

@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { useAssessmentHistory } from '../hooks/useAssessmentQueries'
-import { RISK_LEVEL_CONFIG, CATEGORY_LABELS } from '../assessments.types'
+import { RISK_LEVEL_CONFIG } from '../assessments.types'
 import type { AssessmentResult } from '../assessments.types'
 
 // ── Mini score bar ────────────────────────────────────────────────────────────
@@ -30,7 +31,9 @@ function HistoryCard({
   index: number
   isLatest: boolean
 }) {
+  const { t } = useTranslation('assessments')
   const risk = RISK_LEVEL_CONFIG[assessment.riskLevel]
+  const riskLabel = t(`riskLevels.${assessment.riskLevel}`, { defaultValue: risk.label })
   const date = new Date(assessment.createdAt).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
@@ -46,11 +49,11 @@ function HistoryCard({
             <span className="text-sm font-semibold text-gray-900">{date}</span>
             {isLatest && (
               <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
-                Latest
+                {t('history.latestBadge')}
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-gray-400">Assessment #{index + 1}</p>
+          <p className="mt-0.5 text-xs text-gray-400">{t('history.assessmentNumber', { number: index + 1 })}</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -59,7 +62,7 @@ function HistoryCard({
             <p className="text-xs text-gray-400">/ 100</p>
           </div>
           <span className={`rounded-xl px-3 py-1.5 text-xs font-semibold ${risk.color} ${risk.bg} border ${risk.border}`}>
-            {risk.label}
+            {riskLabel}
           </span>
         </div>
       </div>
@@ -69,7 +72,7 @@ function HistoryCard({
         {assessment.categoryScores.map(({ category, score }) => (
           <div key={category}>
             <div className="mb-1 flex items-center justify-between text-xs text-gray-500">
-              <span>{CATEGORY_LABELS[category] ?? category}</span>
+              <span>{t(`categories.${category}`, { defaultValue: category })}</span>
               <span>{score}</span>
             </div>
             <MiniBar score={score} />
@@ -84,11 +87,12 @@ function HistoryCard({
 
 export function AssessmentHistoryPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('assessments')
   const { data: history, isLoading, isError } = useAssessmentHistory()
 
   if (isLoading) {
     return (
-      <PageLayout title="Assessment History">
+      <PageLayout title={t('history.pageTitle')}>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-40 animate-pulse rounded-2xl bg-gray-100" />
@@ -100,9 +104,9 @@ export function AssessmentHistoryPage() {
 
   if (isError) {
     return (
-      <PageLayout title="Assessment History">
+      <PageLayout title={t('history.pageTitle')}>
         <div className="rounded-xl bg-red-50 px-5 py-4 text-sm text-red-600">
-          Failed to load history. Please try again.
+          {t('history.loadError')}
         </div>
       </PageLayout>
     )
@@ -110,18 +114,16 @@ export function AssessmentHistoryPage() {
 
   if (!history || history.length === 0) {
     return (
-      <PageLayout title="Assessment History">
+      <PageLayout title={t('history.pageTitle')}>
         <div className="rounded-2xl border border-gray-200 bg-white px-8 py-12 text-center shadow-sm">
           <div className="mb-3 text-4xl">🛡️</div>
-          <p className="text-sm font-medium text-gray-700">No assessments yet</p>
-          <p className="mt-1 text-xs text-gray-400">
-            Complete your first digital safety assessment to start tracking your score over time.
-          </p>
+          <p className="text-sm font-medium text-gray-700">{t('history.noAssessments')}</p>
+          <p className="mt-1 text-xs text-gray-400">{t('history.noAssessmentsHint')}</p>
           <button
             onClick={() => navigate('/assessment')}
             className="mt-5 rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            Take assessment
+            {t('history.takeAssessment')}
           </button>
         </div>
       </PageLayout>
@@ -130,8 +132,8 @@ export function AssessmentHistoryPage() {
 
   return (
     <PageLayout
-      title="Assessment History"
-      description={`${history.length} assessment${history.length !== 1 ? 's' : ''} completed`}
+      title={t('history.pageTitle')}
+      description={t('history.completedCount', { count: history.length })}
     >
       <div className="mx-auto max-w-2xl space-y-4">
         {/* Actions bar */}
@@ -140,13 +142,13 @@ export function AssessmentHistoryPage() {
             onClick={() => navigate('/assessment/result')}
             className="text-sm font-medium text-blue-600 hover:underline"
           >
-            ← View latest result
+            {t('history.viewLatestResult')}
           </button>
           <button
             onClick={() => navigate('/assessment/wizard')}
             className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
           >
-            Retake assessment
+            {t('history.retakeAssessment')}
           </button>
         </div>
 
@@ -172,6 +174,7 @@ export function AssessmentHistoryPage() {
 // ── Trend banner ──────────────────────────────────────────────────────────────
 
 function TrendBanner({ current, previous }: { current: number; previous: number }) {
+  const { t } = useTranslation('assessments')
   const diff = current - previous
   if (diff === 0) return null
 
@@ -184,12 +187,9 @@ function TrendBanner({ current, previous }: { current: number; previous: number 
           : 'border-orange-200 bg-orange-50 text-orange-800'
       }`}
     >
-      {improved ? '📈' : '📉'}{' '}
-      Your score {improved ? 'improved' : 'decreased'} by{' '}
-      <strong>{Math.abs(diff)} points</strong> since your last assessment.
       {improved
-        ? ' Keep up the great work!'
-        : ' Review your immediate actions to get back on track.'}
+        ? t('history.trendImproved', { count: Math.abs(diff) })
+        : t('history.trendDecreased', { count: Math.abs(diff) })}
     </div>
   )
 }

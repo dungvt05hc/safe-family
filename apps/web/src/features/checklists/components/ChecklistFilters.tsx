@@ -1,11 +1,8 @@
 import { Search, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import {
-  ALL_CATEGORIES,
-  CATEGORY_LABEL,
   DEFAULT_FILTERS,
-  PRIORITY_LABEL,
-  STATUS_LABEL,
   type CategoryFilter,
   type ChecklistFilters,
   type PriorityFilter,
@@ -55,26 +52,7 @@ function FilterSelect<T extends string>({ label, value, options, onChange }: Fil
   )
 }
 
-// ── Priority options ──────────────────────────────────────────────────────────
-
-const PRIORITY_OPTIONS: { value: PriorityFilter; label: string }[] = [
-  { value: 'All', label: 'All severities' },
-  { value: '1',   label: PRIORITY_LABEL[1] },
-  { value: '2',   label: PRIORITY_LABEL[2] },
-  { value: '3',   label: PRIORITY_LABEL[3] },
-]
-
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: 'All',       label: 'All statuses' },
-  { value: 'Pending',   label: STATUS_LABEL['Pending'] },
-  { value: 'Completed', label: STATUS_LABEL['Completed'] },
-  { value: 'Dismissed', label: STATUS_LABEL['Dismissed'] },
-]
-
-const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
-  { value: 'All', label: 'All categories' },
-  ...ALL_CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABEL[c] ?? c })),
-]
+// ── Option constants are built inside the component using t() ─────────────────
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -82,6 +60,32 @@ const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
  * ChecklistFilters — search + three selects for filtering the checklist.
  */
 export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFiltersProps) {
+  const { t } = useTranslation('checklist')
+
+  const priorityOptions: { value: PriorityFilter; label: string }[] = [
+    { value: 'All', label: t('filter.allSeverities') },
+    { value: '1',   label: t('priority.1') },
+    { value: '2',   label: t('priority.2') },
+    { value: '3',   label: t('priority.3') },
+  ]
+
+  const statusOptions: { value: StatusFilter; label: string }[] = [
+    { value: 'All',       label: t('filter.allStatuses') },
+    { value: 'Pending',   label: t('status.Pending') },
+    { value: 'Completed', label: t('status.Completed') },
+    { value: 'Dismissed', label: t('status.Dismissed') },
+  ]
+
+  const categoryOptions: { value: CategoryFilter; label: string }[] = [
+    { value: 'All',             label: t('filter.allCategories') },
+    { value: 'AccountSecurity', label: t('category.AccountSecurity') },
+    { value: 'DeviceHygiene',   label: t('category.DeviceHygiene') },
+    { value: 'BackupRecovery',  label: t('category.BackupRecovery') },
+    { value: 'PrivacySharing',  label: t('category.PrivacySharing') },
+    { value: 'ScamReadiness',   label: t('category.ScamReadiness') },
+    { value: 'General',         label: t('category.General') },
+  ]
+
   const isFiltered =
     filters.search !== '' ||
     filters.priority !== 'All' ||
@@ -98,7 +102,7 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
         {/* Search */}
         <div className="flex flex-col gap-1 min-w-[180px] flex-1">
           <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-            Search
+            {t('filter.searchLabel')}
           </label>
           <div className="relative">
             <Search
@@ -109,7 +113,7 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
               type="search"
               value={filters.search}
               onChange={(e) => set('search', e.target.value)}
-              placeholder="Filter by title…"
+              placeholder={t('filter.searchPlaceholder')}
               className={cn(
                 'h-9 w-full rounded-lg border border-gray-200 bg-white pl-8 pr-3 text-sm text-gray-700',
                 'placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200',
@@ -121,25 +125,25 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
 
         {/* Severity */}
         <FilterSelect<PriorityFilter>
-          label="Severity"
+          label={t('filter.severityLabel')}
           value={filters.priority}
-          options={PRIORITY_OPTIONS}
+          options={priorityOptions}
           onChange={(v) => set('priority', v)}
         />
 
         {/* Status */}
         <FilterSelect<StatusFilter>
-          label="Status"
+          label={t('filter.statusLabel')}
           value={filters.status}
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           onChange={(v) => set('status', v)}
         />
 
         {/* Category */}
         <FilterSelect<CategoryFilter>
-          label="Category"
+          label={t('filter.categoryLabel')}
           value={filters.category}
-          options={CATEGORY_OPTIONS}
+          options={categoryOptions}
           onChange={(v) => set('category', v)}
         />
 
@@ -151,11 +155,11 @@ export function ChecklistFilters({ filters, onChange, itemCount }: ChecklistFilt
               className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 h-9 text-xs text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
             >
               <X className="w-3 h-3" aria-hidden="true" />
-              Clear
+              {t('filter.clearFilters')}
             </button>
           )}
           <p className="text-xs text-gray-400 whitespace-nowrap">
-            {itemCount} item{itemCount !== 1 ? 's' : ''}
+            {t('filter.itemCount', { count: itemCount })}
           </p>
         </div>
       </div>

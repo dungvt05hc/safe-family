@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { CalendarDays, FileText, Link as LinkIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 import type { IncidentRecoveryPack } from '../plans.types'
 
@@ -11,6 +12,7 @@ interface WhatHappenedSectionProps {
 }
 
 export function WhatHappenedSection({ pack }: WhatHappenedSectionProps) {
+  const { t } = useTranslation('plans')
   const date = new Date(pack.createdAt).toLocaleDateString('en-AU', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
@@ -31,7 +33,7 @@ export function WhatHappenedSection({ pack }: WhatHappenedSectionProps) {
               <FileText className="h-4 w-4 text-gray-500" aria-hidden="true" />
             </span>
             <h2 id="what-happened-heading" className="text-base font-semibold text-gray-900">
-              What Happened
+              {t('incidentRecovery.sections.whatHappened')}
             </h2>
           </div>
 
@@ -43,7 +45,7 @@ export function WhatHappenedSection({ pack }: WhatHappenedSectionProps) {
 
         {/* Narrative */}
         <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-          {pack.whatHappened || 'Details are being documented by your advisor.'}
+          {pack.whatHappened || t('incidentRecovery.sections.advisorPreparing')}
         </p>
 
         {/* Context links */}
@@ -55,7 +57,7 @@ export function WhatHappenedSection({ pack }: WhatHappenedSectionProps) {
                 to={`/bookings/${pack.bookingId}`}
                 className="hover:text-blue-600 hover:underline transition-colors"
               >
-                View session booking
+                {t('incidentRecovery.sections.viewSessionBooking')}
               </Link>
             )}
             {pack.linkedIncidentId && (
@@ -65,7 +67,7 @@ export function WhatHappenedSection({ pack }: WhatHappenedSectionProps) {
                   to={`/incidents/${pack.linkedIncidentId}`}
                   className="hover:text-blue-600 hover:underline transition-colors"
                 >
-                  View incident record
+                  {t('incidentRecovery.sections.viewIncidentRecord')}
                 </Link>
               </>
             )}

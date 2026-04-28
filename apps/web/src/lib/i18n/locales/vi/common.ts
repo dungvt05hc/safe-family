@@ -1,8 +1,21 @@
 const common = {
   save: 'Lưu',
+  saving: 'Đang lưu…',
+  saved: 'Đã lưu',
   cancel: 'Hủy',
+  confirm: 'Xác nhận',
+  delete: 'Xóa',
+  edit: 'Chỉnh sửa',
+  add: 'Thêm',
+  close: 'Đóng',
+  back: 'Quay lại',
+  next: 'Tiếp theo',
+  submit: 'Gửi',
+  submitting: 'Đang gửi…',
+  retry: 'Thử lại',
   loading: 'Đang tải…',
   error: 'Đã xảy ra lỗi',
+  notFound: 'Không tìm thấy',
   signOut: 'Đăng xuất',
   signingOut: 'Đang đăng xuất…',
   backToDashboard: 'Về trang chính',
@@ -35,12 +48,12 @@ const common = {
     payments: {
       title: 'Thanh toán',
       description:
-        'Tính năng thanh toán chưa được kích hoạt cho tài khoản của bạn. Vui lòng liên hệ quản trị viên để bật tính năng này.',
+        'Thanh toán trực tuyến chưa có sẵn ở khu vực của bạn. Liên hệ đội ngũ hỗ trợ của chúng tôi để biết thêm.',
     },
     plans: {
       title: 'Kế hoạch an toàn',
       description:
-        'Gói Kế hoạch An toàn Premium chưa được bật trong gói đăng ký hiện tại. Nâng cấp gói để truy cập các tài nguyên phục hồi và an toàn được cá nhân hóa.',
+        'Kế hoạch an toàn cao cấp chưa có trong gói hiện tại của bạn. Nâng cấp gói để truy cập các tài liệu an toàn và phục hồi được cá nhân hóa.',
     },
   },
 } as const

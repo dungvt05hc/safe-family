@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ShieldCheck, Flame, CheckCircle2, Zap } from 'lucide-react'
 import { fadeUpVariants } from '@/lib/motion'
 import type { SafetyTask } from '../safety-tasks.types'
@@ -36,6 +37,7 @@ function StatCard({ icon, label, value, colorClass, index }: StatCardProps) {
 }
 
 export function SafetyTaskSummaryCards({ tasks }: SafetyTaskSummaryProps) {
+  const { t } = useTranslation('tasks')
   const total     = tasks.length
   const completed = tasks.filter((t) => t.status === 'Completed').length
   // Count only actionable (non-completed, non-dismissed) tasks to match backend CriticalRemaining / HighRemaining semantics.
@@ -46,25 +48,25 @@ export function SafetyTaskSummaryCards({ tasks }: SafetyTaskSummaryProps) {
   const stats = [
     {
       icon:       <ShieldCheck className="w-5 h-5 text-blue-600" />,
-      label:      'Total tasks',
+      label:      t('summary.total'),
       value:      total,
       colorClass: 'bg-blue-50',
     },
     {
       icon:       <Flame className="w-5 h-5 text-red-500" />,
-      label:      'High priority',
+      label:      t('summary.highPriority'),
       value:      highPrio,
       colorClass: 'bg-red-50',
     },
     {
       icon:       <Zap className="w-5 h-5 text-amber-500" />,
-      label:      'Act now',
+      label:      t('summary.actNow'),
       value:      immediate,
       colorClass: 'bg-amber-50',
     },
     {
       icon:       <CheckCircle2 className="w-5 h-5 text-green-600" />,
-      label:      'Completed',
+      label:      t('summary.completed'),
       value:      completed,
       colorClass: 'bg-green-50',
     },

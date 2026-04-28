@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import {
   DEFAULT_REPORT_FILTERS,
@@ -18,6 +19,7 @@ interface ReportFiltersProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersProps) {
+  const { t } = useTranslation('reports')
   const isFiltered =
     filters.search   !== '' ||
     filters.type     !== 'All' ||
@@ -34,7 +36,7 @@ export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersPro
         {/* Search */}
         <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
           <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-            Search
+            {t('filters.searchLabel')}
           </label>
           <div className="relative">
             <Search
@@ -45,7 +47,7 @@ export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersPro
               type="search"
               value={filters.search}
               onChange={(e) => set('search', e.target.value)}
-              placeholder="Filter by title…"
+              placeholder={t('filters.searchPlaceholder')}
               className={cn(
                 'h-9 w-full rounded-lg border border-gray-200 bg-white pl-8 pr-3 text-sm text-gray-700',
                 'placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200',
@@ -55,10 +57,9 @@ export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersPro
           </div>
         </div>
 
-        {/* Type */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-            Type
+            {t('filters.typeLabel')}
           </label>
           <select
             value={filters.type}
@@ -69,7 +70,9 @@ export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersPro
             )}
           >
             {REPORT_TYPE_FILTER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {t(`types.${opt.value}.label`, { defaultValue: opt.label })}
+              </option>
             ))}
           </select>
         </div>
@@ -77,7 +80,7 @@ export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersPro
         {/* Date from */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-            From
+            {t('filters.dateFromLabel')}
           </label>
           <input
             type="date"
@@ -93,7 +96,7 @@ export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersPro
         {/* Date to */}
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-            To
+            {t('filters.dateToLabel')}
           </label>
           <input
             type="date"
@@ -114,11 +117,11 @@ export function ReportFilters({ filters, onChange, itemCount }: ReportFiltersPro
               className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 h-9 text-xs text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
             >
               <X className="w-3 h-3" aria-hidden="true" />
-              Clear
+              {t('filters.clearButton')}
             </button>
           )}
           <p className="text-xs text-gray-400 whitespace-nowrap">
-            {itemCount} report{itemCount !== 1 ? 's' : ''}
+            {t('filters.resultCount', { count: itemCount })}
           </p>
         </div>
       </div>

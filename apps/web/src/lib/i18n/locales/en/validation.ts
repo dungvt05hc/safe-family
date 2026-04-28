@@ -1,4 +1,5 @@
 const validation = {
+  required: 'This field is required',
   email: {
     required: 'Email is required',
     invalid: 'Enter a valid email address',
@@ -7,6 +8,8 @@ const validation = {
     required: 'Password is required',
     min: 'Password must be at least 8 characters',
     max: 'Password is too long',
+    mismatch: 'Passwords do not match',
+    strength: 'Password must be at least 8 characters',
   },
   displayName: {
     required: 'Display name is required',

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   CheckCircle2,
   ChevronDown,
@@ -16,13 +17,9 @@ import { fadeUpVariants } from '@/lib/motion'
 import { Badge, Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import {
-  CATEGORY_LABEL,
   PHASE_COLOR,
-  PHASE_LABEL,
   PRIORITY_BADGE,
-  PRIORITY_LABEL,
   STATUS_BADGE,
-  STATUS_LABEL,
   type SafetyTask,
 } from '../safety-tasks.types'
 import { useUpdateSafetyTaskStatus } from '../safety-tasks.hooks'
@@ -86,6 +83,7 @@ interface ChecklistTaskCardProps {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
+  const { t } = useTranslation('tasks')
   const [guidanceOpen, setGuidanceOpen] = useState(false)
   const { mutate: updateStatus, isPending } = useUpdateSafetyTaskStatus()
 
@@ -94,10 +92,10 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
   const isPendingT   = task.status === 'Pending'
   const isInProgress = task.status === 'InProgress'
 
-  const categoryLabel = CATEGORY_LABEL[task.category] ?? task.category
-  const priorityLabel = PRIORITY_LABEL[task.priority] ?? task.priority
-  const statusLabel   = STATUS_LABEL[task.status]
-  const phaseLabel    = PHASE_LABEL[task.phase]    ?? task.phase
+  const categoryLabel = t(`category.${task.category}`, { defaultValue: task.category })
+  const priorityLabel = t(`priority.${task.priority}`, { defaultValue: task.priority })
+  const statusLabel   = t(`status.${task.status}`, { defaultValue: task.status })
+  const phaseLabel    = t(`phase.${task.phase}`, { defaultValue: task.phase })
   const phaseColor    = PHASE_COLOR[task.phase]    ?? 'text-gray-600 bg-gray-100'
 
   const dueDate      = task.dueAt ? new Date(task.dueAt) : null
@@ -165,7 +163,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
         {/* Why this matters */}
         {task.whyThisMatters && (
           <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
-            <p className="text-xs font-semibold text-amber-700">Why this matters</p>
+            <p className="text-xs font-semibold text-amber-700">{t('card.whyThisMatters')}</p>
             <p className="mt-0.5 text-xs leading-relaxed text-amber-700">
               {task.whyThisMatters}
             </p>
@@ -192,7 +190,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
               isOverdue ? 'font-medium text-red-500' : 'text-gray-400',
             )}>
               <Clock className="h-3 w-3" aria-hidden="true" />
-              {isOverdue ? 'Overdue · ' : 'Due · '}
+              {isOverdue ? t('card.overduePrefix') : t('card.duePrefix')}
               {dueDateLabel}
             </span>
           )}
@@ -205,7 +203,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
               className="inline-flex items-center gap-1 text-xs text-blue-500 transition-colors hover:text-blue-700 hover:underline"
             >
               <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              Guide
+              {t('card.guide')}
             </a>
           )}
         </div>
@@ -220,7 +218,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
               onClick={() => updateStatus({ id: task.id, status: 'Completed' })}
             >
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Mark done
+              {t('card.markDone')}
             </Button>
           )}
 
@@ -232,7 +230,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
               onClick={() => updateStatus({ id: task.id, status: 'InProgress' })}
             >
               <PlayCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              Start
+              {t('card.start')}
             </Button>
           )}
 
@@ -244,7 +242,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
               onClick={() => updateStatus({ id: task.id, status: 'Pending' })}
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              Reopen
+              {t('card.reopen')}
             </Button>
           )}
 
@@ -256,7 +254,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
               onClick={() => updateStatus({ id: task.id, status: 'Dismissed' })}
             >
               <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              Dismiss
+              {t('card.dismiss')}
             </Button>
           )}
 
@@ -272,7 +270,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
                   : 'text-gray-500 hover:bg-gray-100',
               )}
             >
-              Step-by-step guide
+              {t('card.stepByStepGuide')}
               <ChevronDown className={cn(
                 'h-3 w-3 transition-transform',
                 guidanceOpen && 'rotate-180',
@@ -296,7 +294,7 @@ export function ChecklistTaskCard({ task, index }: ChecklistTaskCardProps) {
             >
               <div className="border-t border-gray-100 bg-gray-50/60 px-5 py-4">
                 <p className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-400">
-                  How to resolve
+                  {t('card.howToResolve')}
                 </p>
                 <GuidanceContent markdown={task.guidanceMarkdown} />
               </div>

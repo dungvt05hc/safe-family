@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Activity, CheckCircle2, Flame, ShieldCheck, Zap } from 'lucide-react'
 import { fadeUpVariants } from '@/lib/motion'
 import { useSafetyTaskSummary } from '../safety-tasks.hooks'
@@ -74,6 +75,7 @@ function StatCard({ icon, label, value, sub, colorClass, index, children }: Stat
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function ChecklistSummaryCards() {
+  const { t } = useTranslation('tasks')
   const { data, isLoading } = useSafetyTaskSummary()
 
   if (isLoading) {
@@ -94,10 +96,10 @@ export function ChecklistSummaryCards() {
       <StatCard
         index={0}
         icon={<ShieldCheck className="h-5 w-5 text-blue-600" />}
-        label="Total tasks"
+        label={t('summary.total')}
         value={totalTasks}
         colorClass="bg-blue-50"
-        sub={`${pct}% complete`}
+        sub={t('summary.completePct', { pct })}
       >
         <ProgressBar value={completedTasks} max={totalTasks} />
       </StatCard>
@@ -105,7 +107,7 @@ export function ChecklistSummaryCards() {
       <StatCard
         index={1}
         icon={<CheckCircle2 className="h-5 w-5 text-green-600" />}
-        label="Completed"
+        label={t('summary.completed')}
         value={completedTasks}
         colorClass="bg-green-50"
       />
@@ -113,25 +115,25 @@ export function ChecklistSummaryCards() {
       <StatCard
         index={2}
         icon={<Zap className="h-5 w-5 text-red-500" />}
-        label="Act now"
+        label={t('summary.actNow')}
         value={criticalRemaining}
         colorClass="bg-red-50"
-        sub="Immediate phase"
+        sub={t('summary.actNowSub')}
       />
 
       <StatCard
         index={3}
         icon={<Flame className="h-5 w-5 text-amber-500" />}
-        label="High priority"
+        label={t('summary.highPriority')}
         value={highRemaining}
         colorClass="bg-amber-50"
-        sub="Remaining"
+        sub={t('summary.highPrioritySub')}
       />
 
       <StatCard
         index={4}
         icon={<Activity className="h-5 w-5 text-violet-600" />}
-        label="In progress"
+        label={t('summary.inProgress')}
         value={tasksInProgress}
         colorClass="bg-violet-50"
       />

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ShieldCheck } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Alert, EmptyState, LoadingState, PremiumLockedState, UpgradeCTACard } from '@/components/ui'
@@ -40,22 +41,24 @@ function groupByPhase(tasks: SafetyTask[]): Partial<Record<TaskPhase, SafetyTask
 // ── Empty states ──────────────────────────────────────────────────────────────
 
 function NoTasks() {
+  const { t } = useTranslation('tasks')
   return (
     <EmptyState
       icon={ShieldCheck}
-      title="No safety tasks yet"
-      description="SafeFamily generates tasks from your assessment, accounts, devices, and active plans. Complete an assessment to get started."
+      title={t('empty.noPremiumTasksTitle')}
+      description={t('empty.noPremiumTasksDesc')}
       iconColor="bg-blue-50 text-blue-500"
     />
   )
 }
 
 function NoResults() {
+  const { t } = useTranslation('tasks')
   return (
     <EmptyState
       icon={ShieldCheck}
-      title="No matching tasks"
-      description="Try adjusting your filters or search to find what you're looking for."
+      title={t('empty.noResultsTitle')}
+      description={t('empty.noResultsDesc')}
       iconColor="bg-gray-100 text-gray-400"
     />
   )
@@ -64,6 +67,7 @@ function NoResults() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function PremiumChecklistPage() {
+  const { t } = useTranslation('tasks')
   const { hasEntitlement, isLoading: entitlementsLoading } = useEntitlements()
   const { data: tasks = [], isLoading, isError, error } = useSafetyTasks()
   const loadError = useApiError(error, 'load.tasks')
@@ -79,8 +83,8 @@ export function PremiumChecklistPage() {
   if (!entitlementsLoading && !hasPremiumAccess) {
     return (
       <PageLayout
-        title="Premium Checklist"
-        description="Your personalised, prioritised safety action list."
+        title={t('premiumChecklist.pageTitle')}
+        description={t('premiumChecklist.pageDescriptionLocked')}
       >
         <PremiumLockedState product="PremiumChecklist" />
       </PageLayout>
@@ -116,8 +120,8 @@ export function PremiumChecklistPage() {
 
   return (
     <PageLayout
-      title="Premium Checklist"
-      description="Your personalised, prioritised safety action list — grouped by urgency."
+      title={t('premiumChecklist.pageTitle')}
+      description={t('premiumChecklist.pageDescription')}
     >
       {/* Loading skeleton */}
       {(isLoading || entitlementsLoading) && <LoadingState />}
@@ -139,7 +143,7 @@ export function PremiumChecklistPage() {
           {!hasEntitlement('AnnualPlanSubscription') && (
             <UpgradeCTACard
               product="AnnualPlan"
-              pitchOverride="Unlock recurring annual safety tasks and yearly security check-ins for your family."
+              pitchOverride={t('premiumChecklist.annualPlanPitch')}
               dismissible
             />
           )}

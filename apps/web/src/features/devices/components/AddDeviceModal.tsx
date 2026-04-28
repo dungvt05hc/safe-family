@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useCreateDevice } from '../hooks/useDeviceMutations'
 import { useFamilyMembers } from '@/features/families/hooks/useFamilyMembers'
 import { DeviceForm } from './DeviceForm'
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function AddDeviceModal({ onClose }: Props) {
+  const { t } = useTranslation('devices')
   const { data: members = [] } = useFamilyMembers()
   const { mutate, isPending } = useCreateDevice()
   const [mutationError, setMutationError] = useState<unknown>(null)
@@ -44,9 +46,9 @@ export function AddDeviceModal({ onClose }: Props) {
         <div className="flex items-start justify-between border-b border-gray-100 px-6 pb-4 pt-5">
           <div>
             <h2 id="add-device-title" className="text-lg font-semibold text-gray-900">
-              Add device
+              {t('modal.addTitle')}
             </h2>
-            <p className="mt-0.5 text-sm text-gray-500">Register a new device for your family</p>
+            <p className="mt-0.5 text-sm text-gray-500">{t('modal.addSubtitle')}</p>
           </div>
           <button
             type="button"
@@ -65,7 +67,7 @@ export function AddDeviceModal({ onClose }: Props) {
             onSubmit={handleSubmit}
             onCancel={onClose}
             isSubmitting={isPending}
-            submitLabel="Add device"
+            submitLabel={t('modal.addSubmit')}
             serverError={serverError}
           />
         </div>

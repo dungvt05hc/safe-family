@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { fadeUpVariants } from '@/lib/motion'
 
 interface PlanCTABannerProps {
@@ -9,6 +10,7 @@ interface PlanCTABannerProps {
 }
 
 export function PlanCTABanner({ completedTasks, totalTasks }: PlanCTABannerProps) {
+  const { t } = useTranslation('plans')
   const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   return (
@@ -35,11 +37,11 @@ export function PlanCTABanner({ completedTasks, totalTasks }: PlanCTABannerProps
                 <ShieldCheck className="h-5 w-5 text-white" aria-hidden="true" />
               </span>
               <div>
-                <p className="font-semibold text-sm">Open Full Safety Checklist</p>
+                <p className="font-semibold text-sm">{t('planCtaBanner.heading')}</p>
                 <p className="text-xs text-blue-200 mt-0.5">
                   {totalTasks > 0
-                    ? `${completedTasks} of ${totalTasks} tasks complete · ${pct}%`
-                    : 'View and manage all your safety tasks'}
+                    ? t('planCtaBanner.progressLabel', { completed: completedTasks, total: totalTasks, pct })
+                    : t('planCtaBanner.emptyLabel')}
                 </p>
               </div>
             </div>
@@ -55,7 +57,7 @@ export function PlanCTABanner({ completedTasks, totalTasks }: PlanCTABannerProps
                     aria-valuenow={pct}
                     aria-valuemin={0}
                     aria-valuemax={100}
-                    aria-label="Overall progress"
+                    aria-label={t('planCtaBanner.progressAria')}
                   />
                 </div>
               </div>

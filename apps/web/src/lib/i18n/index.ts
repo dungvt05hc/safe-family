@@ -14,6 +14,9 @@ import en_plans from './locales/en/plans'
 import en_reports from './locales/en/reports'
 import en_validation from './locales/en/validation'
 import en_errors from './locales/en/errors'
+import en_settings from './locales/en/settings'
+import en_assessments from './locales/en/assessments'
+import en_incidents from './locales/en/incidents'
 
 import vi_common from './locales/vi/common'
 import vi_nav from './locales/vi/nav'
@@ -27,6 +30,17 @@ import vi_plans from './locales/vi/plans'
 import vi_reports from './locales/vi/reports'
 import vi_validation from './locales/vi/validation'
 import vi_errors from './locales/vi/errors'
+import vi_settings from './locales/vi/settings'
+import vi_assessments from './locales/vi/assessments'
+import vi_incidents from './locales/vi/incidents'
+import en_families from './locales/en/families'
+import en_accounts from './locales/en/accounts'
+import en_devices from './locales/en/devices'
+import en_tasks from './locales/en/tasks'
+import vi_families from './locales/vi/families'
+import vi_accounts from './locales/vi/accounts'
+import vi_devices from './locales/vi/devices'
+import vi_tasks from './locales/vi/tasks'
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -53,6 +67,13 @@ i18n
         reports: en_reports,
         validation: en_validation,
         errors: en_errors,
+        settings: en_settings,
+        assessments: en_assessments,
+        incidents: en_incidents,
+        families: en_families,
+        accounts: en_accounts,
+        devices: en_devices,
+        tasks: en_tasks,
       },
       vi: {
         common: vi_common,
@@ -67,6 +88,13 @@ i18n
         reports: vi_reports,
         validation: vi_validation,
         errors: vi_errors,
+        settings: vi_settings,
+        assessments: vi_assessments,
+        incidents: vi_incidents,
+        families: vi_families,
+        accounts: vi_accounts,
+        devices: vi_devices,
+        tasks: vi_tasks,
       },
     },
     fallbackLng: 'en',
