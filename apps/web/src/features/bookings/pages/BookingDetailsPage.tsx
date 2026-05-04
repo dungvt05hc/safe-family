@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft, CalendarDays, FileText, Clock, CheckCircle2,
@@ -25,24 +26,8 @@ const HIDDEN_EVENT_TYPES = new Set([
   'booking.status_changed', 'payment.status_changed',
 ])
 
-const EVENT_DISPLAY: Record<string, { label: string; color: string; bg: string }> = {
-  'booking.created':     { label: 'Order Created',          color: 'text-blue-600',   bg: 'bg-blue-500' },
-  'booking.submitted':   { label: 'Order Submitted',         color: 'text-blue-600',   bg: 'bg-blue-500' },
-  'payment.initiated':   { label: 'Payment Initiated',       color: 'text-yellow-600', bg: 'bg-yellow-500' },
-  'payment.retried':     { label: 'Payment Retried',         color: 'text-yellow-600', bg: 'bg-yellow-500' },
-  'payment.received':    { label: 'Payment Received',        color: 'text-green-600',  bg: 'bg-green-500' },
-  'booking.paid':        { label: 'Payment Confirmed',       color: 'text-green-600',  bg: 'bg-green-500' },
-  'payment.failed':      { label: 'Payment Failed',          color: 'text-red-600',    bg: 'bg-red-500' },
-  'payment.expired':     { label: 'Payment Expired',         color: 'text-gray-500',   bg: 'bg-gray-400' },
-  'booking.confirmed':   { label: 'Order Confirmed',         color: 'text-indigo-600', bg: 'bg-indigo-500' },
-  'booking.scheduled':   { label: 'Delivery Scheduled',      color: 'text-purple-600', bg: 'bg-purple-500' },
-  'booking.in_progress': { label: 'Preparation In Progress', color: 'text-orange-600', bg: 'bg-orange-500' },
-  'booking.completed':   { label: 'Materials Delivered',     color: 'text-green-700',  bg: 'bg-green-600' },
-  'booking.cancelled':   { label: 'Order Cancelled',         color: 'text-red-600',    bg: 'bg-red-500' },
-  'booking.expired':     { label: 'Order Expired',           color: 'text-gray-500',   bg: 'bg-gray-400' },
-  'fulfillment.triggered': { label: 'Safety Plan In Preparation', color: 'text-indigo-600', bg: 'bg-indigo-500' },
-  'fulfillment.delivered': { label: 'Safety Materials Delivered',  color: 'text-green-700',  bg: 'bg-green-600' },
-}
+// EVENT_DISPLAY labels, URGENCY_LABEL, and DELIVERY_STATUS_BADGE are built
+// inside the component so their text values pass through useTranslation('payments').
 
 // ─── Status bar config ────────────────────────────────────────────────────────
 
@@ -73,6 +58,40 @@ const DELIVERY_STATUS_BADGE: Record<string, { label: string; className: string }
 export function BookingDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation('payments')
+
+  // ── Computed locale-aware maps (depend on t()) ────────────────────────────
+  const EVENT_LABELS: Record<string, string> = {
+    'booking.created':       t('details.events.bookingCreated'),
+    'booking.submitted':     t('details.events.bookingSubmitted'),
+    'payment.initiated':     t('details.events.paymentInitiated'),
+    'payment.retried':       t('details.events.paymentRetried'),
+    'payment.received':      t('details.events.paymentReceived'),
+    'booking.paid':          t('details.events.bookingPaid'),
+    'payment.failed':        t('details.events.paymentFailed'),
+    'payment.expired':       t('details.events.paymentExpired'),
+    'booking.confirmed':     t('details.events.bookingConfirmed'),
+    'booking.scheduled':     t('details.events.bookingScheduled'),
+    'booking.in_progress':   t('details.events.bookingInProgress'),
+    'booking.completed':     t('details.events.bookingCompleted'),
+    'booking.cancelled':     t('details.events.bookingCancelled'),
+    'booking.expired':       t('details.events.bookingExpired'),
+    'fulfillment.triggered': t('details.events.fulfillmentTriggered'),
+    'fulfillment.delivered': t('details.events.fulfillmentDelivered'),
+  }
+
+  const URGENCY_LABELS: Record<string, string> = {
+    Routine:  t('details.urgency.Routine'),
+    Urgent:   t('details.urgency.Urgent'),
+    Critical: t('details.urgency.Critical'),
+  }
+
+  const DELIVERY_STATUS_LABELS: Record<string, string> = {
+    Pending:    t('details.deliveryStatus.Pending'),
+    Processing: t('details.deliveryStatus.Processing'),
+    Delivered:  t('details.deliveryStatus.Delivered'),
+    Failed:     t('details.deliveryStatus.Failed'),
+  }
 
   const { data: booking, isLoading, isError } = useBooking(id)
   const { data: paymentOrders = [] } = usePaymentOrders(
@@ -83,13 +102,13 @@ export function BookingDetailsPage() {
   const backAction = (
     <Button variant="ghost" size="sm" onClick={() => navigate('/bookings/my')}>
       <ArrowLeft className="h-4 w-4" />
-      All Bookings
+      {t('details.backButton')}
     </Button>
   )
 
   if (isLoading) {
     return (
-      <PageLayout title="Booking Details" action={backAction}>
+      <PageLayout title={t('details.pageTitle')} action={backAction}>
         <LoadingState />
       </PageLayout>
     )
@@ -97,9 +116,9 @@ export function BookingDetailsPage() {
 
   if (isError || !booking) {
     return (
-      <PageLayout title="Booking Details" action={backAction}>
+      <PageLayout title={t('details.pageTitle')} action={backAction}>
         <Alert variant="error">
-          We couldn't load this booking. It may not exist or you may not have access.
+          {t('details.loadError')}
         </Alert>
       </PageLayout>
     )
@@ -122,7 +141,7 @@ export function BookingDetailsPage() {
   return (
     <PageLayout
       title={booking.packageName}
-      description={`Booked on ${bookedOn}`}
+      description={t('details.bookedOn', { date: bookedOn })}
       action={backAction}
     >
       <div className="max-w-xl space-y-5">
@@ -169,7 +188,7 @@ export function BookingDetailsPage() {
                   <div className="col-span-2 flex items-start gap-2 text-gray-600">
                     <Tag className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
                     <div className="min-w-0">
-                      <p className="text-xs text-gray-400">What you need help with</p>
+                      <p className="text-xs text-gray-400">{t('details.fields.helpTopic')}</p>
                       <p className="font-medium text-gray-800">{booking.helpTopic}</p>
                     </div>
                   </div>
@@ -180,9 +199,9 @@ export function BookingDetailsPage() {
                   <div className="flex items-center gap-2 text-gray-600">
                     <AlertTriangle className="h-4 w-4 shrink-0 text-gray-400" />
                     <div className="min-w-0">
-                      <p className="text-xs text-gray-400">Urgency</p>
+                      <p className="text-xs text-gray-400">{t('details.fields.urgency')}</p>
                       <p className="font-medium text-gray-800">
-                        {URGENCY_LABEL[booking.urgency] ?? booking.urgency}
+                        {URGENCY_LABELS[booking.urgency] ?? booking.urgency}
                       </p>
                     </div>
                   </div>
@@ -192,10 +211,10 @@ export function BookingDetailsPage() {
                 <div className="flex items-center gap-2 text-gray-600">
                   <CreditCard className="h-4 w-4 shrink-0 text-gray-400" />
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400">Price</p>
+                    <p className="text-xs text-gray-400">{t('details.fields.price')}</p>
                     <p className="font-medium text-gray-800">
                       {isFree
-                        ? 'Free'
+                        ? t('details.fields.free')
                         : `${booking.packageCurrency} ${booking.packagePrice.toLocaleString()}`}
                     </p>
                   </div>
@@ -205,7 +224,7 @@ export function BookingDetailsPage() {
                 <div className="flex items-center gap-2 text-gray-600">
                   <Clock className="h-4 w-4 shrink-0 text-gray-400" />
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400">Ordered</p>
+                    <p className="text-xs text-gray-400">{t('details.fields.ordered')}</p>
                     <p className="font-medium text-gray-800">{bookedOn}</p>
                   </div>
                 </div>
@@ -217,9 +236,9 @@ export function BookingDetailsPage() {
                     <div className="flex items-center gap-2 text-gray-600">
                       <PackageCheck className="h-4 w-4 shrink-0 text-gray-400" />
                       <div className="min-w-0">
-                        <p className="text-xs text-gray-400">Materials</p>
+                        <p className="text-xs text-gray-400">{t('details.fields.materials')}</p>
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ds.className}`}>
-                          {ds.label}
+                          {DELIVERY_STATUS_LABELS[booking.deliveryStatus] ?? ds.label}
                         </span>
                       </div>
                     </div>
@@ -231,7 +250,7 @@ export function BookingDetailsPage() {
                   <div className="col-span-2 flex items-center gap-2 text-gray-600">
                     <Smartphone className="h-4 w-4 shrink-0 text-gray-400" />
                     <div className="min-w-0">
-                      <p className="text-xs text-gray-400">Device or account affected</p>
+                      <p className="text-xs text-gray-400">{t('details.fields.affectedTarget')}</p>
                       <p className="font-medium text-gray-800">{booking.affectedTarget}</p>
                     </div>
                   </div>
@@ -242,7 +261,7 @@ export function BookingDetailsPage() {
                   <div className="col-span-2 flex items-center gap-2 text-gray-600">
                     <User className="h-4 w-4 text-gray-400 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">Your advisor</p>
+                      <p className="text-xs text-gray-400">{t('details.fields.advisor')}</p>
                       <p className="font-medium text-gray-800">{booking.assignedAdminEmail}</p>
                     </div>
                   </div>
@@ -256,7 +275,7 @@ export function BookingDetailsPage() {
                   <div className="flex items-start gap-2 text-sm">
                     <FileText className="mt-0.5 h-4 w-4 text-gray-400 shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Your notes</p>
+                      <p className="text-xs text-gray-400 mb-0.5">{t('details.fields.notes')}</p>
                       <p className="text-gray-700 italic">"{booking.customerNotes}"</p>
                     </div>
                   </div>
@@ -270,9 +289,9 @@ export function BookingDetailsPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <CreditCard className="h-4 w-4 text-green-500 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-400">Payment</p>
+                      <p className="text-xs text-gray-400">{t('details.fields.payment')}</p>
                       <p className="font-medium text-green-700">
-                        {paidOrder.currency} {paidOrder.amount.toLocaleString()} paid
+                        {t('details.fields.paid', { amount: `${paidOrder.currency} ${paidOrder.amount.toLocaleString()}` })}
                         {paidOrder.paidAt && (
                           <span className="text-gray-400 font-normal">
                             {' · '}
@@ -307,18 +326,18 @@ export function BookingDetailsPage() {
               <div className="flex items-start gap-3">
                 <Clock className="mt-0.5 h-5 w-5 shrink-0 text-blue-500" />
                 <div>
-                  <p className="font-semibold text-blue-800">Your materials are being prepared</p>
+                  <p className="font-semibold text-blue-800">{t('details.preparing.title')}</p>
                   <p className="mt-0.5 text-sm text-blue-600">
-                    Our advisors are personalising your safety plan and checklist. We'll notify you by email when everything is ready.
+                    {t('details.preparing.body')}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => navigate('/reports')}>
                       <FileText className="h-3.5 w-3.5" />
-                      Check reports
+                      {t('details.preparing.checkReports')}
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => navigate('/checklists')}>
                       <LayoutList className="h-3.5 w-3.5" />
-                      View checklist
+                      {t('details.preparing.viewChecklist')}
                     </Button>
                   </div>
                 </div>
@@ -355,7 +374,7 @@ export function BookingDetailsPage() {
                         className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-amber-600 hover:text-amber-700 hover:underline"
                       >
                         <Download className="h-3.5 w-3.5" />
-                        Download report
+                        {t('details.report.download')}
                       </a>
                     )}
                   </div>
@@ -375,13 +394,30 @@ export function BookingDetailsPage() {
                 <CardContent>
                   <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-4 flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5" />
-                    Activity
+                    {t('details.timeline.title')}
                   </h2>
                   <ol className="relative border-l-2 border-gray-100 space-y-5 ml-2">
                     {visible.map((event, i) => {
-                      const cfg    = EVENT_DISPLAY[event.eventType]
-                      const label  = cfg?.label ?? event.eventType
-                      const dotBg  = cfg?.bg    ?? 'bg-gray-400'
+                      const eventStyles: Record<string, { bg: string }> = {
+                        'booking.created':       { bg: 'bg-blue-500' },
+                        'booking.submitted':     { bg: 'bg-blue-500' },
+                        'payment.initiated':     { bg: 'bg-yellow-500' },
+                        'payment.retried':       { bg: 'bg-yellow-500' },
+                        'payment.received':      { bg: 'bg-green-500' },
+                        'booking.paid':          { bg: 'bg-green-500' },
+                        'payment.failed':        { bg: 'bg-red-500' },
+                        'payment.expired':       { bg: 'bg-gray-400' },
+                        'booking.confirmed':     { bg: 'bg-indigo-500' },
+                        'booking.scheduled':     { bg: 'bg-purple-500' },
+                        'booking.in_progress':   { bg: 'bg-orange-500' },
+                        'booking.completed':     { bg: 'bg-green-600' },
+                        'booking.cancelled':     { bg: 'bg-red-500' },
+                        'booking.expired':       { bg: 'bg-gray-400' },
+                        'fulfillment.triggered': { bg: 'bg-indigo-500' },
+                        'fulfillment.delivered': { bg: 'bg-green-600' },
+                      }
+                      const label  = EVENT_LABELS[event.eventType] ?? event.eventType
+                      const dotBg  = eventStyles[event.eventType]?.bg ?? 'bg-gray-400'
                       const isLast = i === visible.length - 1
                       return (
                         <li key={event.id} className="ml-5">
@@ -431,16 +467,16 @@ export function BookingDetailsPage() {
                 <>
                   <Button variant="outline" onClick={() => navigate('/reports')}>
                     <FileText className="h-4 w-4" />
-                    View reports
+                    {t('details.actions.viewReports')}
                   </Button>
                   <Button variant="outline" onClick={() => navigate('/checklists')}>
                     <LayoutList className="h-4 w-4" />
-                    View checklist
+                    {t('details.actions.viewChecklist')}
                   </Button>
                 </>
               )}
               <Button variant="ghost" onClick={() => navigate('/bookings')}>
-                Get another product
+                {t('details.actions.anotherProduct')}
               </Button>
             </div>
           </motion.div>

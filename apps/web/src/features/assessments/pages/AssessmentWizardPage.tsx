@@ -13,10 +13,9 @@ import { QuestionCard } from '../components/QuestionCard'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 // Validated per-step: every question on the current step must have a value.
+// stepSchema is created inside the component so it can use t() for its message.
 
-const stepSchema = z.record(z.string().min(1, 'Please select an answer'))
-
-type StepFormValues = z.infer<typeof stepSchema>
+type StepFormValues = Record<string, string>
 
 // ── Category icons ─────────────────────────────────────────────────────────────
 
@@ -35,6 +34,9 @@ export function AssessmentWizardPage() {
   const { t } = useTranslation('assessments')
   const { data: questions, isLoading, isError } = useAssessmentQuestions()
   const submitMutation = useSubmitAssessment()
+
+  // Schema defined inside component to pick up the current locale from t()
+  const stepSchema = z.record(z.string().min(1, t('wizard.pleaseSelectAnswer')))
 
   // All accumulated answers across steps: questionId → selectedValue
   const [allAnswers, setAllAnswers] = useState<Record<string, string>>({})

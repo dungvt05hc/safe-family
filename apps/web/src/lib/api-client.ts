@@ -4,7 +4,6 @@
  * Wraps axios with:
  *  - base URL from VITE_API_URL (falls back to /api for same-origin proxy)
  *  - withCredentials: true   → cookies sent on every request (cookie auth)
- *  - Bearer token interceptor → JWT mode (active when 'token' is in localStorage)
  *  - Normalized ApiError thrown by every helper — no need to parse raw axios errors
  *
  * Usage:
@@ -26,14 +25,6 @@ const _http = axios.create({
 
 // ── Request interceptor — attach JWT when present ────────────────────────────
 // When using cookie auth exclusively, this block can be removed.
-
-_http.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
 
 // ── Response interceptor — normalize every error to ApiError ─────────────────
 

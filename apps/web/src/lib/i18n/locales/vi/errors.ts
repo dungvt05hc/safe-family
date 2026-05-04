@@ -29,6 +29,14 @@ const errors = {
     familyConflict: 'Bạn đã là thành viên của một gia đình.',
     generic: 'Đã xảy ra sự cố. Vui lòng thử lại.',
   },
+  // 404 / error page
+  notFoundPage: {
+    title404: 'Không tìm thấy trang',
+    titleGeneric: 'Đã xảy ra lỗi',
+    desc404: 'Trang này không tồn tại hoặc đã được di chuyển.',
+    descGeneric: 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.',
+    backHome: '← Về trang chủ',
+  },
 } as const
 
 export default errors

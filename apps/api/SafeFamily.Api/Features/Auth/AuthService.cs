@@ -54,6 +54,11 @@ public class AuthService : IAuthService
             throw new UnauthorizedException("Invalid email or password.");
         }
 
+        if (user.Status != UserStatus.Active)
+        {
+            throw new UnauthorizedException("Invalid email or password.");
+        }
+
         return ToResponse(user);
     }
 

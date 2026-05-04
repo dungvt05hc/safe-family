@@ -56,6 +56,11 @@ const common = {
         'Kế hoạch an toàn cao cấp chưa có trong gói hiện tại của bạn. Nâng cấp gói để truy cập các tài liệu an toàn và phục hồi được cá nhân hóa.',
     },
   },
+  homePage: {
+    title: 'Chào mừng đến SafeFamily',
+    description: 'Giữ cho gia đình bạn an toàn và kết nối.',
+    placeholder: 'Các tính năng sẽ xuất hiện tại đây khi được xây dựng.',
+  },
 } as const
 
 export default common

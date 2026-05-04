@@ -117,6 +117,7 @@ public class PaymentsController : ControllerBase
     // can be verified against the exact original bytes.
     [HttpPost("api/webhooks/payment/{provider}")]
     [AllowAnonymous]
+    [EnableRateLimiting("mutations")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PaymentWebhook(string provider, CancellationToken ct)

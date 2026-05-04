@@ -1,5 +1,6 @@
 import { useEffect, type ComponentType } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useTranslation, type TFunction } from 'react-i18next'
 import { motion } from 'framer-motion'
 import {
   ShieldCheck, FileText, Download, LayoutList, Package,
@@ -21,75 +22,81 @@ interface UnlockMeta {
   ctas: { icon: ComponentType<{ className?: string }>; label: string; path: string; primary?: boolean }[]
 }
 
-const UNLOCK_META: Record<string, UnlockMeta> = {
-  'FREE-CHECK': {
-    headline:         'Your free safety report is on its way',
-    body:             "Our team has received your request and will prepare a summary of your top security gaps and personalised action items. You'll receive a notification when it's ready in your reports.",
-    deliveryEstimate: 'Ready shortly',
-    deliverables: [
-      { icon: FileText,     label: 'Digital security summary report' },
-      { icon: CheckCircle2, label: '3 personalised action items' },
-      { icon: LayoutList,   label: 'Starter safety checklist' },
-    ],
-    ctas: [
-      { icon: FileText,    label: 'View my reports',  path: '/reports',    primary: true },
-      { icon: LayoutList,  label: 'View checklist',   path: '/checklists' },
-    ],
-  },
-  'FAMILY-CORE': {
-    headline:         'Your Family Safety Plan is being prepared',
-    body:             'Our advisors are reviewing your details and building a personalised family safety plan. Your PDF report and interactive checklist will be delivered within 24 hours.',
-    deliveryEstimate: 'Ready within 24 hours',
-    deliverables: [
-      { icon: FileText,     label: 'Personalised family safety plan (PDF)' },
-      { icon: LayoutList,   label: 'Premium interactive safety checklist' },
-      { icon: CheckCircle2, label: 'Password & account audit results' },
-    ],
-    ctas: [
-      { icon: FileText,    label: 'View my reports',  path: '/reports',    primary: true },
-      { icon: LayoutList,  label: 'View checklist',   path: '/checklists' },
-    ],
-  },
-  'INCIDENT-RESP': {
-    headline:         'Your Incident Recovery Pack is being prepared',
-    body:             "We're treating this as a priority. Your step-by-step recovery guide and containment checklist will be delivered within 12 hours. If our team needs to reach you urgently, we may be in touch.",
-    deliveryEstimate: 'Priority — ready within 12 hours',
-    deliverables: [
-      { icon: Download,     label: 'Step-by-step incident recovery pack' },
-      { icon: LayoutList,   label: 'Threat containment checklist' },
-      { icon: FileText,     label: 'Follow-up monitoring guide' },
-    ],
-    ctas: [
-      { icon: FileText,    label: 'View my reports',  path: '/reports',    primary: true },
-      { icon: LayoutList,  label: 'View checklist',   path: '/checklists' },
-    ],
-  },
-  'ANNUAL-PLAN': {
-    headline:         'Your Annual Safety Plan is being set up',
-    body:             "Our advisors are building your family's personalised security roadmap. Your first quarterly safety plan and priority incident response access will be ready within 24 hours.",
-    deliveryEstimate: 'Ready within 24 hours',
-    deliverables: [
-      { icon: FileText,   label: '4× quarterly safety plan updates' },
-      { icon: Package,    label: 'Priority incident response (24h SLA)' },
-      { icon: Download,   label: 'Full family security roadmap (PDF)' },
-    ],
-    ctas: [
-      { icon: FileText,    label: 'View my reports',  path: '/reports',    primary: true },
-      { icon: LayoutList,  label: 'View checklist',   path: '/checklists' },
-    ],
-  },
-}
-
-const DEFAULT_UNLOCK: UnlockMeta = {
-  headline:         'Your safety materials are being prepared',
-  body:             'Our advisors are reviewing your submission and will deliver your personalised safety materials shortly.',
-  deliveryEstimate: 'Coming soon',
-  deliverables: [
-    { icon: FileText, label: 'Safety materials' },
-  ],
-  ctas: [
-    { icon: FileText, label: 'View my reports', path: '/reports', primary: true },
-  ],
+function getUnlockMeta(packageCode: string, t: TFunction<'payments'>): UnlockMeta {
+  switch (packageCode) {
+    case 'FREE-CHECK':
+      return {
+        headline:         t('unlock.freeCheck.headline'),
+        body:             t('unlock.freeCheck.body'),
+        deliveryEstimate: t('unlock.freeCheck.deliveryEstimate'),
+        deliverables: [
+          { icon: FileText,     label: t('unlock.freeCheck.deliverable0') },
+          { icon: CheckCircle2, label: t('unlock.freeCheck.deliverable1') },
+          { icon: LayoutList,   label: t('unlock.freeCheck.deliverable2') },
+        ],
+        ctas: [
+          { icon: FileText,   label: t('unlock.freeCheck.cta0'), path: '/reports',    primary: true },
+          { icon: LayoutList, label: t('unlock.freeCheck.cta1'), path: '/checklists' },
+        ],
+      }
+    case 'FAMILY-CORE':
+      return {
+        headline:         t('unlock.familyCore.headline'),
+        body:             t('unlock.familyCore.body'),
+        deliveryEstimate: t('unlock.familyCore.deliveryEstimate'),
+        deliverables: [
+          { icon: FileText,     label: t('unlock.familyCore.deliverable0') },
+          { icon: LayoutList,   label: t('unlock.familyCore.deliverable1') },
+          { icon: CheckCircle2, label: t('unlock.familyCore.deliverable2') },
+        ],
+        ctas: [
+          { icon: FileText,   label: t('unlock.familyCore.cta0'), path: '/reports',    primary: true },
+          { icon: LayoutList, label: t('unlock.familyCore.cta1'), path: '/checklists' },
+        ],
+      }
+    case 'INCIDENT-RESP':
+      return {
+        headline:         t('unlock.incidentResp.headline'),
+        body:             t('unlock.incidentResp.body'),
+        deliveryEstimate: t('unlock.incidentResp.deliveryEstimate'),
+        deliverables: [
+          { icon: Download,   label: t('unlock.incidentResp.deliverable0') },
+          { icon: LayoutList, label: t('unlock.incidentResp.deliverable1') },
+          { icon: FileText,   label: t('unlock.incidentResp.deliverable2') },
+        ],
+        ctas: [
+          { icon: FileText,   label: t('unlock.incidentResp.cta0'), path: '/reports',    primary: true },
+          { icon: LayoutList, label: t('unlock.incidentResp.cta1'), path: '/checklists' },
+        ],
+      }
+    case 'ANNUAL-PLAN':
+      return {
+        headline:         t('unlock.annualPlan.headline'),
+        body:             t('unlock.annualPlan.body'),
+        deliveryEstimate: t('unlock.annualPlan.deliveryEstimate'),
+        deliverables: [
+          { icon: FileText,  label: t('unlock.annualPlan.deliverable0') },
+          { icon: Package,   label: t('unlock.annualPlan.deliverable1') },
+          { icon: Download,  label: t('unlock.annualPlan.deliverable2') },
+        ],
+        ctas: [
+          { icon: FileText,   label: t('unlock.annualPlan.cta0'), path: '/reports',    primary: true },
+          { icon: LayoutList, label: t('unlock.annualPlan.cta1'), path: '/checklists' },
+        ],
+      }
+    default:
+      return {
+        headline:         t('unlock.defaultPkg.headline'),
+        body:             t('unlock.defaultPkg.body'),
+        deliveryEstimate: t('unlock.defaultPkg.deliveryEstimate'),
+        deliverables: [
+          { icon: FileText, label: t('unlock.defaultPkg.deliverable0') },
+        ],
+        ctas: [
+          { icon: FileText, label: t('unlock.defaultPkg.cta0'), path: '/reports', primary: true },
+        ],
+      }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -97,6 +104,7 @@ const DEFAULT_UNLOCK: UnlockMeta = {
 export function PaymentUnlockPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation('payments')
   const { data: booking, isLoading } = useBooking(id)
 
   // Guard: only paid or free bookings should see this page.
@@ -116,13 +124,13 @@ export function PaymentUnlockPage() {
     )
   }
 
-  const meta   = UNLOCK_META[booking.packageCode] ?? DEFAULT_UNLOCK
+  const meta   = getUnlockMeta(booking.packageCode, t)
   const isFree = booking.packagePrice === 0
 
   return (
     <PageLayout
-      title="Payment Successful"
-      description="Your digital safety product has been unlocked"
+      title={t('unlock.pageTitle')}
+      description={t('unlock.pageDescription')}
     >
       <div className="max-w-lg space-y-6">
 
@@ -135,7 +143,7 @@ export function PaymentUnlockPage() {
               </span>
             </div>
             <p className="text-xs font-semibold uppercase tracking-widest text-green-600 mb-1">
-              {isFree ? 'All set' : 'Payment confirmed'}
+              {isFree ? t('unlock.allSet') : t('unlock.paymentConfirmed')}
             </p>
             <h1 className="text-xl font-bold text-gray-900">
               {meta.headline}
@@ -153,7 +161,7 @@ export function PaymentUnlockPage() {
                 <div>
                   <p className="font-semibold text-gray-900">{booking.packageName}</p>
                   {booking.helpTopic && (
-                    <p className="mt-0.5 text-sm text-gray-500">Re: {booking.helpTopic}</p>
+                    <p className="mt-0.5 text-sm text-gray-500">{t('unlock.helpTopicPrefix', { topic: booking.helpTopic })}</p>
                   )}
                 </div>
                 <span
@@ -165,7 +173,7 @@ export function PaymentUnlockPage() {
                   )}
                 >
                   {isFree
-                    ? 'Free'
+                    ? t('unlock.free')
                     : `${booking.packageCurrency} ${booking.packagePrice.toLocaleString()}`}
                 </span>
               </div>
@@ -175,7 +183,7 @@ export function PaymentUnlockPage() {
               {/* Deliverables */}
               <div>
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-                  What you'll receive
+                  {t('unlock.whatYouReceive')}
                 </p>
                 <ul className="space-y-2.5">
                   {meta.deliverables.map(({ icon: Icon, label }, i) => (
@@ -204,10 +212,10 @@ export function PaymentUnlockPage() {
         {/* ── What happens next ──────────────────────────────────────── */}
         <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" custom={2}>
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm leading-relaxed text-blue-800">
-            <p className="mb-1 font-semibold">What happens next</p>
+            <p className="mb-1 font-semibold">{t('unlock.whatsNext')}</p>
             <p>{meta.body}</p>
             <p className="mt-2 text-blue-600">
-              We'll notify you by email as soon as your materials are available.
+              {t('unlock.emailNotice')}
             </p>
           </div>
         </motion.div>
@@ -227,7 +235,7 @@ export function PaymentUnlockPage() {
             ))}
             <Button variant="ghost" onClick={() => navigate('/dashboard')}>
               <LayoutDashboard className="h-4 w-4" />
-              Dashboard
+              {t('unlock.dashboard')}
             </Button>
           </div>
         </motion.div>
@@ -235,7 +243,7 @@ export function PaymentUnlockPage() {
         {/* ── Order reference ────────────────────────────────────────── */}
         <motion.div variants={fadeUpVariants} initial="hidden" animate="visible" custom={4}>
           <p className="text-center text-xs text-gray-400">
-            Order reference:{' '}
+            {t('unlock.orderReference')}{' '}
             <Link
               to={`/bookings/${id}`}
               className="font-mono text-gray-500 hover:text-gray-700 hover:underline"
@@ -248,7 +256,7 @@ export function PaymentUnlockPage() {
               onClick={() => navigate('/bookings/my')}
               className="text-gray-500 hover:text-gray-700 hover:underline"
             >
-              View all orders
+              {t('unlock.viewAllOrders')}
             </button>
           </p>
         </motion.div>

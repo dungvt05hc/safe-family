@@ -56,6 +56,11 @@ const common = {
         'Premium Safety Plans are not enabled on your current subscription. Upgrade your plan to access personalised recovery and safety resources.',
     },
   },
+  homePage: {
+    title: 'Welcome to SafeFamily',
+    description: 'Keep your family safe and connected.',
+    placeholder: 'Your features will appear here as they are built.',
+  },
 } as const
 
 export default common

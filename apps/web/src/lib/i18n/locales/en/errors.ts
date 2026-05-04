@@ -29,6 +29,14 @@ const errors = {
     familyConflict: 'You already belong to a family.',
     generic: 'Something went wrong. Please try again.',
   },
+  // 404 / error page
+  notFoundPage: {
+    title404: 'Page not found',
+    titleGeneric: 'Something went wrong',
+    desc404: "The page you're looking for doesn't exist or has been moved.",
+    descGeneric: 'An unexpected error occurred. Please try again.',
+    backHome: '← Back to home',
+  },
 } as const
 
 export default errors

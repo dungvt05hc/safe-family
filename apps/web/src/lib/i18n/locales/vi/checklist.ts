@@ -3,7 +3,7 @@ const checklist = {
   description: 'Theo dõi các việc cần làm quan trọng nhất để bảo vệ an toàn cho gia đình trên mạng.',
   lockedBanner: {
     title:  'Một số mục đang bị ẩn',
-    body:   'Những mục này được tạo từ buổi tư vấn an toàn của bạn — yêu cầu gói dịch vụ cao cấp.',
+      body: 'Những mục này được tạo từ buổi tư vấn an toàn của bạn và được bao gồm trong gói Family Core hoặc Gói Năm.',
     unlock: 'Mở khóa ngay',
   },
   loadError: 'Không thể tải danh sách kiểm tra.',

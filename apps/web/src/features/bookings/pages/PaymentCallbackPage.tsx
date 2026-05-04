@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useSyncPaymentStatus } from '../hooks/useBookingMutations'
 import { queryClient } from '@/lib/queryClient'
 import { ENTITLEMENTS_KEY } from '@/features/entitlements/hooks/useMyEntitlements'
@@ -24,6 +25,7 @@ const PAID_CONTENT_URLS: Record<string, string> = {
 export function PaymentCallbackPage() {
   const navigate        = useNavigate()
   const [searchParams]  = useSearchParams()
+  const { t }           = useTranslation('payments')
   const syncMutation    = useSyncPaymentStatus()
   const syncCalledRef   = useRef(false)
 
@@ -73,10 +75,10 @@ export function PaymentCallbackPage() {
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4" />
         <p className="text-gray-600 font-medium">
           {isCancelled
-            ? 'Payment cancelled. Redirecting…'
+            ? t('callback.cancelled')
             : status === 'PAID'
-            ? 'Payment received! Confirming your booking…'
-            : 'Verifying payment status…'}
+            ? t('callback.received')
+            : t('callback.verifying')}
         </p>
       </div>
     </div>

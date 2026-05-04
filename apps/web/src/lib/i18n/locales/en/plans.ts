@@ -10,6 +10,7 @@ const plans = {
     lockedCta: 'View packages',
     card: {
       title: 'Family Safety Plan',
+      description: 'Personalised safety plan for your family.',
       riskLevel: 'Risk level:',
       topRisks: 'Top Risks',
       topPriorities: 'Top Priorities',

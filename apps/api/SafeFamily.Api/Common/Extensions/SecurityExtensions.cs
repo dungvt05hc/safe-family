@@ -1,5 +1,7 @@
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Hosting;
 
 namespace SafeFamily.Api.Common.Extensions;
 
@@ -35,6 +37,7 @@ public static class SecurityExtensions
 
     public static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app)
     {
+        var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
         return app.Use(async (context, next) =>
         {
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -42,6 +45,16 @@ public static class SecurityExtensions
             context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
             context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
             context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+
+            // CSP is omitted in Development so Swagger UI (which loads external assets) works without
+            // modification. In all other environments a strict deny-all policy is applied — the API
+            // only serves JSON, so no embedded scripts, styles, or frames should ever be needed.
+            if (!env.IsDevelopment())
+            {
+                context.Response.Headers["Content-Security-Policy"] =
+                    "default-src 'none'; frame-ancestors 'none'";
+            }
+
             await next();
         });
     }

@@ -6,7 +6,8 @@ public static class AuthExtensions
 {
     public static IServiceCollection AddAuthConfiguration(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         services
             .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -15,7 +16,9 @@ public static class AuthExtensions
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 // Always require Secure in production; honour request scheme in development.
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.Cookie.SecurePolicy = environment.IsDevelopment()
+                    ? CookieSecurePolicy.SameAsRequest
+                    : CookieSecurePolicy.Always;
                 options.Cookie.Name = "sf_session";
                 options.ExpireTimeSpan = TimeSpan.FromDays(7);
                 options.SlidingExpiration = true;

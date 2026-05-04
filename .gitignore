@@ -29,8 +29,14 @@ launchSettings.json
 
 # ── Secrets / Environment ────────────────────────────────────────────────────
 appsettings.*.local.json
+appsettings.Development.local.json
+# Exclude Development config — real credentials (e.g. payment keys) go in user-secrets or env vars instead
+appsettings.Development.json
 secrets.json
 .env.production
+# curl cookie jars — never commit session tokens
+apps/api/cookies.txt
+*.cookies.txt
 
 # ── OS / Editor ──────────────────────────────────────────────────────────────
 .DS_Store

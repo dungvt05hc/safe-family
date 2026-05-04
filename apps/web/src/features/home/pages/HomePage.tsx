@@ -1,13 +1,15 @@
+import { useTranslation } from 'react-i18next'
 import { PageLayout } from '@/components/layout/PageLayout'
 
 export function HomePage() {
+  const { t } = useTranslation('common')
   return (
     <PageLayout
-      title="Welcome to SafeFamily"
-      description="Keep your family safe and connected."
+      title={t('homePage.title')}
+      description={t('homePage.description')}
     >
       <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-        <p className="text-gray-500 text-sm">Your features will appear here as they are built.</p>
+        <p className="text-gray-500 text-sm">{t('homePage.placeholder')}</p>
       </div>
     </PageLayout>
   )

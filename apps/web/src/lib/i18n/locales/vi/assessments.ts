@@ -10,8 +10,8 @@ const assessments = {
 
   // ── Risk level labels ───────────────────────────────────────────────────────
   riskLevels: {
-    Low: 'An toàn tốt',
-    Medium: 'Cần cải thiện',
+    Low: 'Rủi ro thấp',
+    Medium: 'Rủi ro trung bình',
     High: 'Rủi ro cao',
     Critical: 'Nghiêm trọng',
   },

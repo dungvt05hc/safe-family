@@ -44,7 +44,7 @@ builder.Services.AddControllers()
 builder.Services.AddSwaggerDocs();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddCorsPolicy(builder.Configuration);
-builder.Services.AddAuthConfiguration(builder.Configuration);
+builder.Services.AddAuthConfiguration(builder.Configuration, builder.Environment);
 builder.Services.AddSecurityServices();
 
 // Auth feature
@@ -112,9 +112,14 @@ builder.Services.AddHttpClient("payos", c =>
 builder.Services.AddHttpClient("momo",    c => c.BaseAddress = new Uri(paymentCfg.MoMo.BaseUrl));
 builder.Services.AddHttpClient("zalopay", c => c.BaseAddress = new Uri(paymentCfg.ZaloPay.BaseUrl));
 
-// All gateway implementations are registered so PaymentService / PaymentWebhookService can
-// resolve the correct one at runtime via IEnumerable<IPaymentGateway>.
-builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+// Real payment gateways are always registered. PaymentService resolves the correct one at
+// runtime via IEnumerable<IPaymentGateway> using PaymentSettings.DefaultProvider.
+// The mock is additionally registered in Development-only to allow local testing without
+// hitting the real payOS API — it is never present in Staging or Production.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+}
 builder.Services.AddScoped<IPaymentGateway, PayOsGateway>();
 builder.Services.AddScoped<IPaymentGateway, MoMoGateway>();
 builder.Services.AddScoped<IPaymentGateway, ZaloPayGateway>();

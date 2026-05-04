@@ -95,7 +95,7 @@ public sealed class PayOsGateway : IPaymentGateway
             response.EnsureSuccessStatusCode(); // rethrow with status code context
         }
 
-        _logger.LogDebug("[payOS] Payment request response: {Body}", json);
+        _logger.LogDebug("[payOS] Payment request response: StatusCode={StatusCode}", (int)response.StatusCode);
 
         using var doc = JsonDocument.Parse(json);
         var root      = doc.RootElement;
