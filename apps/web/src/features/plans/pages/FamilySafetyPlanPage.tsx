@@ -28,6 +28,7 @@ import { TopPrioritiesSection } from '../components/TopPrioritiesSection'
 import { MemberActionPlanSection } from '../components/MemberActionPlanSection'
 import { AssetActionPlanSection } from '../components/AssetActionPlanSection'
 import { PlanCTABanner } from '../components/PlanCTABanner'
+import { PrintFooter } from '@/components/layout/PrintFooter'
 
 // ── Risk level display ────────────────────────────────────────────────────────
 
@@ -229,6 +230,8 @@ export function FamilySafetyPlanPage() {
           actionPlanByDevice={plan.actionPlanByDevice}
           assetTasks={assetTasks}
         />
+
+        <PrintFooter generatedAt={plan.createdAt} />
       </div>
     </PageLayout>
   )

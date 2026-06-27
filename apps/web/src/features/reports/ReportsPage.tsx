@@ -11,6 +11,7 @@ import { useReports } from './reports.hooks'
 import { ReportFilters as ReportFilterBar } from './components/ReportFilters'
 import { ReportList } from './components/ReportList'
 import { ReportPreviewPanel } from './components/ReportPreviewPanel'
+import { PrintFooter } from '@/components/layout/PrintFooter'
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
@@ -188,6 +189,8 @@ export function ReportsPage() {
           </div>
         </div>
       )}
+
+      <PrintFooter generatedAt={new Date()} hideOnScreen />
     </PageLayout>
   )
 }

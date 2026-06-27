@@ -11,6 +11,8 @@ import type en_plans from './locales/en/plans'
 import type en_reports from './locales/en/reports'
 import type en_validation from './locales/en/validation'
 import type en_errors from './locales/en/errors'
+import type en_footer from './locales/en/footer'
+import type en_info from './locales/en/info'
 
 // Augment react-i18next with strongly-typed resources for key autocomplete
 declare module 'react-i18next' {
@@ -29,6 +31,8 @@ declare module 'react-i18next' {
       reports: typeof en_reports
       validation: typeof en_validation
       errors: typeof en_errors
+      footer: typeof en_footer
+      info: typeof en_info
     }
   }
 }

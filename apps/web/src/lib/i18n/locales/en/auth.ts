@@ -21,6 +21,12 @@ const auth = {
   displayNameLabel: 'Display name',
   emailConflict: 'An account with this email already exists.',
   registerError: 'Something went wrong. Please try again.',
+  // Social auth
+  orContinueWith: 'or continue with',
+  orUseEmail: 'or continue with email',
+  googleVerifying: 'Verifying with Google…',
+  googleAuthError: 'Google sign-in failed. Please try again.',
+  googleAuthDenied: 'Google sign-in was cancelled or your account could not be verified.',
 } as const
 
 export default auth

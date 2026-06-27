@@ -28,10 +28,10 @@ public class UserConfiguration : BaseEntityConfiguration<User>
         builder.Property(u => u.Phone)
             .HasMaxLength(30);
 
-        // PasswordHash is a variable-length string produced by PasswordHasher<T>;
-        // typical length is ~84 chars but we leave it uncapped for forward compatibility.
+        // PasswordHash is a variable-length string produced by PasswordHasher<T>.
+        // Nullable because accounts created via external identity providers have no password.
         builder.Property(u => u.PasswordHash)
-            .IsRequired();
+            .HasMaxLength(500);
 
         builder.Property(u => u.Role)
             .IsRequired()

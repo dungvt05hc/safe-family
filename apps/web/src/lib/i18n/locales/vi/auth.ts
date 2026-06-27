@@ -21,6 +21,12 @@ const auth = {
   displayNameLabel: 'Tên hiển thị',
   emailConflict: 'Email này đã được đăng ký.',
   registerError: 'Đã xảy ra sự cố. Vui lòng thử lại.',
+  // Social auth
+  orContinueWith: 'hoặc tiếp tục với',
+  orUseEmail: 'hoặc tiếp tục với email',
+  googleVerifying: 'Đang xác minh với Google…',
+  googleAuthError: 'Đăng nhập Google thất bại. Vui lòng thử lại.',
+  googleAuthDenied: 'Đăng nhập Google bị huỷ hoặc tài khoản không thể xác minh.',
 } as const
 
 export default auth

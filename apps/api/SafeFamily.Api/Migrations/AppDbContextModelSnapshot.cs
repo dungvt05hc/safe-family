@@ -3244,8 +3244,8 @@ namespace SafeFamily.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTimeOffset?>("PasswordResetExpiresAt")
                         .HasColumnType("timestamp with time zone");
@@ -3276,6 +3276,44 @@ namespace SafeFamily.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("SafeFamily.Api.Domain.Users.UserExternalLogin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ProviderEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("ProviderSubject")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Provider", "ProviderSubject")
+                        .IsUnique();
+
+                    b.ToTable("user_external_logins", (string)null);
                 });
 
             modelBuilder.Entity("SafeFamily.Api.Domain.Accounts.Account", b =>
@@ -3642,6 +3680,17 @@ namespace SafeFamily.Api.Migrations
                     b.Navigation("Task");
                 });
 
+            modelBuilder.Entity("SafeFamily.Api.Domain.Users.UserExternalLogin", b =>
+                {
+                    b.HasOne("SafeFamily.Api.Domain.Users.User", "User")
+                        .WithMany("ExternalLogins")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SafeFamily.Api.Domain.Assessments.Assessment", b =>
                 {
                     b.Navigation("Answers");
@@ -3689,6 +3738,11 @@ namespace SafeFamily.Api.Migrations
             modelBuilder.Entity("SafeFamily.Api.Domain.Tasks.SafetyTask", b =>
                 {
                     b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("SafeFamily.Api.Domain.Users.User", b =>
+                {
+                    b.Navigation("ExternalLogins");
                 });
 #pragma warning restore 612, 618
         }

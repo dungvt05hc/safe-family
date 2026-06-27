@@ -43,10 +43,16 @@ import { AdminUsersPage } from '@/features/admin/users/AdminUsersPage'
 import { AdminUserDetailPage } from '@/features/admin/users/AdminUserDetailPage'
 import { AdminCustomerDetailPage } from '@/features/admin/pages/AdminCustomerDetailPage'
 import { AdminNotesPage } from '@/features/admin/notes/AdminNotesPage'
+import { PublicLayout } from '@/components/layout/PublicLayout'
 import { PaymentCallbackPage } from '@/features/bookings/pages/PaymentCallbackPage'
 import { PaymentUnlockPage } from '@/features/bookings/pages/PaymentUnlockPage'
 import { FamilySafetyPlanPage } from '@/features/plans/pages/FamilySafetyPlanPage'
 import { IncidentRecoveryPackPage } from '@/features/plans/pages/IncidentRecoveryPackPage'
+import { AboutPage } from '@/features/info/pages/AboutPage'
+import { ContactPage } from '@/features/info/pages/ContactPage'
+import { PrivacyPage } from '@/features/info/pages/PrivacyPage'
+import { TermsPage } from '@/features/info/pages/TermsPage'
+import { HelpPage } from '@/features/info/pages/HelpPage'
 
 export const router = createBrowserRouter([
   // ── Guest-only routes (redirect to /dashboard when already signed in) ──────
@@ -77,6 +83,21 @@ export const router = createBrowserRouter([
     ],
   },
 
+  // ── Public informational pages (no auth required, no auth dependency) ────────
+  // Rendered inside PublicLayout — a static shell with no useCurrentUser call,
+  // ensuring these pages load without any auth-check round-trip.
+  {
+    element: <PublicLayout />,
+    errorElement: <NotFoundPage />,
+    children: [
+      { path: 'about',   element: <AboutPage /> },
+      { path: 'contact', element: <ContactPage /> },
+      { path: 'privacy', element: <PrivacyPage /> },
+      { path: 'terms',   element: <TermsPage /> },
+      { path: 'help',    element: <HelpPage /> },
+    ],
+  },
+
   // ── Authenticated app shell (sidebar + topbar) ─────────────────────────────
   {
     element: (
@@ -86,16 +107,16 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: 'dashboard',         element: <DashboardPage /> },
-      { path: 'family/new',        element: <FamilyOnboardingPage /> },
+      { path: 'family/new',        element: <FamilyOnboardingPage />,    handle: { hideFooter: true } },
       { path: 'family/members',    element: <FamilyMembersPage /> },
       { path: 'accounts',          element: <AccountsPage /> },
       { path: 'devices',           element: <DevicesPage /> },
       { path: 'assessment',         element: <AssessmentStartPage /> },
-      { path: 'assessment/wizard',   element: <AssessmentWizardPage /> },
+      { path: 'assessment/wizard',   element: <AssessmentWizardPage />,   handle: { hideFooter: true } },
       { path: 'assessment/result',   element: <AssessmentResultPage /> },
       { path: 'assessment/history',  element: <AssessmentHistoryPage /> },
       { path: 'incidents',            element: <IncidentSelectPage /> },
-      { path: 'incidents/report',     element: <IncidentWizardPage /> },
+      { path: 'incidents/report',     element: <IncidentWizardPage />,     handle: { hideFooter: true } },
       { path: 'incidents/result/:id', element: <IncidentResultPage /> },
       { path: 'incidents/:id',        element: <IncidentDetailsPage /> },
       { path: 'checklists',         element: <ChecklistPage /> },

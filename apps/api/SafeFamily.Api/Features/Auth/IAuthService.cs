@@ -15,7 +15,15 @@ public interface IAuthService
     Task<AuthUserResponse> LoginAsync(LoginRequest request, CancellationToken ct = default);
 
     /// <summary>
+    /// Signs in or auto-registers a user via a verified external identity token.
+    /// If the provider token is invalid, throws <see cref="UnauthorizedException"/>.
+    /// If the account is suspended, throws <see cref="UnauthorizedException"/>.
+    /// </summary>
+    Task<AuthUserResponse> ExternalLoginAsync(ExternalAuthRequest request, CancellationToken ct = default);
+
+    /// <summary>
     /// Returns the user for an authenticated session, or null if the account no longer exists.
     /// </summary>
     Task<AuthUserResponse?> GetCurrentUserAsync(Guid userId, CancellationToken ct = default);
 }
+

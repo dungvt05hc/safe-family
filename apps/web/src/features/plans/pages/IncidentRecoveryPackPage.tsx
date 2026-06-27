@@ -28,6 +28,7 @@ import { WhatNotToDoSection } from '../components/WhatNotToDoSection'
 import { Next24HoursSection } from '../components/Next24HoursSection'
 import { Next7DaysSection } from '../components/Next7DaysSection'
 import type { IncidentRecoveryPack } from '../plans.types'
+import { PrintFooter } from '@/components/layout/PrintFooter'
 
 // ── Pack header ───────────────────────────────────────────────────────────────
 
@@ -205,6 +206,8 @@ export function IncidentRecoveryPackPage() {
           next7Days={pack.next7Days}
           tasks={next7dTasks}
         />
+
+        <PrintFooter generatedAt={pack.createdAt} confidential />
       </div>
     </PageLayout>
   )

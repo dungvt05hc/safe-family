@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using SafeFamily.Api.Common.Extensions;
 using SafeFamily.Api.Common.Middleware;
@@ -49,6 +50,10 @@ builder.Services.AddSecurityServices();
 
 // Auth feature
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+// Register token verifiers — one per supported identity provider.
+// To add a new provider: builder.Services.AddScoped<IExternalTokenVerifier, AppleTokenVerifier>();
+builder.Services.AddScoped<IExternalTokenVerifier, GoogleTokenVerifier>();
+builder.Services.AddScoped<IExternalTokenVerifierRegistry, ExternalTokenVerifierRegistry>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Families feature
@@ -146,6 +151,13 @@ builder.Services.AddScoped<IAdminTaskService, AdminTaskService>();
 var app = builder.Build();
 
 // ── Middleware pipeline ────────────────────────────────────────────────────────
+// ForwardedHeaders MUST be first so that HttpContext.Connection.RemoteIpAddress
+// reflects the real client IP (not the load balancer) for rate limiting and audit logs.
+// In production, restrict KnownProxies to your actual reverse proxy IPs.
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+});
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseSecurityHeaders();

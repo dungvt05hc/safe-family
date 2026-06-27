@@ -43,6 +43,10 @@ import vi_accounts from './locales/vi/accounts'
 import vi_devices from './locales/vi/devices'
 import vi_tasks from './locales/vi/tasks'
 import vi_payments from './locales/vi/payments'
+import en_footer from './locales/en/footer'
+import vi_footer from './locales/vi/footer'
+import en_info from './locales/en/info'
+import vi_info from './locales/vi/info'
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -77,6 +81,8 @@ i18n
         devices: en_devices,
         tasks: en_tasks,
         payments: en_payments,
+        footer: en_footer,
+        info: en_info,
       },
       vi: {
         common: vi_common,
@@ -99,6 +105,8 @@ i18n
         devices: vi_devices,
         tasks: vi_tasks,
         payments: vi_payments,
+        footer: vi_footer,
+        info: vi_info,
       },
     },
     fallbackLng: 'en',

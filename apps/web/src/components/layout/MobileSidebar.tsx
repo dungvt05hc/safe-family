@@ -4,6 +4,7 @@ import { X, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { NavContent } from './NavContent'
 import { type NavGroup } from './nav-items'
+import { company } from '@/lib/company'
 
 interface MobileSidebarProps {
   open: boolean
@@ -79,7 +80,7 @@ export function MobileSidebar({ open, onClose, navGroups }: MobileSidebarProps) 
 
             {/* Footer */}
             <div className="px-4 py-4 border-t border-slate-800 text-xs text-slate-500">
-              SafeFamily &copy; {new Date().getFullYear()}
+              {company.copyright()}
             </div>
           </motion.div>
         </>

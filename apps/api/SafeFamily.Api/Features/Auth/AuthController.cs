@@ -60,6 +60,30 @@ public class AuthController : ControllerBase
         }
     }
 
+    // POST /api/auth/external
+    // Handles any registered identity provider (Google, Apple, Microsoft, …).
+    // The provider name in the request body determines which token verifier is used.
+    [HttpPost("external")]
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType(typeof(AuthUserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ExternalLogin([FromBody] ExternalAuthRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var user = await _authService.ExternalLoginAsync(request, ct);
+            await _audit.LogAsync($"{request.Provider}LoginSuccess", user.Id, user.Email, ipAddress: GetIp(), ct: ct);
+            await SignInAsync(user);
+            return Ok(user);
+        }
+        catch (UnauthorizedException)
+        {
+            await _audit.LogAsync($"{request.Provider}LoginFailure", details: "Token verification failed", ipAddress: GetIp(), ct: ct);
+            throw;
+        }
+    }
+
     // POST /api/auth/logout
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status200OK)]

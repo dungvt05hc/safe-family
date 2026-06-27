@@ -13,4 +13,12 @@ export const authService = {
 
   logout: (): Promise<void> =>
     apiClient.post<void>('/api/auth/logout'),
+
+  /**
+   * Signs in (or auto-registers) via any supported external identity provider.
+   * `provider` must match the `ProviderName` of a registered backend verifier
+   * (e.g. "Google", "Apple", "Microsoft").
+   */
+  externalLogin: (provider: string, idToken: string): Promise<AuthUser> =>
+    apiClient.post<AuthUser>('/api/auth/external', { provider, idToken }),
 }

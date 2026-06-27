@@ -2,6 +2,7 @@ import { ShieldCheck } from 'lucide-react'
 import { NavContent } from './NavContent'
 import { type NavGroup } from './nav-items'
 import { cn } from '@/lib/utils'
+import { company } from '@/lib/company'
 
 interface SidebarProps {
   className?: string
@@ -29,7 +30,7 @@ export function Sidebar({ className, navGroups }: SidebarProps) {
 
       {/* Footer */}
       <div className="px-4 py-4 border-t border-slate-800 text-xs text-slate-500">
-        SafeFamily &copy; {new Date().getFullYear()}
+        {company.copyright()}
       </div>
     </aside>
   )

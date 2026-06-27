@@ -1,3 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Print utilities ────────────────────────────────────────────────────────
+   Tailwind's print: variant handles most cases, but we add custom rules for
+   page layout, font sizing, and color normalization for PDF/paper output.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Elements that should only appear in print/PDF — hidden on screen */
+.print-only {
+  display: none;
+}
+
+@media print {
+  /* Reset body background so paper is white */
+  body {
+    background: white !important;
+    font-size: 11pt;
+    color: #111;
+  }
+
+  /* Suppress interactive chrome that should never appear on paper */
+  .print\:hidden,
+  [data-print-hidden] {
+    display: none !important;
+  }
+
+  /* Elements hidden on screen but visible only in print/PDF output */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Force color links to be readable on mono printers */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Avoid breaking cards / sections mid-page */
+  .card,
+  section,
+  article {
+    break-inside: avoid;
+  }
+
+  /* Ensure full-width layout on paper */
+  .mx-auto {
+    max-width: 100% !important;
+  }
+
+  /* Page margin via CSS — adjust as needed */
+  @page {
+    margin: 16mm 18mm;
+  }
+}

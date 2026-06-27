@@ -18,8 +18,11 @@ public class User : BaseEntity
     /// <summary>Optional contact phone number.</summary>
     public string? Phone { get; set; }
 
-    /// <summary>BCrypt/PBKDF2 hash produced by ASP.NET Core's PasswordHasher.</summary>
-    public string PasswordHash { get; set; } = string.Empty;
+    /// <summary>
+    /// BCrypt/PBKDF2 hash produced by ASP.NET Core's PasswordHasher.
+    /// Null for accounts created via external identity providers (social sign-in).
+    /// </summary>
+    public string? PasswordHash { get; set; }
 
     /// <summary>Application-level role. Defaults to User; set to Admin for staff accounts.</summary>
     public UserRole Role { get; set; } = UserRole.User;
@@ -38,4 +41,12 @@ public class User : BaseEntity
 
     /// <summary>UTC expiry for the pending password reset token.</summary>
     public DateTimeOffset? PasswordResetExpiresAt { get; set; }
+
+    // ── Navigation ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// All external identity provider logins linked to this account
+    /// (e.g. a Google entry, an Apple entry, …).
+    /// </summary>
+    public ICollection<UserExternalLogin> ExternalLogins { get; set; } = [];
 }

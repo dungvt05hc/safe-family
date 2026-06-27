@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'
 import { useLogout } from '@/features/auth/hooks/useLogout'
+import { AppFooter } from '@/components/layout/AppFooter'
 
 /**
  * RootLayout — persistent shell rendered for every route.
@@ -74,9 +75,7 @@ export function RootLayout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-gray-200 bg-white py-4 text-center text-xs text-gray-400">
-        © {new Date().getFullYear()} SafeFamily
-      </footer>
+      <AppFooter />
     </div>
   )
 }
