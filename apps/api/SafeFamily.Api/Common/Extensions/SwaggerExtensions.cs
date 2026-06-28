@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace SafeFamily.Api.Common.Extensions;
 
@@ -22,18 +22,13 @@ public static class SwaggerExtensions
                 Description = "Enter your JWT token. Example: Bearer {token}",
             });
 
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            // In Microsoft.OpenApi 2.x, security requirements reference schemes via
+            // OpenApiSecuritySchemeReference, resolved against the document at generation time.
+            options.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer",
-                        },
-                    },
-                    Array.Empty<string>()
+                    new OpenApiSecuritySchemeReference("Bearer", doc),
+                    new List<string>()
                 },
             });
         });
